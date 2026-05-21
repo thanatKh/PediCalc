@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sLo Sarabun-Italic.ttf \"https://github.com/google/fonts/raw/main/ofl/sarabun/Sarabun-Italic.ttf\")"
+    ]
+  }
+}
