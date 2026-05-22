@@ -263,7 +263,7 @@ export default function TPNCalculator() {
                   type="date"
                   value={inputs.startDate}
                   onChange={(e) => update('startDate')(e.target.value)}
-                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 font-sans text-base md:text-sm shadow-sm"
+                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 w-full font-sans text-sm shadow-sm appearance-none"
                 />
               </div>
               <NumberField id="height"      label="ส่วนสูง"       suffix="cm"    value={inputs.height}      onChange={update('height')} step="0.5" />
