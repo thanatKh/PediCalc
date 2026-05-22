@@ -10,7 +10,7 @@ export default function PatientInfoSection({ inputs, update }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Name */}
         <div className="col-span-2">
-          <Label className="text-[11px] font-bold tracking-wide text-slate-500 uppercase">
+          <Label className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
             ชื่อ-สกุล<span className="text-rose-500 ml-0.5">*</span>
           </Label>
           <Input
@@ -23,7 +23,7 @@ export default function PatientInfoSection({ inputs, update }) {
 
         {/* HN */}
         <div>
-          <Label className="text-[11px] font-bold tracking-wide text-slate-500 uppercase">
+          <Label className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
             HN<span className="text-rose-500 ml-0.5">*</span>
           </Label>
           <Input
@@ -36,7 +36,7 @@ export default function PatientInfoSection({ inputs, update }) {
 
         {/* Ward */}
         <div>
-          <Label className="text-[11px] font-bold tracking-wide text-slate-500 uppercase">Ward</Label>
+          <Label className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Ward</Label>
           <Input
             value={inputs.ward}
             onChange={update('ward')}
@@ -47,12 +47,12 @@ export default function PatientInfoSection({ inputs, update }) {
 
         {/* Start date */}
         <div>
-          <Label className="text-[11px] font-bold tracking-wide text-slate-500 uppercase">เริ่มให้ วันที่</Label>
+          <Label className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">เริ่มให้ วันที่</Label>
           <Input
             type="date"
             value={inputs.startDate}
             onChange={update('startDate')}
-            className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 w-full font-sans text-sm shadow-sm appearance-none"
+            className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 w-full font-sans text-base md:text-sm shadow-sm appearance-none"
           />
         </div>
 
@@ -77,7 +77,7 @@ export default function PatientInfoSection({ inputs, update }) {
             />
             <Label htmlFor="patientType" className="text-sm font-sans text-slate-700 cursor-pointer">
               {inputs.patientType === 'newborn'
-                ? <><span className="font-semibold" className="text-teal-600">Newborn</span> · เผื่อคาสาย 25 ml</>
+                ? <><span className="font-semibold text-teal-600">Newborn</span> · เผื่อคาสาย 25 ml</>
                 : <><span className="font-semibold text-slate-600">เด็กโต</span> · &gt; 10 kg</>
               }
             </Label>
@@ -90,7 +90,7 @@ export default function PatientInfoSection({ inputs, update }) {
             />
             <Label htmlFor="lineType" className="text-sm font-sans text-slate-700 cursor-pointer">
               {inputs.lineType === 'central'
-                ? <><span className="font-semibold" className="text-teal-600">Central</span> line</>
+                ? <><span className="font-semibold text-teal-600">Central</span> line</>
                 : <><span className="font-semibold text-amber-600">Peripheral</span> line</>
               }
             </Label>

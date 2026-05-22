@@ -11,8 +11,8 @@ import {
 
 const ALERT_STYLES = {
   rose:   { wrap: 'bg-rose-50 border-rose-500',   icon: 'text-rose-500',   title: 'text-rose-700',   body: 'text-rose-600' },
-  amber:  { wrap: 'bg-amber-50 border-amber-500',  icon: 'text-amber-500',  title: 'text-amber-700',  body: 'text-amber-700' },
-  yellow: { wrap: 'bg-yellow-50 border-yellow-500', icon: 'text-yellow-600', title: 'text-yellow-800', body: 'text-yellow-700' },
+  amber:  { wrap: 'bg-amber-50 border-amber-500',  icon: 'text-amber-500',  title: 'text-amber-800',  body: 'text-amber-600' },
+  yellow: { wrap: 'bg-yellow-50 border-yellow-500', icon: 'text-yellow-600', title: 'text-yellow-900', body: 'text-yellow-700' },
 };
 
 function AlertBanner({ color, title, body }) {
@@ -67,7 +67,7 @@ export default function ResultsPanel({ results, inputs }) {
       {/* ── Key stat pills ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
         <StatPill label="Total Volume" value={results?.totalVolume   ?? '—'} suffix="ml"       tone="teal"    decimals={1} />
-        <StatPill label="GIR"          value={results?.gir           ?? '—'} suffix="mg/kg/min" tone={(results?.gir ?? 0) > GIR_MAX_SAFE ? 'amber' : 'emerald'} decimals={1} />
+        <StatPill label="GIR"          value={results?.gir           ?? '—'} suffix="mg/kg/min" tone={results == null ? 'slate' : (results.gir ?? 0) > GIR_MAX_SAFE ? 'amber' : 'emerald'} decimals={1} />
         <StatPill label="DSF"          value={results?.dsf           ?? '—'} suffix=""          tone="slate"   decimals={3} />
         <StatPill label="Osmolarity"   value={results?.estOsmolarity ?? '—'} suffix="mOsm/L"   tone={(results?.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX ? 'amber' : 'slate'} decimals={0} />
         <StatPill label="Dextrose"     value={dexPct}                        suffix="%"         tone={dexPct > DEXTROSE_PERIPHERAL_LIMIT ? 'amber' : 'slate'} decimals={1} />
