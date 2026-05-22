@@ -5,6 +5,7 @@ Font.register({
   family: 'Sarabun',
   fonts: [
     { src: '/fonts/Sarabun-Regular.ttf' },
+    { src: '/fonts/Sarabun-Italic.ttf',   fontStyle: 'italic' },
     { src: '/fonts/Sarabun-SemiBold.ttf', fontWeight: 600 },
     { src: '/fonts/Sarabun-Bold.ttf',     fontWeight: 700 },
   ],
