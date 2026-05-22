@@ -1,5 +1,56 @@
 @import "tailwindcss";
 
+/* ── Self-hosted fonts (no Google Fonts round-trip) ── */
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/fonts/Sarabun-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/fonts/Sarabun-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/fonts/Sarabun-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sarabun';
+  src: url('/fonts/Sarabun-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kanit';
+  src: url('/fonts/Kanit-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kanit';
+  src: url('/fonts/Kanit-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kanit';
+  src: url('/fonts/Kanit-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -167,10 +218,7 @@ input:focus {
 
 /* ── Nav button hover in sidebar ── */
 .nav-item {
-  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
-}
-.nav-item:hover:not(:disabled) {
-  transform: translateX(2px);
+  transition: background 0.15s ease, opacity 0.15s ease;
 }
 
 /* ── Alert slide-in ── */

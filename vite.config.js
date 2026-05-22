@@ -17,10 +17,13 @@ export default defineConfig({
     },
   },
   build: {
+    // Raise warning threshold — react-pdf is intentionally large (lazy-loaded)
+    chunkSizeWarningLimit: 1600,
     rolldownOptions: {
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react-vendor';
+          if (id.includes('node_modules/@react-pdf') || id.includes('node_modules/pako')) return 'react-pdf';
           if (id.includes('node_modules/radix-ui') || id.includes('node_modules/@radix-ui')) return 'radix-vendor';
           if (id.includes('node_modules/motion')) return 'motion-vendor';
           if (id.includes('node_modules/lucide-react')) return 'lucide-vendor';

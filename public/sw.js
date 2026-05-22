@@ -1,7 +1,7 @@
 // Service Worker — PediCalc PWA
 // Handles: (1) PDF preview with correct filename, (2) app shell caching for offline
 
-const SW_VERSION   = 'v2';
+const SW_VERSION   = 'v3';
 const CACHE_NAME   = `pedicale-shell-${SW_VERSION}`;
 const pdfStore     = new Map(); // token → { buffer, filename }
 
@@ -12,6 +12,14 @@ const SHELL_ASSETS = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/logo-kabinburi.PNG',
+  '/logo-kabinburi-white.PNG',
+  '/fonts/Sarabun-Regular.ttf',
+  '/fonts/Sarabun-SemiBold.ttf',
+  '/fonts/Sarabun-Bold.ttf',
+  '/fonts/Sarabun-Italic.ttf',
+  '/fonts/Kanit-Regular.ttf',
+  '/fonts/Kanit-SemiBold.ttf',
+  '/fonts/Kanit-Bold.ttf',
 ];
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -24,7 +32,6 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  // Remove old caches
   e.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
@@ -89,6 +96,7 @@ self.addEventListener('fetch', (e) => {
     url.pathname.startsWith('/icons/') ||
     url.pathname.startsWith('/fonts/') ||
     url.pathname === '/logo-kabinburi.PNG' ||
+    url.pathname === '/logo-kabinburi-white.PNG' ||
     url.pathname === '/manifest.webmanifest'
   )) {
     e.respondWith(
