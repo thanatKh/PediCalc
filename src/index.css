@@ -55,6 +55,8 @@
     font-family: 'Sarabun', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Respect iPhone home indicator at bottom */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 

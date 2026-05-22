@@ -68,8 +68,10 @@ export default function Sidebar({ activeKey, onSelect }) {
           boxShadow: '4px 0 24px rgba(13,110,110,0.18)',
         }}
       >
-        {/* Hospital header */}
-        <div className={`flex items-center gap-3 px-3 py-5 border-b border-white/10 ${open ? '' : 'lg:justify-center'}`}>
+        {/* Hospital header — pt accounts for Dynamic Island / notch safe area */}
+        <div className={`flex items-center gap-3 px-3 border-b border-white/10 ${open ? '' : 'lg:justify-center'}`}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.25rem)', paddingBottom: '1.25rem' }}
+        >
           <div className="shrink-0 w-12 h-12 rounded-2xl bg-white ring-1 ring-white/40 overflow-hidden flex items-center justify-center shadow-sm">
             <img
               src="/logo-kabinburi.PNG"
@@ -174,10 +176,10 @@ export default function Sidebar({ activeKey, onSelect }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="เปิดเมนู"
-        className={`fixed top-2.5 left-3 z-40 lg:hidden p-2.5 rounded-xl shadow-lg text-white transition-opacity duration-200 ${
+        className={`fixed left-3 z-40 lg:hidden p-2.5 rounded-xl shadow-lg text-white transition-opacity duration-200 ${
           open ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
-        style={{ background: '#0d6e6e' }}
+        style={{ background: '#0d6e6e', top: 'calc(env(safe-area-inset-top) + 0.625rem)' }}
       >
         <Menu size={20} />
       </button>
