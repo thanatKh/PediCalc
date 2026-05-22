@@ -1,17 +1,25 @@
 import { AlertTriangle, Droplet, Zap } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { fmt, StatPill } from './ui';
+import {
+  GIR_MAX_SAFE,
+  OSMOLARITY_PERIPHERAL_MAX,
+  DEXTROSE_PERIPHERAL_LIMIT,
+  NPC_N_TARGET_MIN,
+  NPC_N_TARGET_MAX,
+} from '@/utils/clinicalConstants';
+
+const ALERT_STYLES = {
+  rose:   { wrap: 'bg-rose-50 border-rose-500',   icon: 'text-rose-500',   title: 'text-rose-700',   body: 'text-rose-600' },
+  amber:  { wrap: 'bg-amber-50 border-amber-500',  icon: 'text-amber-500',  title: 'text-amber-700',  body: 'text-amber-700' },
+  yellow: { wrap: 'bg-yellow-50 border-yellow-500', icon: 'text-yellow-600', title: 'text-yellow-800', body: 'text-yellow-700' },
+};
 
 function AlertBanner({ color, title, body }) {
-  const styles = {
-    rose:   { wrap: { background: '#fff1f2', borderColor: '#e11d48' }, icon: '#e11d48', title: 'text-rose-700',   body: 'text-rose-600' },
-    amber:  { wrap: { background: '#fffbeb', borderColor: '#d97706' }, icon: '#d97706', title: 'text-amber-700',  body: 'text-amber-700' },
-    yellow: { wrap: { background: '#fefce8', borderColor: '#ca8a04' }, icon: '#ca8a04', title: 'text-yellow-800', body: 'text-yellow-700' },
-  };
-  const s = styles[color] ?? styles.amber;
+  const s = ALERT_STYLES[color] ?? ALERT_STYLES.amber;
   return (
-    <div className="alert-enter rounded-2xl p-4 flex gap-3 border-l-4" style={s.wrap}>
-      <AlertTriangle className="shrink-0 mt-0.5" size={20} style={{ color: s.icon }} />
+    <div className={`alert-enter rounded-2xl p-4 flex gap-3 border-l-4 ${s.wrap}`}>
+      <AlertTriangle className={`shrink-0 mt-0.5 ${s.icon}`} size={20} />
       <div className="text-sm font-sans">
         <p className={`font-bold ${s.title}`}>{title}</p>
         <p className={`mt-0.5 ${s.body}`}>{body}</p>
@@ -59,17 +67,17 @@ export default function ResultsPanel({ results, inputs }) {
       {/* ── Key stat pills ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
         <StatPill label="Total Volume" value={results?.totalVolume   ?? '—'} suffix="ml"       tone="teal"    decimals={1} />
-        <StatPill label="GIR"          value={results?.gir           ?? '—'} suffix="mg/kg/min" tone={(results?.gir ?? 0) > 12 ? 'amber' : 'emerald'} decimals={1} />
+        <StatPill label="GIR"          value={results?.gir           ?? '—'} suffix="mg/kg/min" tone={(results?.gir ?? 0) > GIR_MAX_SAFE ? 'amber' : 'emerald'} decimals={1} />
         <StatPill label="DSF"          value={results?.dsf           ?? '—'} suffix=""          tone="slate"   decimals={3} />
-        <StatPill label="Osmolarity"   value={results?.estOsmolarity ?? '—'} suffix="mOsm/L"   tone={(results?.estOsmolarity ?? 0) > 900 ? 'amber' : 'slate'} decimals={0} />
-        <StatPill label="Dextrose"     value={dexPct}                        suffix="%"         tone={dexPct > 12.5 ? 'amber' : 'slate'} decimals={1} />
+        <StatPill label="Osmolarity"   value={results?.estOsmolarity ?? '—'} suffix="mOsm/L"   tone={(results?.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX ? 'amber' : 'slate'} decimals={0} />
+        <StatPill label="Dextrose"     value={dexPct}                        suffix="%"         tone={dexPct > DEXTROSE_PERIPHERAL_LIMIT ? 'amber' : 'slate'} decimals={1} />
         <StatPill label="BW"           value={parseFloat(inputs.bw) || '—'} suffix="kg"        tone="slate"   decimals={2} />
       </div>
 
       {/* ── Infusion rates ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-          <Droplet size={14} style={{ color: '#0d6e6e' }} />
+          <Droplet size={14} className="text-teal-600" />
           <span className="font-mitr text-sm font-semibold text-teal-700">อัตราหยด · Infusion Rates</span>
         </div>
         <div className="px-4 py-3 grid grid-cols-2 gap-3">
@@ -99,19 +107,19 @@ export default function ResultsPanel({ results, inputs }) {
       {/* ── Energy distribution ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-          <Zap size={14} style={{ color: '#0d6e6e' }} />
+          <Zap size={14} className="text-teal-600" />
           <span className="font-mitr text-sm font-semibold text-teal-700">พลังงาน · Energy</span>
         </div>
         <div className="px-4 py-3 space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-sans text-slate-500">Total Energy</span>
+            <span className="text-[11px] font-sans text-slate-500">Total Energy</span>
             <span className="font-mitr font-semibold text-teal-700">
               {fmt(results?.totalEnergy, 1)}
               <span className="text-[10px] font-sans text-slate-400 ml-1">kcal/day</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-xs font-sans text-slate-500">kcal/kg/day</span>
+            <span className="text-[11px] font-sans text-slate-500">kcal/kg/day</span>
             <span className="font-mitr font-semibold text-teal-700">
               {fmt(results?.kcalPerKg, 1)}
               <span className="text-[10px] font-sans text-slate-400 ml-1">kcal/kg</span>
@@ -142,7 +150,7 @@ export default function ResultsPanel({ results, inputs }) {
           <div className="flex justify-between items-center text-[11px] font-sans">
             <span className="text-slate-400">NPC:N ratio</span>
             <span className={`font-semibold ${
-              (results?.npcN ?? 0) < 150 || (results?.npcN ?? 0) > 200 ? 'text-amber-600' : 'text-emerald-600'
+              (results?.npcN ?? 0) < NPC_N_TARGET_MIN || (results?.npcN ?? 0) > NPC_N_TARGET_MAX ? 'text-amber-600' : 'text-emerald-600'
             }`}>
               {fmt(results?.npcN, 0)}
               <span className="font-normal text-slate-400 ml-1">(target 150–200)</span>

@@ -1,3 +1,4 @@
+import { Pill } from 'lucide-react';
 import { AutoBadge, fmt, SectionCard } from './ui';
 
 const VITAMIN_META = [
@@ -8,7 +9,7 @@ const VITAMIN_META = [
 
 export default function VitaminSection({ results }) {
   return (
-    <SectionCard title="วิตามินและสารอาหารรอง · Vitamins / Trace">
+    <SectionCard title="วิตามินและสารอาหารรอง · Vitamins / Trace" icon={Pill}>
       <div className="grid grid-cols-3 gap-3">
         {VITAMIN_META.map((item) => (
           <div key={item.label} className="space-y-1.5">

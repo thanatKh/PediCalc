@@ -4,7 +4,9 @@
       "Bash(curl -sLo Sarabun-Italic.ttf \"https://github.com/google/fonts/raw/main/ofl/sarabun/Sarabun-Italic.ttf\")",
       "Bash(node -e \"require\\('sharp'\\)\")",
       "Bash(node -e ' *)",
-      "Bash(mkdir \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\icons\")"
+      "Bash(mkdir \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\icons\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\" -Recurse -Filter \"*.js*\")",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

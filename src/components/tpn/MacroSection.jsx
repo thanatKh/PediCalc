@@ -1,8 +1,9 @@
+import { Beaker } from 'lucide-react';
 import { NumberField, SectionCard } from './ui';
 
 export default function MacroSection({ inputs, update }) {
   return (
-    <SectionCard title="สารอาหารหลัก · Macronutrients">
+    <SectionCard title="สารอาหารหลัก · Macronutrients" icon={Beaker}>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <NumberField
           id="dextrosePct"

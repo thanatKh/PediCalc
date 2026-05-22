@@ -1,22 +1,36 @@
 import { Document, Page, Text, View, Image, Font, StyleSheet } from '@react-pdf/renderer';
+import {
+  GIR_MAX_SAFE, GIR_MIN_SAFE,
+  OSMOLARITY_PERIPHERAL_MAX,
+  FAT_RATE_MAX_G_KG_HR,
+  CA_PO4_PRECIP_THRESHOLD,
+  NPC_N_TARGET_MIN, NPC_N_TARGET_MAX,
+  HOURS_PER_DAY,
+} from '@/utils/clinicalConstants';
+
+// Use absolute URLs so react-pdf can fetch fonts reliably in both dev and production
+const BASE = typeof window !== 'undefined' ? window.location.origin : '';
 
 Font.register({
   family: 'Sarabun',
   fonts: [
-    { src: '/fonts/Sarabun-Regular.ttf' },
-    { src: '/fonts/Sarabun-Italic.ttf',   fontStyle: 'italic' },
-    { src: '/fonts/Sarabun-SemiBold.ttf', fontWeight: 600 },
-    { src: '/fonts/Sarabun-Bold.ttf',     fontWeight: 700 },
+    { src: `${BASE}/fonts/Sarabun-Regular.ttf` },
+    { src: `${BASE}/fonts/Sarabun-Italic.ttf`,   fontStyle: 'italic' },
+    { src: `${BASE}/fonts/Sarabun-SemiBold.ttf`, fontWeight: 600 },
+    { src: `${BASE}/fonts/Sarabun-Bold.ttf`,     fontWeight: 700 },
   ],
 });
 Font.register({
   family: 'Kanit',
   fonts: [
-    { src: '/fonts/Kanit-Regular.ttf' },
-    { src: '/fonts/Kanit-SemiBold.ttf', fontWeight: 600 },
-    { src: '/fonts/Kanit-Bold.ttf',     fontWeight: 700 },
+    { src: `${BASE}/fonts/Kanit-Regular.ttf` },
+    { src: `${BASE}/fonts/Kanit-SemiBold.ttf`, fontWeight: 600 },
+    { src: `${BASE}/fonts/Kanit-Bold.ttf`,     fontWeight: 700 },
   ],
 });
+
+// Disable automatic hyphenation — Thai text must never be broken mid-word by the PDF engine
+Font.registerHyphenationCallback((word) => [word]);
 
 const TEAL   = '#0d6e6e';
 const TEAL_L = '#e6f4f4';
@@ -138,7 +152,7 @@ const SectionHeader = ({ title, tag }) => (
 const renderRow = (row, i) => {
   const rowStyle = i % 2 === 1 ? s.tRowAlt : s.tRow;
   return (
-    <View style={rowStyle} key={i}>
+    <View style={rowStyle} key={i} wrap={false}>
       <Text style={[s.tC,  { width: '36%' }]}>{row.name}</Text>
       <Text style={[s.tCC, { width: '22%' }]}>{row.target}</Text>
       <Text style={[s.tCN, { width: '16%', color: row.color || SLATE }]}>{fmt(row.ml)}</Text>
@@ -158,10 +172,10 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
   const bwNum      = parseFloat(inputs.bw) || 1;
 
   // Safety flags
-  const osmHigh      = (results.estOsmolarity ?? 0) > 900;
-  const girHigh      = (results.gir ?? 0) > 12;
-  const girLow       = (results.gir ?? 0) < 4;
-  const fatRateHigh  = results.lipidMl > 0 && (results.lipidMl / 24) > 0.17 * bwNum;
+  const osmHigh      = (results.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX;
+  const girHigh      = (results.gir ?? 0) > GIR_MAX_SAFE;
+  const girLow       = (results.gir ?? 0) < GIR_MIN_SAFE;
+  const fatRateHigh  = results.lipidMl > 0 && (results.lipidMl / HOURS_PER_DAY) > FAT_RATE_MAX_G_KG_HR * bwNum;
   const caxPHigh     = !!results.caxPHigh;
   const peripheralRisk = !!results.peripheralRisk;
 
@@ -339,7 +353,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
               </View>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>NPC:N</Text>
-                <Text style={[s.panelValue, { color: (results.npcN < 150 || results.npcN > 200) ? '#b45309' : TEAL }]}>{fmt(results.npcN, 0)}</Text>
+                <Text style={[s.panelValue, { color: (results.npcN < NPC_N_TARGET_MIN || results.npcN > NPC_N_TARGET_MAX) ? '#b45309' : TEAL }]}>{fmt(results.npcN, 0)}</Text>
                 <Text style={s.panelSub}>target 150–200</Text>
               </View>
             </View>
@@ -398,7 +412,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
                 <Text style={[s.panelValue, { color: caxPHigh ? '#854d0e' : SLATE }]}>
                   {fmt(results.caxP, 1)}<Text style={{ fontSize: 6, fontFamily: 'Sarabun', fontWeight: 400 }}> mmol²/L²</Text>
                 </Text>
-                <Text style={[s.panelSub, { color: caxPHigh ? '#854d0e' : MUTED }]}>{caxPHigh ? '⚠ ตกตะกอน >55' : 'เข้ากันได้ ✓'}</Text>
+                <Text style={[s.panelSub, { color: caxPHigh ? '#854d0e' : MUTED }]}>{caxPHigh ? `⚠ ตกตะกอน >${CA_PO4_PRECIP_THRESHOLD}` : 'เข้ากันได้ ✓'}</Text>
               </View>
             </View>
           </View>

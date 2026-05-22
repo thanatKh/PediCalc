@@ -76,7 +76,7 @@ export function SectionCard({ title, icon: Icon, children, className }) {
   return (
     <div className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}>
       <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-        {Icon && <Icon size={14} style={{ color: '#0d6e6e' }} />}
+        {Icon && <Icon size={14} className="text-teal-600" />}
         <h2 className="font-mitr text-sm font-semibold tracking-wide text-teal-700">{title}</h2>
       </div>
       <div className="px-4 sm:px-5 py-4">{children}</div>
@@ -93,21 +93,3 @@ export function AutoBadge() {
   );
 }
 
-// ── ReadOnlyField ────────────────────────────────────────────────────────────
-export function ReadOnlyField({ label, value, unit, badge, note, tone = 'slate' }) {
-  const bgMap = { slate: 'bg-slate-50 ring-slate-200/80', amber: 'bg-amber-50 ring-amber-200', teal: 'bg-teal-50 ring-teal-200' };
-  const textMap = { slate: 'text-teal-700', amber: 'text-amber-700', teal: 'text-teal-700' };
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{label}</span>
-        {badge}
-      </div>
-      <div className={cn('h-11 md:h-10 flex items-center px-3 rounded-xl ring-1', bgMap[tone] ?? bgMap.slate)}>
-        <span className={cn('font-mitr font-semibold text-sm', textMap[tone] ?? textMap.slate)}>{value}</span>
-        {unit && <span className="text-[10px] text-slate-400 ml-1 font-sans">{unit}</span>}
-      </div>
-      {note && <p className="text-[10px] text-slate-400 font-sans leading-snug px-0.5">{note}</p>}
-    </div>
-  );
-}

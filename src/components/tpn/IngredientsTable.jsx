@@ -2,41 +2,43 @@ import { FileText } from 'lucide-react';
 import { fmt } from './ui';
 
 const BAG_ROWS = [
-  { label: (dex) => `Dextrose ${dex}% (จาก 50% Glucose)`, key: 'dextroseMl',    accent: 'text-blue-600' },
-  { label: () => '10% Aminoven Infant',                     key: 'aminovenMl' },
-  { label: () => '3% NaCl',                                 key: 'na3PctMl' },
-  { label: () => 'Na Glycerophosphate',                     key: 'naGlyceroml' },
-  { label: () => '15% KCl',                                 key: 'k15PctMl' },
-  { label: () => '8.71% K2HPO4',                            key: 'k2hpo4Ml' },
-  { label: () => '10% Calcium gluconate',                   key: 'caGluconateMl' },
-  { label: () => '50% MgSO4',                               key: 'mgso4Ml' },
-  { label: () => 'Soluvit-N',                               key: 'soluvitMl' },
-  { label: () => 'Pediatrace',                              key: 'pediatraceMl' },
+  { label: (dex) => `Dextrose ${dex}% (จาก 50% Glucose)`, key: 'dextroseMl',    bag: '2-in-1', accent: 'text-blue-600' },
+  { label: '10% Aminoven Infant',                           key: 'aminovenMl',    bag: '2-in-1' },
+  { label: '3% NaCl',                                       key: 'na3PctMl',      bag: '2-in-1' },
+  { label: 'Na Glycerophosphate',                           key: 'naGlyceroml',   bag: '2-in-1' },
+  { label: '15% KCl',                                       key: 'k15PctMl',      bag: '2-in-1' },
+  { label: '8.71% K2HPO4',                                  key: 'k2hpo4Ml',      bag: '2-in-1' },
+  { label: '10% Calcium gluconate',                         key: 'caGluconateMl', bag: '2-in-1' },
+  { label: '50% MgSO4',                                     key: 'mgso4Ml',       bag: '2-in-1' },
+  { label: 'Soluvit-N',                                     key: 'soluvitMl',     bag: '2-in-1' },
+  { label: 'Pediatrace',                                    key: 'pediatraceMl',  bag: '2-in-1' },
 ];
 
 const LIPID_ROWS = [
-  { label: () => '20% SMOFlipid',      key: 'lipidMl',    accent: 'text-emerald-600' },
-  { label: () => 'Vitalipid N Infant', key: 'vitalipidMl' },
+  { label: '20% SMOFlipid',      key: 'lipidMl',    bag: 'Lipid', accent: 'text-emerald-600' },
+  { label: 'Vitalipid N Infant', key: 'vitalipidMl', bag: 'Lipid' },
 ];
 
 function TableHeader() {
   return (
     <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">ส่วนประกอบ</span>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right w-16">ml</span>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right w-12">Bag</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ส่วนประกอบ</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-right w-16">ปริมาณ (ml)</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-right w-12">Bag</span>
     </div>
   );
 }
 
-function TableRow({ label, value, accent, zebra }) {
+function TableRow({ label, value, bag, accent, zebra }) {
   return (
-    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/50' : 'bg-white'}`}>
+    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/40' : 'bg-white'}`}>
       <span className="text-sm font-sans text-slate-600 leading-snug min-w-0">{label}</span>
       <span className={`text-sm font-mitr font-semibold tabular-nums text-right w-16 ${accent || 'text-slate-700'}`}>
         {value}
       </span>
-      <span className="text-[9px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
+      <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">
+        {bag}
+      </span>
     </div>
   );
 }
@@ -55,7 +57,7 @@ export default function IngredientsTable({ results, dexPct }) {
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
       <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-        <FileText size={14} style={{ color: '#0d6e6e' }} />
+        <FileText size={14} className="text-teal-600" />
         <span className="font-mitr text-sm font-semibold text-teal-700">รายการส่วนประกอบ · Ingredients</span>
       </div>
 
@@ -63,12 +65,12 @@ export default function IngredientsTable({ results, dexPct }) {
         <div className="min-w-[280px]">
           <TableHeader />
 
-          {/* 2-in-1 bag rows */}
           {BAG_ROWS.map((row, i) => (
             <TableRow
               key={row.key}
-              label={row.label(dexPct)}
+              label={typeof row.label === 'function' ? row.label(dexPct) : row.label}
               value={fmt(results?.[row.key], 2)}
+              bag={row.bag}
               accent={row.accent}
               zebra={i % 2 === 1}
             />
@@ -76,13 +78,13 @@ export default function IngredientsTable({ results, dexPct }) {
 
           {/* Sterile water */}
           <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center ${waterNegative ? 'bg-rose-50' : 'bg-amber-50/60'}`}>
-            <span className={`text-sm font-mitr font-semibold leading-snug ${waterNegative ? 'text-rose-700' : 'text-amber-800'}`}>
+            <span className={`text-sm font-mitr font-semibold ${waterNegative ? 'text-rose-700' : 'text-amber-800'}`}>
               Sterile Water for Injection
             </span>
             <span className={`text-base font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
               {fmt(results?.sterileWaterMl, 2)}
             </span>
-            <span className="text-[9px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
+            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">2-in-1</span>
           </div>
 
           {/* Total 2-in-1 */}
@@ -91,18 +93,17 @@ export default function IngredientsTable({ results, dexPct }) {
             <span className="text-sm font-mitr font-bold tabular-nums text-right w-16 text-teal-700">
               {fmt(results?.bag2in1Vol, 2)}
             </span>
-            <span className="text-[9px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
+            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
           </div>
 
-          {/* Lipid separator */}
           <SeparatorRow label="แยกสาย · Lipid bag" />
 
-          {/* Lipid rows */}
           {LIPID_ROWS.map((row, i) => (
             <TableRow
               key={row.key}
-              label={row.label()}
+              label={row.label}
               value={fmt(results?.[row.key], 2)}
+              bag={row.bag}
               accent={row.accent}
               zebra={i % 2 === 0}
             />
@@ -110,18 +111,18 @@ export default function IngredientsTable({ results, dexPct }) {
 
           {/* Heparin */}
           <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center bg-amber-50/40">
-            <span className="text-sm font-sans text-amber-800 leading-snug">
+            <span className="text-sm font-sans text-amber-800">
               Heparin ({fmt(results?.heparinUnitPerMl, 1)} u/ml)
             </span>
             <div className="text-right w-16">
               <span className="text-sm font-mitr font-semibold tabular-nums text-amber-700">
                 {fmt(results?.heparinMl, 2)}
               </span>
-              <span className="block text-[9px] text-slate-400 font-sans">
+              <span className="block text-[10px] text-slate-400 font-sans">
                 ({fmt(results?.heparinUnits, 0)} u)
               </span>
             </div>
-            <span className="text-[9px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
+            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">2-in-1</span>
           </div>
         </div>
       </div>

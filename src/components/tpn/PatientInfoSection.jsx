@@ -1,3 +1,4 @@
+import { User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -5,7 +6,7 @@ import { NumberField, SectionCard } from './ui';
 
 export default function PatientInfoSection({ inputs, update }) {
   return (
-    <SectionCard title="ข้อมูลผู้ป่วย · Patient Info">
+    <SectionCard title="ข้อมูลผู้ป่วย · Patient Info" icon={User}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Name */}
         <div className="col-span-2">
@@ -76,7 +77,7 @@ export default function PatientInfoSection({ inputs, update }) {
             />
             <Label htmlFor="patientType" className="text-sm font-sans text-slate-700 cursor-pointer">
               {inputs.patientType === 'newborn'
-                ? <><span className="font-semibold" style={{ color: '#0d6e6e' }}>Newborn</span> · เผื่อคาสาย 25 ml</>
+                ? <><span className="font-semibold" className="text-teal-600">Newborn</span> · เผื่อคาสาย 25 ml</>
                 : <><span className="font-semibold text-slate-600">เด็กโต</span> · &gt; 10 kg</>
               }
             </Label>
@@ -89,7 +90,7 @@ export default function PatientInfoSection({ inputs, update }) {
             />
             <Label htmlFor="lineType" className="text-sm font-sans text-slate-700 cursor-pointer">
               {inputs.lineType === 'central'
-                ? <><span className="font-semibold" style={{ color: '#0d6e6e' }}>Central</span> line</>
+                ? <><span className="font-semibold" className="text-teal-600">Central</span> line</>
                 : <><span className="font-semibold text-amber-600">Peripheral</span> line</>
               }
             </Label>

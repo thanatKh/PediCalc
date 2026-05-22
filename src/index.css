@@ -86,10 +86,6 @@ input:focus-visible, [data-slot="input"]:focus-visible {
   background-color: #0d6e6e !important;
 }
 
-/* ── Smooth number transitions in results ── */
-.result-value {
-  transition: color 0.2s ease, opacity 0.15s ease;
-}
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
@@ -144,9 +140,9 @@ input:focus-visible, [data-slot="input"]:focus-visible {
 .stagger > *:nth-child(5) { animation-delay: 200ms; }
 .stagger > *:nth-child(6) { animation-delay: 250ms; }
 
-/* ── Glass card hover lift ── */
+/* ── Glass card hover — shadow only, no transform (prevents input cards from shifting) ── */
 .glass-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 .glass-card:hover {
   box-shadow: 0 8px 32px rgba(13,110,110,0.10), 0 2px 8px rgba(13,110,110,0.06);

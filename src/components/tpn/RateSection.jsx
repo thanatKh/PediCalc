@@ -1,4 +1,6 @@
+import { Gauge } from 'lucide-react';
 import { fmt, NumberField, SectionCard } from './ui';
+import { TPN_RATE_WARN_THRESHOLD, LIPID_RATE_WARN_THRESHOLD } from '@/utils/clinicalConstants';
 
 export default function RateSection({ inputs, update, results }) {
   const manualTPNRate   = parseFloat(inputs.manualTPNRate);
@@ -7,7 +9,7 @@ export default function RateSection({ inputs, update, results }) {
   const calcLipidRate   = results?.lipidRate    ?? 0;
 
   return (
-    <SectionCard title="อัตราหยดที่สั่ง · Prescribed Rates (Optional)">
+    <SectionCard title="อัตราหยดที่สั่ง · Prescribed Rates (Optional)" icon={Gauge}>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <NumberField
@@ -21,9 +23,9 @@ export default function RateSection({ inputs, update, results }) {
           />
           {!isNaN(manualTPNRate) && inputs.manualTPNRate !== '' && (
             <p className={`text-[10px] font-semibold px-0.5 ${
-              Math.abs(manualTPNRate - calcTPNRate) > 1 ? 'text-amber-600' : 'text-emerald-600'
+              Math.abs(manualTPNRate - calcTPNRate) > TPN_RATE_WARN_THRESHOLD ? 'text-amber-600' : 'text-emerald-600'
             }`}>
-              {Math.abs(manualTPNRate - calcTPNRate) > 1
+              {Math.abs(manualTPNRate - calcTPNRate) > TPN_RATE_WARN_THRESHOLD
                 ? `⚠ ต่างจากคำนวณ ${fmt(Math.abs(manualTPNRate - calcTPNRate), 1)} ml/hr`
                 : '✓ ใกล้เคียงกับที่คำนวณ'}
             </p>
@@ -41,9 +43,9 @@ export default function RateSection({ inputs, update, results }) {
           />
           {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
             <p className={`text-[10px] font-semibold px-0.5 ${
-              Math.abs(manualLipidRate - calcLipidRate) > 0.5 ? 'text-amber-600' : 'text-emerald-600'
+              Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD ? 'text-amber-600' : 'text-emerald-600'
             }`}>
-              {Math.abs(manualLipidRate - calcLipidRate) > 0.5
+              {Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
                 ? `⚠ ต่างจากคำนวณ ${fmt(Math.abs(manualLipidRate - calcLipidRate), 1)} ml/hr`
                 : '✓ ใกล้เคียงกับที่คำนวณ'}
             </p>
