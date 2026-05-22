@@ -20,13 +20,13 @@ export default function HeparinSection({ inputs, update, results }) {
           <Label className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
             Heparin ที่ต้องเพิ่ม
           </Label>
-          <div className="h-11 md:h-10 flex items-center px-3 rounded-xl bg-amber-50 ring-1 ring-amber-200">
-            <span className="font-mitr font-semibold text-amber-700 text-sm">
+          <div className="h-11 md:h-10 flex items-center px-3 rounded-xl bg-slate-50 ring-1 ring-slate-200/80">
+            <span className="font-mitr font-semibold text-teal-700 text-sm">
               {fmt(results?.heparinUnits, 0)}
             </span>
             <span className="text-[10px] text-slate-400 ml-1 font-sans">units</span>
             <span className="text-[10px] text-slate-300 mx-1.5">·</span>
-            <span className="font-mitr font-semibold text-amber-700 text-sm">
+            <span className="font-mitr font-semibold text-teal-700 text-sm">
               {fmt(results?.heparinMl, 2)}
             </span>
             <span className="text-[10px] text-slate-400 ml-1 font-sans">ml</span>

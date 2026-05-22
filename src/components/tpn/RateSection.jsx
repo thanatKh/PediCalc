@@ -1,4 +1,4 @@
-import { Gauge } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Gauge } from 'lucide-react';
 import { fmt, NumberField, SectionCard } from './ui';
 import { TPN_RATE_WARN_THRESHOLD, LIPID_RATE_WARN_THRESHOLD } from '@/utils/clinicalConstants';
 
@@ -22,12 +22,12 @@ export default function RateSection({ inputs, update, results }) {
             hint={`คำนวณได้ ${fmt(results?.infusionRate, 1)} ml/hr`}
           />
           {!isNaN(manualTPNRate) && inputs.manualTPNRate !== '' && (
-            <p className={`text-[10px] font-semibold px-0.5 ${
+            <p className={`flex items-center gap-1 text-[10px] font-semibold px-0.5 ${
               Math.abs(manualTPNRate - calcTPNRate) > TPN_RATE_WARN_THRESHOLD ? 'text-amber-600' : 'text-emerald-600'
             }`}>
               {Math.abs(manualTPNRate - calcTPNRate) > TPN_RATE_WARN_THRESHOLD
-                ? `⚠ ต่างจากคำนวณ ${fmt(Math.abs(manualTPNRate - calcTPNRate), 1)} ml/hr`
-                : '✓ ใกล้เคียงกับที่คำนวณ'}
+                ? <><AlertTriangle size={10} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualTPNRate - calcTPNRate), 1)} ml/hr</>
+                : <><CheckCircle2 size={10} className="shrink-0" />ใกล้เคียงกับที่คำนวณ</>}
             </p>
           )}
         </div>
@@ -42,12 +42,12 @@ export default function RateSection({ inputs, update, results }) {
             hint={`คำนวณได้ ${fmt(results?.lipidRate, 1)} ml/hr`}
           />
           {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-            <p className={`text-[10px] font-semibold px-0.5 ${
+            <p className={`flex items-center gap-1 text-[10px] font-semibold px-0.5 ${
               Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD ? 'text-amber-600' : 'text-emerald-600'
             }`}>
               {Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
-                ? `⚠ ต่างจากคำนวณ ${fmt(Math.abs(manualLipidRate - calcLipidRate), 1)} ml/hr`
-                : '✓ ใกล้เคียงกับที่คำนวณ'}
+                ? <><AlertTriangle size={10} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualLipidRate - calcLipidRate), 1)} ml/hr</>
+                : <><CheckCircle2 size={10} className="shrink-0" />ใกล้เคียงกับที่คำนวณ</>}
             </p>
           )}
         </div>
