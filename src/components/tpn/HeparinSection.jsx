@@ -33,7 +33,7 @@ export default function HeparinSection({ inputs, update, results }) {
             <span className="text-[10px] text-slate-400 font-sans">ml</span>
           </div>
           <p className="text-[10px] text-slate-400 font-sans leading-snug px-0.5">
-            จากขวด Heparin 1000 IU/ml
+            จากขวด Heparin 100 IU/ml
           </p>
         </div>
       </div>

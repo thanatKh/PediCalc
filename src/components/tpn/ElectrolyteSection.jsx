@@ -35,7 +35,7 @@ export default function ElectrolyteSection({ inputs, update, results }) {
             suffix="mEq/kg"
             value={inputs.naGlyceroTarget}
             onChange={update('naGlyceroTarget')}
-            hint="Na + PO₄ (0.25 mmol PO₄ ต่อ 1 mEq Na)"
+            hint="Na + PO₄ (0.5 mmol PO₄ ต่อ 1 mEq Na)"
           />
         </div>
       </div>

@@ -2,16 +2,16 @@ import { FileText } from 'lucide-react';
 import { fmt } from './ui';
 
 const BAG_ROWS = [
-  { label: (dex) => `Dextrose ${dex}% (จาก 50% Glucose)`, key: 'dextroseMl',    bag: '2-in-1', accent: 'text-blue-600' },
-  { label: '10% Aminoven Infant',                           key: 'aminovenMl',    bag: '2-in-1' },
-  { label: '3% NaCl',                                       key: 'na3PctMl',      bag: '2-in-1' },
-  { label: 'Na Glycerophosphate',                           key: 'naGlyceroml',   bag: '2-in-1' },
-  { label: '15% KCl',                                       key: 'k15PctMl',      bag: '2-in-1' },
-  { label: '8.71% K2HPO4',                                  key: 'k2hpo4Ml',      bag: '2-in-1' },
-  { label: '10% Calcium gluconate',                         key: 'caGluconateMl', bag: '2-in-1' },
-  { label: '50% MgSO4',                                     key: 'mgso4Ml',       bag: '2-in-1' },
-  { label: 'Soluvit-N',                                     key: 'soluvitMl',     bag: '2-in-1' },
-  { label: 'Pediatrace',                                    key: 'pediatraceMl',  bag: '2-in-1' },
+  { label: (dex) => `Dextrose ${dex}% (จาก 50% Glucose)`, key: 'dextroseMl',    bag: 'TPN', accent: 'text-blue-600' },
+  { label: '10% Aminoven Infant',                           key: 'aminovenMl',    bag: 'TPN' },
+  { label: '3% NaCl',                                       key: 'na3PctMl',      bag: 'TPN' },
+  { label: 'Na Glycerophosphate',                           key: 'naGlyceroml',   bag: 'TPN' },
+  { label: '15% KCl',                                       key: 'k15PctMl',      bag: 'TPN' },
+  { label: '8.71% K2HPO4',                                  key: 'k2hpo4Ml',      bag: 'TPN' },
+  { label: '10% Calcium gluconate',                         key: 'caGluconateMl', bag: 'TPN' },
+  { label: '50% MgSO4',                                     key: 'mgso4Ml',       bag: 'TPN' },
+  { label: 'Soluvit-N',                                     key: 'soluvitMl',     bag: 'TPN' },
+  { label: 'Pediatrace',                                    key: 'pediatraceMl',  bag: 'TPN' },
 ];
 
 const LIPID_ROWS = [
@@ -84,14 +84,14 @@ export default function IngredientsTable({ results, dexPct }) {
             <span className={`text-sm font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
               {fmt(results?.sterileWaterMl, 2)}
             </span>
-            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">2-in-1</span>
+            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
           </div>
 
-          {/* Total 2-in-1 */}
+          {/* TPN Volume total */}
           <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center bg-slate-100/60 border-t border-slate-200">
-            <span className="text-sm font-mitr font-bold text-slate-700">Total 2-in-1 Bag</span>
+            <span className="text-sm font-mitr font-bold text-slate-700">TPN Volume</span>
             <span className="text-sm font-mitr font-bold tabular-nums text-right w-16 text-teal-700">
-              {fmt(results?.bag2in1Vol, 2)}
+              {fmt(results?.tpnVolume ?? results?.bag2in1Vol, 2)}
             </span>
             <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
           </div>
@@ -122,7 +122,7 @@ export default function IngredientsTable({ results, dexPct }) {
                 ({fmt(results?.heparinUnits, 0)} u)
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">2-in-1</span>
+            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
           </div>
         </div>
       </div>

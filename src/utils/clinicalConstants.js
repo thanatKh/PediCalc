@@ -17,16 +17,16 @@ export const CONC_KCL_15PCT            = 2;     // mEq K  / ml  (15% KCl)
 export const CONC_K2HPO4              = 1;     // mEq K  / ml  (8.71% K2HPO4)
 export const CONC_CA_GLUCONATE_10PCT   = 0.25;  // mmol Ca / ml (10% Calcium gluconate)
 export const CONC_MGSO4_50PCT          = 4;     // mEq Mg / ml  (50% MgSO4)
-export const CONC_HEPARIN_STOCK        = 1000;  // IU / ml      (standard heparin vial)
+export const CONC_HEPARIN_STOCK        = 100;   // IU / ml      (heparin vial 100 IU/ml)
 export const HEPARIN_DEFAULT_CONC      = 0.5;   // IU / ml      (default bag concentration)
 
 // PO4 content of phosphate salts (mmol PO4 per ml of solution)
-export const PO4_PER_ML_NA_GLYCERO     = 0.5;   // mmol PO4 / ml
+export const PO4_PER_ML_NA_GLYCERO     = 1.0;   // mmol PO4 / ml  (2 mEq Na/ml, 1 mmol PO4/ml)
 export const PO4_PER_ML_K2HPO4        = 0.67;  // mmol PO4 / ml
 
 // PO4 yield per mEq of electrolyte from each phosphate salt
-// Na Glycerophosphate: 2 mEq Na/ml, 0.5 mmol PO4/ml → 0.25 mmol PO4 per mEq Na
-export const PO4_PER_MEQ_NA_GLYCERO   = 0.25;  // mmol PO4 per mEq Na
+// Na Glycerophosphate: 2 mEq Na/ml, 1 mmol PO4/ml → 0.5 mmol PO4 per mEq Na
+export const PO4_PER_MEQ_NA_GLYCERO   = 0.5;   // mmol PO4 per mEq Na
 // K2HPO4: 1 mEq K/ml, 0.67 mmol PO4/ml → 0.67 mmol PO4 per mEq K
 export const PO4_PER_MEQ_K2HPO4       = 0.67;  // mmol PO4 per mEq K
 
@@ -44,7 +44,11 @@ export const KCAL_PER_G_PROTEIN        = 4;     // kcal/g
 export const KCAL_PER_ML_LIPID_20PCT   = 2;     // kcal/ml  (20% SMOFlipid)
 
 // ── GIR (Glucose Infusion Rate) formula ────────────────────────────────────
-export const GIR_DEXTROSE_FACTOR       = 10;    // unit conversion in GIR = (dex%×vol×10)/(24×60×bw)
+// Reverse GIR: GIR (mg/kg/min) = (TPN Rate ml/hr × Dextrose%) / (6 × BW kg)
+// Derived from: (ml/hr × g/100ml × 1000 mg/g) / (60 min/hr × BW)
+//             = (rate × dex%) / (6 × BW)
+export const GIR_REVERSE_DIVISOR      = 6;     // constant in reverse GIR formula
+export const GIR_DEXTROSE_FACTOR       = 10;    // kept for legacy osmolarity calc
 export const HOURS_PER_DAY             = 24;
 export const MINUTES_PER_HOUR         = 60;
 
