@@ -100,7 +100,7 @@ const s = StyleSheet.create({
 
   // ── Rate / summary banner ──
   rateBanner: { flexDirection: 'row', gap: 3, marginBottom: 3 },
-  rateCard:   { flex: 1, borderRadius: 3, padding: '3.5 5', alignItems: 'center', borderWidth: 0.5, borderColor: BORDER },
+  rateCard:   { flex: 1, borderRadius: 3, padding: '3.5 5', alignItems: 'center', borderWidth: 0.5, borderColor: BORDER, backgroundColor: '#f8fafc' },
   rateLabel:  { fontSize: 6.5, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 },
   rateValue:  { fontFamily: 'Kanit', fontSize: 9.5, fontWeight: 700, marginTop: 1 },
 
@@ -132,7 +132,7 @@ const s = StyleSheet.create({
   panelDanger:{ flex: 1, borderWidth: 1, borderColor: '#ef4444', borderRadius: 3, padding: '3 3.5', alignItems: 'center', backgroundColor: '#fff1f2' },
   panelWarn:  { flex: 1, borderWidth: 1, borderColor: '#eab308', borderRadius: 3, padding: '3 3.5', alignItems: 'center', backgroundColor: '#fefce8' },
   panelLabel: { fontSize: 6.5, color: MUTED, textTransform: 'uppercase', letterSpacing: 0.3 },
-  panelValue: { fontFamily: 'Kanit', fontSize: 9.5, fontWeight: 700, color: SLATE, marginTop: 1 },
+  panelValue: { fontFamily: 'Kanit', fontSize: 9.5, fontWeight: 700, color: SLATE, marginTop: 1, letterSpacing: 0.2 },
   panelSub:   { fontSize: 7, color: MUTED },
 
   // ── Warning banners ──
@@ -211,7 +211,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
   // Table rows — 2-in-1 bag
   const bag2in1Rows = [
     { name: `Dextrose ${inputs.dextrosePct || 10}% (from 50% Glucose)`,
-      target: `GIR ${fmt(results.gir, 1)} mg/kg/min`,           ml: results.dextroseMl,    note: '0.5 g/ml - dilute with sterile water', color: '#1d4ed8' },
+      target: `GIR ${fmt(results.gir, 1)} mg/kg/min`,           ml: results.dextroseMl,    note: '0.5 g/ml - dilute with sterile water' },
     { name: '10% Aminoven Infant',
       target: `${inputs.proteinTarget} g/kg/day`,                ml: results.aminovenMl,    note: '2.5-3.5 g/kg/day' },
     { name: '3% NaCl',
@@ -234,7 +234,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
 
   const lipidRows = [
     { name: '20% SMOFlipid',
-      target: `${inputs.lipidTarget} g/kg`,    ml: results.lipidMl,     note: 'MCT/Soy/Olive/Fish oil', color: '#047857' },
+      target: `${inputs.lipidTarget} g/kg`,    ml: results.lipidMl,     note: 'MCT/Soy/Olive/Fish oil' },
     { name: 'Vitalipid N Infant',
       target: '4 ml/kg/day',                    ml: results.vitalipidMl, note: 'Add to lipid bag (max 10 ml/day)' },
   ];
@@ -295,22 +295,18 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
             </View>
             {/* Derived electrolyte totals */}
             <View style={{ flexDirection: 'row', marginTop: 4, gap: 4 }}>
-              <View style={{ flex: 1, backgroundColor: '#f0fdf4', borderRadius: 2, padding: '3 4' }}>
-                <Text style={{ fontSize: 6.5, color: '#166534', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total Na</Text>
-                <Text style={{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: '#166534', marginTop: 1 }}>{fmt(results.totalNaActual, 2)} mEq/kg/day</Text>
-              </View>
-              <View style={{ flex: 1, backgroundColor: '#eff6ff', borderRadius: 2, padding: '3 4' }}>
-                <Text style={{ fontSize: 6.5, color: '#1e40af', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total K</Text>
-                <Text style={{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: '#1e40af', marginTop: 1 }}>{fmt(results.totalKActual, 2)} mEq/kg/day</Text>
-              </View>
-              <View style={{ flex: 1, backgroundColor: '#faf5ff', borderRadius: 2, padding: '3 4' }}>
-                <Text style={{ fontSize: 6.5, color: '#6b21a8', textTransform: 'uppercase', letterSpacing: 0.3 }}>Total PO4</Text>
-                <Text style={{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: '#6b21a8', marginTop: 1 }}>{fmt(results.totalPO4, 2)} mmol/kg/day</Text>
-              </View>
-              <View style={{ flex: 1, backgroundColor: fatRateHigh ? '#fee2e2' : '#f0fdf4', borderRadius: 2, padding: '3 4' }}>
-                <Text style={{ fontSize: 6.5, color: fatRateHigh ? '#991b1b' : '#166534', textTransform: 'uppercase', letterSpacing: 0.3 }}>Fat Rate</Text>
-                <Text style={{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: fatRateHigh ? '#991b1b' : '#166534', marginTop: 1 }}>{fmt(results.fatRateGKgHr, 3)} g/kg/hr {fatRateHigh ? '⚠' : ''}</Text>
-              </View>
+              {[
+                { label: 'Total Na',   value: `${fmt(results.totalNaActual, 2)} mEq/kg/day` },
+                { label: 'Total K',    value: `${fmt(results.totalKActual, 2)} mEq/kg/day` },
+                { label: 'Total PO4',  value: `${fmt(results.totalPO4, 2)} mmol/kg/day` },
+                { label: 'Fat Rate',   value: `${fmt(results.fatRateGKgHr, 3)} g/kg/hr${fatRateHigh ? ' ⚠' : ''}`,
+                  alert: fatRateHigh },
+              ].map((item) => (
+                <View key={item.label} style={{ flex: 1, backgroundColor: item.alert ? '#fee2e2' : '#f1f5f9', borderRadius: 2, padding: '3 4', borderWidth: item.alert ? 0.5 : 0, borderColor: item.alert ? '#ef4444' : 'transparent' }}>
+                  <Text style={{ fontSize: 6.5, color: item.alert ? '#991b1b' : MUTED, textTransform: 'uppercase', letterSpacing: 0.3 }}>{item.label}</Text>
+                  <Text style={{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: item.alert ? '#991b1b' : SLATE, marginTop: 1 }}>{item.value}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -318,13 +314,13 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
         {/* ── RATE / SUMMARY BANNER ── */}
         <View style={s.rateBanner}>
           {[
-            { label: 'Total Volume / day',    val: `${fmt(results.totalVolume, 1)} ml`,         bg: TEAL_L,    color: TEAL },
-            { label: 'Volume Target',          val: `${inputs.volumeTarget} ml/kg/day`,           bg: '#f8fafc', color: SLATE },
-            { label: 'TPN (2-in-1) Rate',      val: `${fmt(results.infusionRate, 1)} ml/hr`,     bg: '#eff6ff', color: '#1d4ed8' },
-            { label: 'Lipid (SMOFlipid+Vita)', val: `${fmt(results.lipidRate, 1)} ml/hr`,        bg: fatRateHigh ? '#fee2e2' : '#f0fdf4', color: fatRateHigh ? '#991b1b' : '#047857' },
-            { label: 'DSF',                    val: fmt(results.dsf, 3),                          bg: '#f8fafc', color: MUTED },
+            { label: 'Total Volume / day',    val: `${fmt(results.totalVolume, 1)} ml`,     color: SLATE },
+            { label: 'Volume Target',          val: `${inputs.volumeTarget} ml/kg/day`,      color: SLATE },
+            { label: 'TPN (2-in-1) Rate',      val: `${fmt(results.infusionRate, 1)} ml/hr`, color: SLATE },
+            { label: 'Lipid (SMOFlipid+Vita)', val: `${fmt(results.lipidRate, 1)} ml/hr`,   color: fatRateHigh ? '#991b1b' : SLATE, alert: fatRateHigh },
+            { label: 'DSF',                    val: fmt(results.dsf, 3),                      color: MUTED },
           ].map((item) => (
-            <View key={item.label} style={[s.rateCard, { backgroundColor: item.bg }]}>
+            <View key={item.label} style={[s.rateCard, item.alert ? { backgroundColor: '#fee2e2', borderColor: '#ef4444' } : {}]}>
               <Text style={s.rateLabel}>{item.label}</Text>
               <Text style={[s.rateValue, { color: item.color }]}>{item.val}</Text>
             </View>
@@ -386,34 +382,34 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
             <View style={s.panelRow}>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>Total Energy</Text>
-                <Text style={[s.panelValue, { color: TEAL }]}>{fmt(results.totalEnergy, 1)}</Text>
+                <Text style={s.panelValue}>{fmt(results.totalEnergy, 1)}</Text>
                 <Text style={s.panelSub}>kcal/day</Text>
               </View>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>kcal/kg/day</Text>
-                <Text style={[s.panelValue, { color: TEAL }]}>{fmt(results.kcalPerKg, 1)}</Text>
+                <Text style={s.panelValue}>{fmt(results.kcalPerKg, 1)}</Text>
                 <Text style={s.panelSub}>kcal/kg</Text>
               </View>
-              <View style={s.panelCard}>
+              <View style={(results.npcN < NPC_N_TARGET_MIN || results.npcN > NPC_N_TARGET_MAX) ? s.panelAlert : s.panelCard}>
                 <Text style={s.panelLabel}>NPC:N</Text>
-                <Text style={[s.panelValue, { color: (results.npcN < NPC_N_TARGET_MIN || results.npcN > NPC_N_TARGET_MAX) ? '#b45309' : TEAL }]}>{fmt(results.npcN, 0)}</Text>
+                <Text style={[s.panelValue, { color: (results.npcN < NPC_N_TARGET_MIN || results.npcN > NPC_N_TARGET_MAX) ? '#b45309' : SLATE }]}>{fmt(results.npcN, 0)}</Text>
                 <Text style={s.panelSub}>target 150–200</Text>
               </View>
             </View>
             <View style={s.panelRow}>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>CHO (3.4 kcal/g)</Text>
-                <Text style={[s.panelValue, { color: '#1d4ed8', fontSize: 8.5 }]}>{fmt(results.cho_kcal, 1)} kcal</Text>
+                <Text style={[s.panelValue, { fontSize: 8.5 }]}>{fmt(results.cho_kcal, 1)} kcal</Text>
                 <Text style={s.panelSub}>{fmt(results.choPct, 1)}%</Text>
               </View>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>Protein (4 kcal/g)</Text>
-                <Text style={[s.panelValue, { color: '#b45309', fontSize: 8.5 }]}>{fmt(results.protein_kcal, 1)} kcal</Text>
+                <Text style={[s.panelValue, { fontSize: 8.5 }]}>{fmt(results.protein_kcal, 1)} kcal</Text>
                 <Text style={s.panelSub}>{fmt(results.proteinPct, 1)}%</Text>
               </View>
               <View style={s.panelCard}>
                 <Text style={s.panelLabel}>Fat (2 kcal/ml)</Text>
-                <Text style={[s.panelValue, { color: '#047857', fontSize: 8.5 }]}>{fmt(results.fat_kcal, 1)} kcal</Text>
+                <Text style={[s.panelValue, { fontSize: 8.5 }]}>{fmt(results.fat_kcal, 1)} kcal</Text>
                 <Text style={s.panelSub}>{fmt(results.fatPct, 1)}%</Text>
               </View>
             </View>
