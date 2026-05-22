@@ -6,9 +6,9 @@ export default function App() {
   const [activeKey, setActiveKey] = useState('tpn-newborn');
 
   return (
-    <div className="flex h-screen bg-dot-grid overflow-hidden">
+    <div className="flex bg-dot-grid overflow-hidden" style={{ height: '100dvh' }}>
       <Sidebar activeKey={activeKey} onSelect={setActiveKey} />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         {activeKey === 'tpn-newborn' && <TPNCalculator />}
       </div>
     </div>

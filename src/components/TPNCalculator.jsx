@@ -52,7 +52,7 @@ const INGREDIENTS = [
 
 function NumberField({ id, label, suffix, value, onChange, step = '0.1', required = false }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 min-w-0">
       <Label htmlFor={id} className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
       </Label>
@@ -64,10 +64,10 @@ function NumberField({ id, label, suffix, value, onChange, step = '0.1', require
           step={step}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-white border-slate-200 rounded-xl pr-14 h-10 text-sm font-sans text-slate-800 shadow-sm transition-all duration-150"
+          className="bg-white border-slate-200 rounded-xl pr-14 h-11 md:h-10 text-base md:text-sm font-sans text-slate-800 shadow-sm transition-all duration-150"
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-teal-600/70">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-teal-600/70 max-w-[3.25rem] truncate">
             {suffix}
           </span>
         )}
@@ -104,10 +104,10 @@ function StatPill({ label, value, suffix, tone = 'slate', decimals = 1 }) {
 function SectionCard({ title, children, className = '' }) {
   return (
     <div className={`glass-card rounded-2xl overflow-hidden animate-fade-up ${className}`}>
-      <div className="px-5 py-3 border-b border-slate-100/80">
+      <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80">
         <h2 className="font-mitr text-sm font-semibold tracking-wide text-teal-700">{title}</h2>
       </div>
-      <div className="px-5 py-4">{children}</div>
+      <div className="px-4 sm:px-5 py-4">{children}</div>
     </div>
   );
 }
@@ -174,12 +174,12 @@ export default function TPNCalculator() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-full">
       {/* ── Sticky header ── */}
       <header className="sticky top-0 z-10 glass-card border-b border-white/60" style={{ borderRadius: 0 }}>
-        <div className="pl-14 pr-4 lg:px-6 py-3 flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto pl-14 pr-3 sm:pr-4 lg:pl-6 lg:pr-6 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="font-mitr text-base font-semibold leading-tight truncate" style={{ color: '#0d6e6e' }}>
+            <h1 className="font-mitr text-[15px] sm:text-base font-semibold leading-tight truncate" style={{ color: '#0d6e6e' }}>
               Neonatal TPN Calculator
             </h1>
             <p className="text-[11px] text-slate-400 font-sans hidden sm:block">สูตรสารอาหารทางหลอดเลือดดำ ทารกแรกเกิด</p>
@@ -211,7 +211,7 @@ export default function TPNCalculator() {
         </div>
       </header>
 
-      <main className="px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 max-w-6xl">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
         {/* ── LEFT: INPUT FORM ── */}
         <section className="lg:col-span-7 space-y-4">
 
@@ -223,7 +223,7 @@ export default function TPNCalculator() {
                   value={inputs.name}
                   onChange={(e) => update('name')(e.target.value)}
                   placeholder="เช่น ด.ช. สมชาย ใจดี"
-                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-10 font-sans text-sm shadow-sm"
+                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 font-sans text-base md:text-sm shadow-sm"
                 />
               </div>
               <div>
@@ -232,7 +232,7 @@ export default function TPNCalculator() {
                   value={inputs.hn}
                   onChange={(e) => update('hn')(e.target.value)}
                   placeholder="HN"
-                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-10 font-sans text-sm shadow-sm"
+                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 font-sans text-base md:text-sm shadow-sm"
                 />
               </div>
               <div>
@@ -241,7 +241,7 @@ export default function TPNCalculator() {
                   value={inputs.ward}
                   onChange={(e) => update('ward')(e.target.value)}
                   placeholder="เช่น NICU, Ward 5"
-                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-10 font-sans text-sm shadow-sm"
+                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 font-sans text-base md:text-sm shadow-sm"
                 />
               </div>
               <div>
@@ -250,7 +250,7 @@ export default function TPNCalculator() {
                   type="date"
                   value={inputs.startDate}
                   onChange={(e) => update('startDate')(e.target.value)}
-                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-10 font-sans text-sm shadow-sm"
+                  className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 md:h-10 font-sans text-base md:text-sm shadow-sm"
                 />
               </div>
               <NumberField id="height"      label="ส่วนสูง"       suffix="cm"    value={inputs.height}      onChange={update('height')} step="0.5" />
@@ -359,18 +359,18 @@ export default function TPNCalculator() {
 
             {/* Sterile water hero */}
             <div
-              className="animate-fade-up rounded-2xl p-4 flex items-center gap-4"
+              className="animate-fade-up rounded-2xl p-4 flex items-center gap-3 sm:gap-4 min-w-0"
               style={waterNegative
                 ? { background: '#fff1f2', border: '1px solid #fecdd3' }
                 : { background: 'linear-gradient(135deg, #f0fafa 0%, #ccf0f0 100%)', border: '1px solid #99e0e0' }
               }
             >
-              <div className="p-3 rounded-2xl" style={{ background: waterNegative ? '#fecdd3' : 'rgba(255,255,255,0.7)' }}>
+              <div className="shrink-0 p-3 rounded-2xl" style={{ background: waterNegative ? '#fecdd3' : 'rgba(255,255,255,0.7)' }}>
                 <Droplet size={24} style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }} />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">Sterile Water for Injection</p>
-                <p className="font-mitr text-2xl font-semibold tabular-nums leading-tight" style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }}>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400 truncate">Sterile Water for Injection</p>
+                <p className="font-mitr text-xl sm:text-2xl font-semibold tabular-nums leading-tight truncate" style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }}>
                   {results?.sterileWaterMl != null
                     ? <NumberTicker value={results.sterileWaterMl} decimalPlaces={2} className="font-mitr font-semibold" style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }} />
                     : '—'
@@ -388,17 +388,17 @@ export default function TPNCalculator() {
               </div>
               <div className="divide-y divide-slate-50">
                 {INGREDIENTS.map((row) => (
-                  <div key={row.key} className="flex items-center justify-between px-4 py-2.5 hover:bg-teal-50/30 transition-colors">
-                    <span className="text-sm font-sans text-slate-600">{row.label}</span>
-                    <span className={`text-sm font-mitr font-semibold tabular-nums ${row.accent || 'text-slate-800'}`}>
+                  <div key={row.key} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-teal-50/30 transition-colors">
+                    <span className="text-sm font-sans text-slate-600 leading-snug min-w-0">{row.label}</span>
+                    <span className={`shrink-0 text-sm font-mitr font-semibold tabular-nums whitespace-nowrap ${row.accent || 'text-slate-800'}`}>
                       {fmt(results?.[row.key], 2)}
                       <span className="text-[10px] font-sans font-normal text-slate-400 ml-1">ml</span>
                     </span>
                   </div>
                 ))}
-                <div className="flex items-center justify-between px-4 py-3" style={{ background: '#fffbeb' }}>
-                  <span className="text-sm font-mitr font-semibold text-amber-800">Sterile Water for Injection</span>
-                  <span className={`text-base font-mitr font-bold tabular-nums ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
+                <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ background: '#fffbeb' }}>
+                  <span className="text-sm font-mitr font-semibold text-amber-800 leading-snug min-w-0">Sterile Water for Injection</span>
+                  <span className={`shrink-0 text-base font-mitr font-bold tabular-nums whitespace-nowrap ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
                     {fmt(results?.sterileWaterMl, 2)}
                     <span className="text-[10px] font-sans font-normal text-slate-400 ml-1">ml</span>
                   </span>
