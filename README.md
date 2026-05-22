@@ -28,6 +28,12 @@ A clinical web PWA for calculating Total Parenteral Nutrition (TPN) formulas for
 | Icons | Lucide React |
 | PWA | Web App Manifest + Service Worker (sw.js) |
 
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-ready-5a0fc8?logo=pwa&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 ## Getting Started
 
 ```bash
