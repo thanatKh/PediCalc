@@ -19,8 +19,6 @@ export const TONES = {
   teal:    { bg: 'bg-teal-600',   text: 'text-white',       sub: 'text-teal-100',    ring: 'ring-teal-500' },
   emerald: { bg: 'bg-emerald-50', text: 'text-emerald-700', sub: 'text-emerald-400', ring: 'ring-emerald-200' },
   amber:   { bg: 'bg-amber-50',   text: 'text-amber-700',   sub: 'text-amber-400',   ring: 'ring-amber-200' },
-  rose:    { bg: 'bg-rose-50',    text: 'text-rose-700',    sub: 'text-rose-400',    ring: 'ring-rose-200' },
-  blue:    { bg: 'bg-blue-50',    text: 'text-blue-700',    sub: 'text-blue-400',    ring: 'ring-blue-200' },
 };
 
 // ── NumberField ──────────────────────────────────────────────────────────────

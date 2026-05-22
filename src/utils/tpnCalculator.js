@@ -26,8 +26,8 @@ import {
   HOURS_PER_DAY,
   MINUTES_PER_HOUR,
   OSMO_FACTOR_DEXTROSE,
-  OSMO_FACTOR_AMINOVEN,
-  OSMO_FACTOR_AMINOVEN_CONC,
+  OSMO_FACTOR_AA_G_PER_L,
+  OSMO_AMINOVEN_10PCT_G_PER_ML,
   OSMO_FACTOR_ELECTROLYTE,
   CA_PO4_PRECIP_THRESHOLD,
   ML_TO_L,
@@ -110,10 +110,6 @@ export const calculateTPN = (inputs) => {
   const gir           = (dexPct * totalVolume * GIR_DEXTROSE_FACTOR) / (HOURS_PER_DAY * MINUTES_PER_HOUR * bw);
   const totalNaActual = naFrom3Pct + naGlyceroTarget;
   const totalKActual  = kFrom15Pct + k2hpo4Target;
-  const estOsmolarity =
-    (dexPct * OSMO_FACTOR_DEXTROSE) +
-    (proteinTarget * OSMO_FACTOR_AMINOVEN * OSMO_FACTOR_AMINOVEN_CONC) +
-    ((totalNaActual + totalKActual) * OSMO_FACTOR_ELECTROLYTE);
 
   // Ca × PO4 precipitation check (concentration in bag2in1Vol ml)
   const caMmolInBag  = caGluconateMl * CONC_CA_GLUCONATE_10PCT;
@@ -123,6 +119,17 @@ export const calculateTPN = (inputs) => {
   const po4Conc      = bagVolL > 0 ? po4MmolInBag / bagVolL : 0;
   const caxP         = caConc * po4Conc;
   const caxPHigh     = caxP > CA_PO4_PRECIP_THRESHOLD;
+
+  // Osmolarity: sum of each component's contribution per litre of bag
+  // Osm = (dex% × 50) + (AA g/L × 10) + ((Na+K) mEq/L × 1)
+  const aaGPerL      = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
+  const totalNaMeq   = totalNaActual * bw;
+  const totalKMeq    = totalKActual  * bw;
+  const estOsmolarity = bagVolL > 0
+    ? (dexPct * OSMO_FACTOR_DEXTROSE)
+      + (aaGPerL * OSMO_FACTOR_AA_G_PER_L)
+      + ((totalNaMeq + totalKMeq) / bagVolL * OSMO_FACTOR_ELECTROLYTE)
+    : 0;
 
   const peripheralRisk =
     inputs.lineType === 'peripheral' &&

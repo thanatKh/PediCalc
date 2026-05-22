@@ -6,7 +6,9 @@
       "Bash(node -e ' *)",
       "Bash(mkdir \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\icons\")",
       "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\" -Recurse -Filter \"*.js*\")",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(Select-String -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\manifest.webmanifest\" -Pattern \".\")",
+      "Bash(Select-Object -First 50)"
     ]
   }
 }

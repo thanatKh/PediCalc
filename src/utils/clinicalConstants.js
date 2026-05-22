@@ -43,10 +43,12 @@ export const HOURS_PER_DAY             = 24;
 export const MINUTES_PER_HOUR         = 60;
 
 // ── Osmolarity estimation ──────────────────────────────────────────────────
-export const OSMO_FACTOR_DEXTROSE      = 50;    // mOsm/L per % dextrose
-export const OSMO_FACTOR_AMINOVEN      = 10;    // scaling factor
-export const OSMO_FACTOR_AMINOVEN_CONC = 100;   // mOsm/L per g/kg aminoacid contribution
-export const OSMO_FACTOR_ELECTROLYTE   = 2;     // mOsm/L per mEq/kg (Na+K, both ions)
+// Formula: Osm = (dex% × 50) + (AA g/L × 10) + ((Na+K) mEq/L × 1)
+// Reference: ASPEN clinical guidelines; D10 = 500, Aminoven 10% = 1000 mOsm/L
+export const OSMO_FACTOR_DEXTROSE      = 50;    // mOsm/L per % dextrose (D10→100g/L×5=500)
+export const OSMO_FACTOR_AA_G_PER_L    = 10;    // mOsm/L per g/L of amino acid in bag
+export const OSMO_AMINOVEN_10PCT_G_PER_ML = 0.1; // g/ml → Aminoven 10% concentration
+export const OSMO_FACTOR_ELECTROLYTE   = 1;     // mOsm/L per mEq/L (Na or K, clinical shorthand)
 
 // ── Ca × PO4 precipitation (Freund's rule) ────────────────────────────────
 export const CA_PO4_PRECIP_THRESHOLD   = 55;    // mmol²/L²  — risk above this value
