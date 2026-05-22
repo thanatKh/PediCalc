@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Droplet, Download, FileText, Loader2 } from 'lucide-react';
+import { AlertTriangle, Droplet, Download, FileText, Loader2, RotateCcw } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +50,7 @@ const INGREDIENTS = [
   { key: 'pediatraceMl',   label: 'Pediatrace',                  unit: 'ml' },
 ];
 
-function NumberField({ id, label, suffix, value, onChange, step = '0.1', required = false }) {
+function NumberField({ id, label, suffix, value, onChange, step = '0.1', required = false, hint }) {
   return (
     <div className="space-y-1.5 min-w-0">
       <Label htmlFor={id} className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
@@ -72,6 +72,9 @@ function NumberField({ id, label, suffix, value, onChange, step = '0.1', require
           </span>
         )}
       </div>
+      {hint && (
+        <p className="text-[10px] text-slate-400 font-sans leading-snug px-0.5">{hint}</p>
+      )}
     </div>
   );
 }
@@ -184,30 +187,40 @@ export default function TPNCalculator() {
             </h1>
             <p className="text-[11px] text-slate-400 font-sans hidden sm:block">สูตรสารอาหารทางหลอดเลือดดำ ทารกแรกเกิด</p>
           </div>
-          {(!waterNegative && results && !isExporting) ? (
-            <ShimmerButton
-              onClick={handleExportPDF}
-              shimmerColor="rgba(255,255,255,0.6)"
-              shimmerDuration="2.5s"
-              borderRadius="12px"
-              background="linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)"
-              className="shrink-0 gap-2 px-3 sm:px-4 py-2 text-sm font-mitr font-medium"
-            >
-              <Download size={15} /><span className="hidden sm:inline">Export PDF</span>
-            </ShimmerButton>
-          ) : (
+          <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={handleExportPDF}
-              disabled={waterNegative || !results || isExporting}
-              className="shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
-              style={{ background: '#94a3b8' }}
+              onClick={() => setInputs(DEFAULTS)}
+              title="Reset ทุกช่องกลับค่าเริ่มต้น"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
             >
-              {isExporting
-                ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
-                : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
-              }
+              <RotateCcw size={14} />
+              <span className="hidden sm:inline">Reset</span>
             </button>
-          )}
+            {(!waterNegative && results && !isExporting) ? (
+              <ShimmerButton
+                onClick={handleExportPDF}
+                shimmerColor="rgba(255,255,255,0.6)"
+                shimmerDuration="2.5s"
+                borderRadius="12px"
+                background="linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)"
+                className="gap-2 px-3 sm:px-4 py-2 text-sm font-mitr font-medium"
+              >
+                <Download size={15} /><span className="hidden sm:inline">Export PDF</span>
+              </ShimmerButton>
+            ) : (
+              <button
+                onClick={handleExportPDF}
+                disabled={waterNegative || !results || isExporting}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
+                style={{ background: '#94a3b8' }}
+              >
+                {isExporting
+                  ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
+                  : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
+                }
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -295,20 +308,20 @@ export default function TPNCalculator() {
 
           <SectionCard title="สารอาหารหลัก · Macronutrients">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <NumberField id="dextrosePct"   label="Dextrose"       suffix="%"    value={inputs.dextrosePct}   onChange={update('dextrosePct')} step="0.5" />
-              <NumberField id="proteinTarget" label="Protein target" suffix="g/kg" value={inputs.proteinTarget} onChange={update('proteinTarget')} />
-              <NumberField id="lipidTarget"   label="Lipid target"   suffix="g/kg" value={inputs.lipidTarget}   onChange={update('lipidTarget')} />
+              <NumberField id="dextrosePct"   label="Dextrose"       suffix="%"    value={inputs.dextrosePct}   onChange={update('dextrosePct')} step="0.5" hint="เริ่ม 6–8%; เพิ่มทีละ 1–2%/d; สูงสุด 12.5% (peripheral)" />
+              <NumberField id="proteinTarget" label="Protein target" suffix="g/kg" value={inputs.proteinTarget} onChange={update('proteinTarget')} hint="Newborn: เริ่ม 2–2.5 g/kg/d; เป้าหมาย 3–4 g/kg/d" />
+              <NumberField id="lipidTarget"   label="Lipid target"   suffix="g/kg" value={inputs.lipidTarget}   onChange={update('lipidTarget')} hint="เริ่ม 1–2 g/kg/d; เป้าหมาย 3–4 g/kg/d; สูงสุด 4 g/kg/d" />
             </div>
           </SectionCard>
 
           <SectionCard title="เกลือแร่ · Electrolytes">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <NumberField id="na3PctTarget"    label="3% NaCl"             suffix="mEq/kg"  value={inputs.na3PctTarget}    onChange={update('na3PctTarget')} />
-              <NumberField id="naGlyceroTarget" label="Na Glycerophosphate" suffix="mEq/kg"  value={inputs.naGlyceroTarget} onChange={update('naGlyceroTarget')} />
-              <NumberField id="k15PctTarget"    label="15% KCl"             suffix="mEq/kg"  value={inputs.k15PctTarget}    onChange={update('k15PctTarget')} />
-              <NumberField id="k2hpo4Target"    label="8.71% K2HPO4"        suffix="mEq/kg"  value={inputs.k2hpo4Target}    onChange={update('k2hpo4Target')} />
-              <NumberField id="caTarget"        label="Calcium gluconate"   suffix="mmol/kg" value={inputs.caTarget}        onChange={update('caTarget')} step="0.05" />
-              <NumberField id="mgTarget"        label="MgSO4"               suffix="mEq/kg"  value={inputs.mgTarget}        onChange={update('mgTarget')} step="0.05" />
+              <NumberField id="na3PctTarget"    label="3% NaCl"             suffix="mEq/kg"  value={inputs.na3PctTarget}    onChange={update('na3PctTarget')}  hint="Na ปกติ 2–4 mEq/kg/d (Newborn: 2–3)" />
+              <NumberField id="naGlyceroTarget" label="Na Glycerophosphate" suffix="mEq/kg"  value={inputs.naGlyceroTarget} onChange={update('naGlyceroTarget')} hint="ใช้เป็น Na+PO₄ แหล่งเดียวหากต้องการ PO₄ ด้วย" />
+              <NumberField id="k15PctTarget"    label="15% KCl"             suffix="mEq/kg"  value={inputs.k15PctTarget}    onChange={update('k15PctTarget')}  hint="K ปกติ 1–3 mEq/kg/d; สูงสุด 4 mEq/kg/d" />
+              <NumberField id="k2hpo4Target"    label="8.71% K2HPO4"        suffix="mEq/kg"  value={inputs.k2hpo4Target}    onChange={update('k2hpo4Target')}  hint="PO₄ ปกติ 1–2 mmol/kg/d; ระวัง Ca×PO₄" />
+              <NumberField id="caTarget"        label="Calcium gluconate"   suffix="mmol/kg" value={inputs.caTarget}        onChange={update('caTarget')} step="0.05" hint="Ca ปกติ 0.5–1 mmol/kg/d; เช็ค Ca×PO₄ ≤ 55" />
+              <NumberField id="mgTarget"        label="MgSO4"               suffix="mEq/kg"  value={inputs.mgTarget}        onChange={update('mgTarget')} step="0.05" hint="Mg ปกติ 0.25–0.5 mEq/kg/d" />
             </div>
           </SectionCard>
 

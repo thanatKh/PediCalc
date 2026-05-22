@@ -108,15 +108,16 @@ const s = StyleSheet.create({
   // ── Warning banner ──
   warnBanner: { backgroundColor: '#fee2e2', borderLeftWidth: 3, borderLeftColor: '#ef4444', borderRadius: 2, padding: '4 6', marginBottom: 3, fontSize: 8, color: '#991b1b', fontWeight: 700 },
 
-  // ── Notes ──
-  notesBox: { borderWidth: 0.5, borderColor: BORDER, borderRadius: 3, height: 18, padding: '3 5', fontSize: 8, color: '#94a3b8', fontStyle: 'italic' },
-
-  // ── Signatures ──
-  sigRow:   { flexDirection: 'row', gap: 10, marginTop: 6 },
-  sigBlock: { flex: 1, alignItems: 'center' },
-  sigLine:  { borderBottomWidth: 0.5, borderBottomColor: '#94a3b8', width: '100%', height: 36, marginBottom: 3 },
-  sigRole:  { fontFamily: 'Kanit', fontSize: 9, fontWeight: 600, color: TEAL },
-  sigEn:    { fontSize: 8, color: MUTED },
+  // ── Bottom section: notes + signatures side by side ──
+  bottomRow:    { flexDirection: 'row', gap: 8, marginTop: 6 },
+  notesCol:     { flex: 1.2 },
+  notesBox:     { borderWidth: 0.5, borderColor: BORDER, borderRadius: 3, flex: 1, padding: '5 6', fontSize: 8, color: '#94a3b8', fontStyle: 'italic', minHeight: 70 },
+  notesLine:    { borderBottomWidth: 0.5, borderBottomColor: BORDER, marginTop: 10 },
+  sigCol:       { flex: 1 },
+  sigBlock:     { alignItems: 'center', marginBottom: 6 },
+  sigLine:      { borderBottomWidth: 0.5, borderBottomColor: '#94a3b8', width: '100%', height: 28, marginBottom: 2 },
+  sigRole:      { fontFamily: 'Kanit', fontSize: 8.5, fontWeight: 600, color: TEAL },
+  sigEn:        { fontSize: 7.5, color: MUTED },
 
   // ── Doc footer ──
   docFooter: { borderTopWidth: 0.5, borderTopColor: BORDER, paddingTop: 3, marginTop: 4, flexDirection: 'row', justifyContent: 'space-between', fontSize: 7, color: '#94a3b8' },
@@ -333,25 +334,36 @@ export default function TPNPdfDocument({ inputs, results, logoUrl }) {
           <Text style={s.warnBanner}>⚠ Osmolarity {fmt(results.estOsmolarity, 0)} mOsm/L เกินขีดจำกัด Peripheral line — ต้องให้ทาง Central line เท่านั้น</Text>
         )}
 
-        {/* ── NOTES ── */}
-        <SectionHeader title="หมายเหตุพิเศษ / Special Instructions" />
-        <View style={s.notesBox}>
-          <Text>หมายเหตุ / คำสั่งพิเศษ ................................................................................................................................................................................................</Text>
-        </View>
+        {/* ── BOTTOM: NOTES + SIGNATURES SIDE BY SIDE ── */}
+        <SectionHeader title="หมายเหตุพิเศษ / Special Instructions &amp; ลายเซ็น" />
+        <View style={s.bottomRow}>
 
-        {/* ── SIGNATURES ── */}
-        <View style={s.sigRow}>
-          {[
-            { role: 'แพทย์ผู้สั่งยา',      en: 'Physician' },
-            { role: 'พยาบาลผู้เตรียม',     en: 'Nurse' },
-            { role: 'เภสัชกรผู้ตรวจสอบ', en: 'Pharmacist' },
-          ].map((sig) => (
-            <View key={sig.role} style={s.sigBlock}>
-              <View style={s.sigLine} />
-              <Text style={s.sigRole}>{sig.role}</Text>
-              <Text style={s.sigEn}>({sig.en})</Text>
+          {/* Notes / Comments column */}
+          <View style={s.notesCol}>
+            <View style={s.notesBox}>
+              <Text style={{ fontSize: 7.5, color: MUTED, marginBottom: 4 }}>หมายเหตุ / คำสั่งพิเศษ / Notes &amp; Comments</Text>
+              <View style={s.notesLine} />
+              <View style={s.notesLine} />
+              <View style={s.notesLine} />
+              <View style={s.notesLine} />
+              <View style={s.notesLine} />
             </View>
-          ))}
+          </View>
+
+          {/* Signatures column */}
+          <View style={s.sigCol}>
+            {[
+              { role: 'แพทย์ผู้สั่งยา',      en: 'Physician' },
+              { role: 'พยาบาลผู้เตรียม',     en: 'Nurse' },
+              { role: 'เภสัชกรผู้ตรวจสอบ', en: 'Pharmacist' },
+            ].map((sig) => (
+              <View key={sig.role} style={s.sigBlock}>
+                <View style={s.sigLine} />
+                <Text style={s.sigRole}>{sig.role}</Text>
+                <Text style={s.sigEn}>({sig.en})</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         {/* ── DOC FOOTER ── */}
