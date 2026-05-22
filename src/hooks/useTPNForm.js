@@ -55,10 +55,14 @@ export function useTPNForm() {
 
         let logoUrl = null;
         try {
-          const res    = await fetch('/logo-kabinburi.PNG');
-          const buf    = await res.arrayBuffer();
-          const b64    = btoa(String.fromCharCode(...new Uint8Array(buf)));
-          logoUrl      = `data:image/png;base64,${b64}`;
+          const res  = await fetch('/logo-kabinburi.PNG');
+          const buf  = await res.arrayBuffer();
+          const u8   = new Uint8Array(buf);
+          let b64 = '';
+          for (let i = 0; i < u8.length; i += 8192) {
+            b64 += String.fromCharCode(...u8.subarray(i, i + 8192));
+          }
+          logoUrl = `data:image/png;base64,${btoa(b64)}`;
         } catch { /* logo optional */ }
 
         const element = createElement(TPNPdfDocument, { inputs, results, logoUrl });
