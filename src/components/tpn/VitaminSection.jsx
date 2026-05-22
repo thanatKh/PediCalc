@@ -2,9 +2,9 @@ import { Pill } from 'lucide-react';
 import { AutoBadge, fmt, SectionCard } from './ui';
 
 const VITAMIN_META = [
-  { label: 'Soluvit-N',          key: 'soluvitMl',    unit: 'ml', note: '1 ml/kg × DSF, max 10 ml' },
-  { label: 'Vitalipid N Infant', key: 'vitalipidMl',  unit: 'ml', note: '4 ml/kg, max 10 ml' },
-  { label: 'Pediatrace',         key: 'pediatraceMl', unit: 'ml', note: '1 ml/kg × DSF, max 10 ml' },
+  { label: 'Soluvit-N',          key: 'soluvitMl',    unit: 'ml/day', note: '1 ml/kg/day, max 10 ml/day' },
+  { label: 'Vitalipid N Infant', key: 'vitalipidMl',  unit: 'ml/day', note: '4 ml/kg/day, max 10 ml/day — ใส่ใน lipid bag' },
+  { label: 'Pediatrace',         key: 'pediatraceMl', unit: 'ml/day', note: '1 ml/kg/day, max 10 ml/day' },
 ];
 
 export default function VitaminSection({ results }) {

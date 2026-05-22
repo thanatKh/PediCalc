@@ -36,7 +36,7 @@ export default function TPNCalculator() {
             <h1 className="font-mitr text-lg sm:text-xl font-bold leading-tight truncate text-teal-600">
               Neonatal TPN Calculator
             </h1>
-            <p className="text-xs text-slate-400 font-sans hidden sm:block">
+            <p className="text-[11px] text-slate-400 font-sans hidden sm:block tracking-wide">
               สูตรสารอาหารทางหลอดเลือดดำ ทารกแรกเกิด
             </p>
           </div>

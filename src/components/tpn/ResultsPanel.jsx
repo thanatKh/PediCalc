@@ -7,6 +7,7 @@ import {
   DEXTROSE_PERIPHERAL_LIMIT,
   NPC_N_TARGET_MIN,
   NPC_N_TARGET_MAX,
+  FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
 const ALERT_STYLES = {
@@ -33,6 +34,7 @@ export default function ResultsPanel({ results, inputs }) {
   const waterNegative  = !!results?.isWaterNegative;
   const peripheralRisk = !!results?.peripheralRisk;
   const caxPHigh       = !!results?.caxPHigh;
+  const fatRateHigh    = !!results?.fatRateHigh;
   const manualTPNRate   = parseFloat(inputs.manualTPNRate);
   const manualLipidRate = parseFloat(inputs.manualLipidRate);
 
@@ -41,12 +43,19 @@ export default function ResultsPanel({ results, inputs }) {
   return (
     <div className="space-y-4 stagger">
 
-      {/* ── Clinical alerts — only when results exist ── */}
+      {/* ── Clinical alerts — priority order ── */}
       {waterNegative && (
         <AlertBanner
           color="rose"
           title="Negative Sterile Water!"
           body="ผลรวมสารเกิน Total Volume — ลด targets ก่อนสั่งจ่าย · ปุ่ม Export ถูกล็อก"
+        />
+      )}
+      {fatRateHigh && !waterNegative && (
+        <AlertBanner
+          color="rose"
+          title="Critical Alert: Lipid Infusion Rate เกิน 0.17 g/kg/hr"
+          body={`Fat Rate = ${fmt(results?.fatRateGKgHr, 3)} g/kg/hr — เสี่ยง Fat Overload Syndrome · ลด Lipid target ลง`}
         />
       )}
       {peripheralRisk && !waterNegative && (
@@ -74,31 +83,39 @@ export default function ResultsPanel({ results, inputs }) {
         <StatPill label="BW"           value={parseFloat(inputs.bw) || '—'} suffix="kg"        tone="slate"   decimals={2} />
       </div>
 
-      {/* ── Infusion rates ── */}
+      {/* ── Infusion rates — large actionable display for nursing ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
           <Droplet size={14} className="text-teal-600" />
           <span className="font-mitr text-sm font-semibold text-teal-700">อัตราหยด · Infusion Rates</span>
         </div>
-        <div className="px-4 py-3 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-blue-50 ring-1 ring-blue-200/60 px-3 py-2.5">
-            <p className="text-[9px] uppercase tracking-wider font-bold text-blue-400">2-in-1 Bag Rate</p>
-            <p className="font-mitr font-semibold text-blue-700 text-lg tabular-nums">
+        <div className="px-4 sm:px-5 py-4 grid grid-cols-2 gap-3">
+          {/* TPN Rate */}
+          <div className="rounded-xl bg-blue-50 ring-1 ring-blue-200/60 px-3 py-3">
+            <p className="text-[9px] uppercase tracking-wider font-bold text-blue-400">TPN (2-in-1) Rate</p>
+            <p className="font-mitr font-bold text-blue-700 text-2xl tabular-nums leading-tight mt-0.5">
               {fmt(results?.infusionRate, 1)}
               <span className="text-[11px] font-sans font-normal text-blue-400 ml-1">ml/hr</span>
             </p>
+            <p className="text-[9px] text-blue-400 mt-0.5 font-sans">
+              {fmt(results?.bag2in1Vol, 1)} ml / 24 hr
+            </p>
             {!isNaN(manualTPNRate) && inputs.manualTPNRate !== '' && (
-              <p className="text-[10px] text-blue-500 mt-0.5">สั่ง: {fmt(manualTPNRate, 1)} ml/hr</p>
+              <p className="text-[10px] text-blue-500 mt-1 font-semibold">สั่ง: {fmt(manualTPNRate, 1)} ml/hr</p>
             )}
           </div>
-          <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200/60 px-3 py-2.5">
+          {/* Lipid Rate */}
+          <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200/60 px-3 py-3">
             <p className="text-[9px] uppercase tracking-wider font-bold text-emerald-400">Lipid Rate</p>
-            <p className="font-mitr font-semibold text-emerald-700 text-lg tabular-nums">
+            <p className={`font-mitr font-bold text-2xl tabular-nums leading-tight mt-0.5 ${fatRateHigh ? 'text-rose-600' : 'text-emerald-700'}`}>
               {fmt(results?.lipidRate, 1)}
               <span className="text-[11px] font-sans font-normal text-emerald-400 ml-1">ml/hr</span>
             </p>
+            <p className={`text-[9px] mt-0.5 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-emerald-400'}`}>
+              Fat {fmt(results?.fatRateGKgHr, 3)} g/kg/hr {fatRateHigh ? `⚠ >0.17` : `✓ ≤${FAT_RATE_MAX_G_KG_HR}`}
+            </p>
             {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-              <p className="text-[10px] text-emerald-500 mt-0.5">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
+              <p className="text-[10px] text-emerald-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
             )}
           </div>
         </div>
@@ -106,11 +123,11 @@ export default function ResultsPanel({ results, inputs }) {
 
       {/* ── Energy distribution ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
           <Zap size={14} className="text-teal-600" />
           <span className="font-mitr text-sm font-semibold text-teal-700">พลังงาน · Energy</span>
         </div>
-        <div className="px-4 py-3 space-y-2">
+        <div className="px-4 sm:px-5 py-4 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-[11px] font-sans text-slate-500">Total Energy</span>
             <span className="font-mitr font-semibold text-teal-700">

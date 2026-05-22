@@ -13,6 +13,8 @@ import {
   HEPARIN_DEFAULT_CONC,
   PO4_PER_ML_NA_GLYCERO,
   PO4_PER_ML_K2HPO4,
+  PO4_PER_MEQ_NA_GLYCERO,
+  PO4_PER_MEQ_K2HPO4,
   DOSE_SOLUVIT_ML_PER_KG,
   DOSE_VITALIPID_ML_PER_KG,
   DOSE_PEDIATRACE_ML_PER_KG,
@@ -34,6 +36,7 @@ import {
   PROTEIN_TO_NITROGEN,
   DEXTROSE_PERIPHERAL_LIMIT,
   OSMOLARITY_PERIPHERAL_MAX,
+  FAT_RATE_MAX_G_KG_HR,
 } from './clinicalConstants';
 
 export const calculateTPN = (inputs) => {
@@ -61,24 +64,22 @@ export const calculateTPN = (inputs) => {
   const lipidTarget = parseFloat(inputs.lipidTarget) || 0;
   const lipidMl     = lipidTarget * bw * CONC_SMOFLIPID_20PCT;
 
-  // 3. Electrolytes — split-source logic
-  // ── Sodium: NaGlycero supplies Na + PO4. Remaining Na goes to 3% NaCl.
-  const totalNaTarget   = parseFloat(inputs.totalNaTarget) || 0;
+  // 3. Electrolytes — direct source inputs (each field is the mEq/kg from that source)
+  const na3PctTarget    = parseFloat(inputs.na3PctTarget)    || 0;
   const naGlyceroTarget = parseFloat(inputs.naGlyceroTarget) || 0;
-  const naFromGlycero   = Math.min(naGlyceroTarget, totalNaTarget);
-  const naFrom3Pct      = Math.max(0, totalNaTarget - naFromGlycero);
+  const k15PctTarget    = parseFloat(inputs.k15PctTarget)    || 0;
+  const k2hpo4Target    = parseFloat(inputs.k2hpo4Target)    || 0;
 
+  const na3PctMl    = (na3PctTarget    * bw) / CONC_NACL_3PCT  * dsf;
   const naGlyceroml = (naGlyceroTarget * bw) / CONC_NA_GLYCERO * dsf;
-  const na3PctMl    = (naFrom3Pct * bw)      / CONC_NACL_3PCT  * dsf;
+  const k15PctMl    = (k15PctTarget    * bw) / CONC_KCL_15PCT  * dsf;
+  const k2hpo4Ml    = (k2hpo4Target    * bw) / CONC_K2HPO4     * dsf;
 
-  // ── Potassium: K2HPO4 supplies K + PO4. Remaining K goes to 15% KCl.
-  const totalKTarget = parseFloat(inputs.totalKTarget) || 0;
-  const k2hpo4Target = parseFloat(inputs.k2hpo4Target) || 0;
-  const kFromK2hpo4  = Math.min(k2hpo4Target, totalKTarget);
-  const kFrom15Pct   = Math.max(0, totalKTarget - kFromK2hpo4);
-
-  const k2hpo4Ml = (k2hpo4Target * bw) / CONC_K2HPO4   * dsf;
-  const k15PctMl = (kFrom15Pct * bw)   / CONC_KCL_15PCT * dsf;
+  // Derived electrolyte totals (for display and safety checks)
+  const totalNaActual = na3PctTarget + naGlyceroTarget;
+  const totalKActual  = k15PctTarget + k2hpo4Target;
+  const totalPO4      = naGlyceroTarget * PO4_PER_MEQ_NA_GLYCERO
+                      + k2hpo4Target    * PO4_PER_MEQ_K2HPO4;
 
   // ── Other electrolytes
   const caTarget      = parseFloat(inputs.caTarget) || 0;
@@ -87,31 +88,32 @@ export const calculateTPN = (inputs) => {
   const mgTarget = parseFloat(inputs.mgTarget) || 0;
   const mgso4Ml  = (mgTarget * bw) / CONC_MGSO4_50PCT * dsf;
 
-  // 4. Vitamins & Trace — with max-dose caps
-  const soluvitMl    = Math.min(bw * DOSE_SOLUVIT_ML_PER_KG    * dsf, MAX_SOLUVIT_ML);
-  const vitalipidMl  = Math.min(bw * DOSE_VITALIPID_ML_PER_KG,        MAX_VITALIPID_ML);
-  const pediatraceMl = Math.min(bw * DOSE_PEDIATRACE_ML_PER_KG * dsf, MAX_PEDIATRACE_ML);
+  // 4. Vitamins & Trace — no DSF; strictly bw-based with max-dose caps
+  const soluvitMl    = Math.min(bw * DOSE_SOLUVIT_ML_PER_KG,    MAX_SOLUVIT_ML);
+  const vitalipidMl  = Math.min(bw * DOSE_VITALIPID_ML_PER_KG,  MAX_VITALIPID_ML);
+  const pediatraceMl = Math.min(bw * DOSE_PEDIATRACE_ML_PER_KG, MAX_PEDIATRACE_ML);
 
-  // 5. Heparin
+  // 5. Heparin (added to TPN bag; concentration relative to totalVolume per formula)
   const heparinUnitPerMl = parseFloat(inputs.heparinConc) || HEPARIN_DEFAULT_CONC;
   const heparinUnits     = totalVolume * heparinUnitPerMl;
   const heparinMl        = heparinUnits / CONC_HEPARIN_STOCK;
 
-  // 6. Sterile Water (balance of 2-in-1 bag; lipid is separate)
+  // 6. Volumes
+  // Vitalipid is mixed into the lipid bag (Y-site/piggyback with SMOFlipid)
+  const lipidBagVol = lipidMl + vitalipidMl;
+  const bag2in1Vol  = totalVolume - lipidBagVol;
+
+  // Sterile Water fills the remaining space in the 2-in-1 bag
   const activeSum =
     dextroseMl + aminovenMl +
     na3PctMl + naGlyceroml + k15PctMl + k2hpo4Ml +
     caGluconateMl + mgso4Ml + soluvitMl + pediatraceMl;
-
-  const bag2in1Vol     = totalVolume - lipidMl;
   const sterileWaterMl = bag2in1Vol - activeSum;
 
-  // 7. Safety
-  const gir           = (dexPct * totalVolume * GIR_DEXTROSE_FACTOR) / (HOURS_PER_DAY * MINUTES_PER_HOUR * bw);
-  const totalNaActual = naFrom3Pct + naGlyceroTarget;
-  const totalKActual  = kFrom15Pct + k2hpo4Target;
+  // 7. Safety checks
+  const gir = (dexPct * totalVolume * GIR_DEXTROSE_FACTOR) / (HOURS_PER_DAY * MINUTES_PER_HOUR * bw);
 
-  // Ca × PO4 precipitation check (concentration in bag2in1Vol ml)
+  // Ca × PO4 precipitation check (concentration in 2-in-1 bag)
   const caMmolInBag  = caGluconateMl * CONC_CA_GLUCONATE_10PCT;
   const po4MmolInBag = naGlyceroml * PO4_PER_ML_NA_GLYCERO + k2hpo4Ml * PO4_PER_ML_K2HPO4;
   const bagVolL      = bag2in1Vol / ML_TO_L;
@@ -120,8 +122,7 @@ export const calculateTPN = (inputs) => {
   const caxP         = caConc * po4Conc;
   const caxPHigh     = caxP > CA_PO4_PRECIP_THRESHOLD;
 
-  // Osmolarity: sum of each component's contribution per litre of bag
-  // Osm = (dex% × 50) + (AA g/L × 10) + ((Na+K) mEq/L × 1)
+  // Osmolarity of the 2-in-1 bag
   const aaGPerL      = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
   const totalNaMeq   = totalNaActual * bw;
   const totalKMeq    = totalKActual  * bw;
@@ -134,6 +135,10 @@ export const calculateTPN = (inputs) => {
   const peripheralRisk =
     inputs.lineType === 'peripheral' &&
     (dexPct > DEXTROSE_PERIPHERAL_LIMIT || estOsmolarity > OSMOLARITY_PERIPHERAL_MAX);
+
+  // Fat infusion rate safety — Formula: Fat(g/hr) = (lipidMl * 0.20) / 24; then ÷ bw
+  const fatRateGKgHr = bw > 0 ? (lipidMl * 0.20) / HOURS_PER_DAY / bw : 0;
+  const fatRateHigh  = fatRateGKgHr > FAT_RATE_MAX_G_KG_HR;
 
   // 8. Energy distribution
   const cho_kcal     = (dexPct / 100) * totalVolume * CONC_DEXTROSE_50PCT * KCAL_PER_G_DEXTROSE;
@@ -148,22 +153,24 @@ export const calculateTPN = (inputs) => {
   const proteinPct   = totalEnergy > 0 ? (protein_kcal / totalEnergy) * 100 : 0;
 
   // 9. Infusion rates
-  const infusionRate = bag2in1Vol / HOURS_PER_DAY;
-  const lipidRate    = lipidMl    / HOURS_PER_DAY;
+  // TPN pump runs the 2-in-1 bag; Lipid pump runs SMOFlipid + Vitalipid together
+  const infusionRate = bag2in1Vol  / HOURS_PER_DAY;
+  const lipidRate    = lipidBagVol / HOURS_PER_DAY;
 
   return {
     totalVolume, dsf,
     dextroseMl, aminovenMl, lipidMl,
-    na3PctMl, naGlyceroml, naFrom3Pct, naFromGlycero, totalNaActual,
-    k15PctMl, k2hpo4Ml, kFrom15Pct, kFromK2hpo4, totalKActual,
+    na3PctMl, naGlyceroml, totalNaActual,
+    k15PctMl, k2hpo4Ml, totalKActual, totalPO4,
     caGluconateMl, mgso4Ml,
     soluvitMl, vitalipidMl, pediatraceMl,
     sterileWaterMl,
     heparinUnits, heparinMl, heparinUnitPerMl,
     gir, estOsmolarity, caConc, po4Conc, caxP, caxPHigh, peripheralRisk,
+    fatRateGKgHr, fatRateHigh,
     cho_kcal, protein_kcal, fat_kcal, totalEnergy, kcalPerKg,
     npcKcal, npcN, choPct, fatPct, proteinPct,
-    bag2in1Vol, infusionRate, lipidRate,
+    bag2in1Vol, lipidBagVol, infusionRate, lipidRate,
     isWaterNegative: sterileWaterMl < 0,
   };
 };

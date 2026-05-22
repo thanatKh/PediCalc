@@ -24,6 +24,12 @@ export const HEPARIN_DEFAULT_CONC      = 0.5;   // IU / ml      (default bag con
 export const PO4_PER_ML_NA_GLYCERO     = 0.5;   // mmol PO4 / ml
 export const PO4_PER_ML_K2HPO4        = 0.67;  // mmol PO4 / ml
 
+// PO4 yield per mEq of electrolyte from each phosphate salt
+// Na Glycerophosphate: 2 mEq Na/ml, 0.5 mmol PO4/ml → 0.25 mmol PO4 per mEq Na
+export const PO4_PER_MEQ_NA_GLYCERO   = 0.25;  // mmol PO4 per mEq Na
+// K2HPO4: 1 mEq K/ml, 0.67 mmol PO4/ml → 0.67 mmol PO4 per mEq K
+export const PO4_PER_MEQ_K2HPO4       = 0.67;  // mmol PO4 per mEq K
+
 // ── Vitamins & trace elements ──────────────────────────────────────────────
 export const DOSE_SOLUVIT_ML_PER_KG    = 1;     // ml/kg/day × DSF
 export const DOSE_VITALIPID_ML_PER_KG  = 4;     // ml/kg/day (no DSF — given with lipid)

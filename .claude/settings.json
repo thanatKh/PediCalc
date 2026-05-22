@@ -8,7 +8,8 @@
       "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\" -Recurse -Filter \"*.js*\")",
       "Bash(Select-Object FullName)",
       "Bash(Select-String -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\manifest.webmanifest\" -Pattern \".\")",
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Read(//d/OneDrive - PTTOR/03 Documents ส่วนตäre/2026 05 Web Cal ยา/PediCalc/src/components/**)"
     ]
   }
 }

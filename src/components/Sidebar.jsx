@@ -127,7 +127,7 @@ export default function Sidebar({ activeKey, onSelect }) {
                     ? 'rounded-xl'
                     : ready
                       ? 'rounded-xl hover:bg-white/10 active:bg-white/15'
-                      : 'rounded-xl cursor-not-allowed opacity-40'}
+                      : 'rounded-xl cursor-not-allowed opacity-55'}
                 `}
                 style={active ? {
                   background: 'rgba(255,255,255,0.15)',
@@ -136,7 +136,7 @@ export default function Sidebar({ activeKey, onSelect }) {
               >
                 <Icon
                   size={18}
-                  className={`shrink-0 ${active ? 'text-white' : ready ? 'text-teal-200 group-hover:text-white' : 'text-teal-400/50'}`}
+                  className={`shrink-0 ${active ? 'text-white' : ready ? 'text-teal-200 group-hover:text-white' : 'text-teal-300/70'}`}
                 />
                 {open && (
                   <div className="overflow-hidden flex-1 min-w-0">

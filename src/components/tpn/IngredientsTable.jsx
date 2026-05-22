@@ -21,17 +21,17 @@ const LIPID_ROWS = [
 
 function TableHeader() {
   return (
-    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ส่วนประกอบ</span>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-right w-16">ปริมาณ (ml)</span>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-right w-12">Bag</span>
+    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-100/80">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Ingredients</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 text-right w-16">Volume (ml)</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 text-right w-12">Bag</span>
     </div>
   );
 }
 
 function TableRow({ label, value, bag, accent, zebra }) {
   return (
-    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/40' : 'bg-white'}`}>
+    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/40' : 'bg-white'}`}>
       <span className="text-sm font-sans text-slate-600 leading-snug min-w-0">{label}</span>
       <span className={`text-sm font-mitr font-semibold tabular-nums text-right w-16 ${accent || 'text-slate-700'}`}>
         {value}
@@ -45,8 +45,8 @@ function TableRow({ label, value, bag, accent, zebra }) {
 
 function SeparatorRow({ label }) {
   return (
-    <div className="px-4 py-1.5 bg-emerald-50/60 border-t border-emerald-100">
-      <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">{label}</span>
+    <div className="px-4 sm:px-5 py-1.5 bg-emerald-50/60 border-t border-emerald-100">
+      <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-wide">{label}</span>
     </div>
   );
 }
@@ -56,7 +56,7 @@ export default function IngredientsTable({ results, dexPct }) {
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+      <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
         <FileText size={14} className="text-teal-600" />
         <span className="font-mitr text-sm font-semibold text-teal-700">รายการส่วนประกอบ · Ingredients</span>
       </div>
@@ -77,19 +77,19 @@ export default function IngredientsTable({ results, dexPct }) {
           ))}
 
           {/* Sterile water */}
-          <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center ${waterNegative ? 'bg-rose-50' : 'bg-amber-50/60'}`}>
+          <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center ${waterNegative ? 'bg-rose-50' : 'bg-amber-50/60'}`}>
             <span className={`text-sm font-mitr font-semibold ${waterNegative ? 'text-rose-700' : 'text-amber-800'}`}>
               Sterile Water for Injection
             </span>
-            <span className={`text-base font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
+            <span className={`text-sm font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-amber-700'}`}>
               {fmt(results?.sterileWaterMl, 2)}
             </span>
             <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">2-in-1</span>
           </div>
 
           {/* Total 2-in-1 */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center bg-slate-100/60 border-t border-slate-200">
-            <span className="text-sm font-mitr font-bold text-slate-700">รวม 2-in-1 Bag</span>
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center bg-slate-100/60 border-t border-slate-200">
+            <span className="text-sm font-mitr font-bold text-slate-700">Total 2-in-1 Bag</span>
             <span className="text-sm font-mitr font-bold tabular-nums text-right w-16 text-teal-700">
               {fmt(results?.bag2in1Vol, 2)}
             </span>
@@ -110,7 +110,7 @@ export default function IngredientsTable({ results, dexPct }) {
           ))}
 
           {/* Heparin */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 py-2.5 items-center bg-amber-50/40">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center bg-amber-50/40">
             <span className="text-sm font-sans text-amber-800">
               Heparin ({fmt(results?.heparinUnitPerMl, 1)} u/ml)
             </span>
