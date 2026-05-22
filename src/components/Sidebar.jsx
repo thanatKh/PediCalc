@@ -58,10 +58,9 @@ export default function Sidebar({ activeKey, onSelect }) {
           fixed top-0 left-0 z-30 h-[100dvh] flex flex-col overflow-hidden
           lg:relative lg:z-auto lg:h-full lg:flex-shrink-0
           transition-[transform,width] duration-300 ease-out
-          w-[min(82vw,300px)] lg:w-[232px]
           ${open
-            ? 'translate-x-0'
-            : '-translate-x-full lg:translate-x-0 lg:w-[64px]'
+            ? 'translate-x-0 w-[min(82vw,300px)] lg:w-[232px]'
+            : '-translate-x-full lg:translate-x-0 w-[min(82vw,300px)] lg:w-[64px]'
           }
         `}
         style={{
