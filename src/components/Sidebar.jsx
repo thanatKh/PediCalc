@@ -60,7 +60,7 @@ function HospitalPickerExpanded({ hospital, setHospital }) {
           className="shrink-0 w-6 h-6 rounded flex items-center justify-center overflow-hidden"
           style={{ backgroundColor: hospital.sidebarBg }}
         >
-          <img src={hospital.logoSidebar} alt={hospital.shortName} className="w-4 h-4 object-contain"
+          <img src={hospital.logoSidebar} alt={hospital.shortName} width={16} height={16} className="w-4 h-4 object-contain"
             onError={(e) => { e.currentTarget.style.display = 'none'; }} />
         </span>
         <span className="flex-1 min-w-0 text-[11px] font-semibold font-mitr text-slate-700 truncate">
@@ -85,7 +85,7 @@ function HospitalPickerExpanded({ hospital, setHospital }) {
                   className="shrink-0 w-5 h-5 rounded flex items-center justify-center overflow-hidden"
                   style={{ backgroundColor: h.sidebarBg }}
                 >
-                  <img src={h.logoSidebar} alt={h.shortName} className="w-3.5 h-3.5 object-contain"
+                  <img src={h.logoSidebar} alt={h.shortName} width={14} height={14} className="w-3.5 h-3.5 object-contain"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </span>
                 <span className={`flex-1 text-[11px] font-mitr font-semibold truncate ${active ? 'text-slate-800' : 'text-slate-500'}`}>
@@ -141,7 +141,7 @@ function HospitalPickerCollapsed({ hospital, setHospital }) {
         style={{ backgroundColor: hospital.sidebarBg }}
         title="เปลี่ยนโรงพยาบาล"
       >
-        <img src={hospital.logoSidebar} alt={hospital.shortName} className="w-5 h-5 object-contain"
+        <img src={hospital.logoSidebar} alt={hospital.shortName} width={20} height={20} className="w-5 h-5 object-contain"
           onError={(e) => { e.currentTarget.style.display = 'none'; }} />
       </button>
 
@@ -169,7 +169,7 @@ function HospitalPickerCollapsed({ hospital, setHospital }) {
                   className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center overflow-hidden"
                   style={{ backgroundColor: h.sidebarBg }}
                 >
-                  <img src={h.logoSidebar} alt={h.shortName} className="w-5 h-5 object-contain"
+                  <img src={h.logoSidebar} alt={h.shortName} width={20} height={20} className="w-5 h-5 object-contain"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </span>
                 <span className="flex-1 min-w-0">
@@ -284,7 +284,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
         </div>
 
         {/* ── Nav ── */}
-        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+        <nav aria-label="Main navigation" className="flex-1 overflow-y-auto p-2 space-y-0.5">
           {open && (
             <p className="text-[10px] font-semibold font-sans uppercase tracking-[0.12em] text-slate-400 px-2 pt-1 pb-2">
               Modules
@@ -302,7 +302,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
                   onSelect(key);
                   if (isMobile()) setOpen(false);
                 }}
-                disabled={!ready}
+                aria-disabled={!ready}
                 className={`
                   w-full flex items-center gap-2.5 rounded-md text-left text-sm
                   transition-colors duration-100 group

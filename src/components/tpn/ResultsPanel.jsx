@@ -1,12 +1,11 @@
-import { AlertTriangle, AlertCircle, Droplet, Zap } from 'lucide-react';
+import { AlertCircle, Droplet, Zap } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { fmt, StatPill } from './ui';
+import ClinicalAlertsPanel from './ClinicalAlertsPanel';
 import {
-  GIR_MAX_SAFE,
-  GIR_MIN_SAFE,
   OSMOLARITY_PERIPHERAL_MAX,
   DEXTROSE_PERIPHERAL_LIMIT,
   NPC_N_TARGET_MIN,
@@ -14,68 +13,35 @@ import {
   FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
-const ALERT_CLASSES = {
-  rose:   'alert-enter rounded-2xl border-l-4 border-rose-500 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans',
-  amber:  'alert-enter rounded-2xl border-l-4 border-amber-500 bg-amber-50 text-amber-800 [&>svg]:text-amber-500 font-sans',
-  yellow: 'alert-enter rounded-2xl border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 [&>svg]:text-yellow-600 font-sans',
-};
-const ALERT_BODY_CLASSES = {
-  rose:   'text-rose-600',
-  amber:  'text-amber-600',
-  yellow: 'text-yellow-700',
-};
+export default function ResultsPanel({ results, inputs, validation }) {
+  const dexPct        = parseFloat(inputs.dextrosePct) || 0;
+  const waterNegative = !!results?.isWaterNegative;
+  const sterileWater  = results?.sterileWaterMl ?? null;
 
-function AlertBanner({ color, title, body }) {
-  const Icon = color === 'rose' ? AlertCircle : AlertTriangle;
-  return (
-    <Alert className={ALERT_CLASSES[color] ?? ALERT_CLASSES.amber}>
-      <Icon className="h-4 w-4" />
-      <AlertTitle className="font-bold text-sm">{title}</AlertTitle>
-      <AlertDescription className={`mt-0.5 text-sm ${ALERT_BODY_CLASSES[color] ?? ALERT_BODY_CLASSES.amber}`}>{body}</AlertDescription>
-    </Alert>
-  );
-}
-
-export default function ResultsPanel({ results, inputs }) {
-  const dexPct          = parseFloat(inputs.dextrosePct) || 0;
-  const waterNegative   = !!results?.isWaterNegative;
-  const peripheralRisk  = !!results?.peripheralRisk;
-  const caxPHigh        = !!results?.caxPHigh;
-  const fatRateHigh     = !!results?.fatRateHigh;
-  const manualLipidRate = parseFloat(inputs.manualLipidRate);
-  const sterileWater    = results?.sterileWaterMl ?? null;
-
-  // GIR from reverse calculation — null until physician enters TPN rate
   const gir     = results?.gir ?? null;
   const girHigh = results?.girHigh ?? false;
   const girLow  = results?.girLow  ?? false;
   const girTone = gir === null ? 'slate' : girHigh || girLow ? 'amber' : 'emerald';
 
+  const manualLipidRate = parseFloat(inputs.manualLipidRate);
+  const fatRateHigh     = !!results?.fatRateHigh;
+
   return (
     <div className="space-y-4 stagger">
 
-      {/* ── Clinical alerts ── */}
+      {/* ── System-level alert: negative sterile water blocks export ── */}
       {waterNegative && (
-        <AlertBanner color="rose" title="Negative Sterile Water!"
-          body="ผลรวมสารเกิน Total Volume — ลด targets ก่อนสั่งจ่าย · ปุ่ม Export ถูกล็อก" />
+        <Alert className="alert-enter rounded-2xl border-l-4 border-rose-500 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle className="font-bold text-sm">Negative Sterile Water!</AlertTitle>
+          <AlertDescription className="text-rose-600 mt-0.5 text-sm">
+            Component volumes exceed Total Volume — reduce targets before ordering. Export is locked.
+          </AlertDescription>
+        </Alert>
       )}
-      {fatRateHigh && !waterNegative && (
-        <AlertBanner color="rose" title="Critical Alert: Lipid Infusion Rate เกิน 0.17 g/kg/hr"
-          body={`Fat Rate = ${fmt(results?.fatRateGKgHr, 3)} g/kg/hr — เสี่ยง Fat Overload Syndrome · ลด Lipid target ลง`} />
-      )}
-      {(girHigh || girLow) && !waterNegative && (
-        <AlertBanner color="amber"
-          title={girHigh ? 'GIR สูงเกินกำหนด (> 12 mg/kg/min)' : 'GIR ต่ำกว่าเป้าหมาย (< 4 mg/kg/min)'}
-          body={`GIR = ${fmt(gir, 2)} mg/kg/min — ปรับ TPN Rate หรือ Dextrose%`} />
-      )}
-      {peripheralRisk && !waterNegative && (
-        <AlertBanner color="amber" title="Peripheral Line Risk"
-          body={`Dextrose ${fmt(dexPct, 1)}% · Osmolarity ${fmt(results?.estOsmolarity, 0)} mOsm/L — ควรเปลี่ยนเป็น Central line`} />
-      )}
-      {caxPHigh && !waterNegative && (
-        <AlertBanner color="yellow" title="Risk of Ca-Phosphate Precipitation"
-          body={`Ca×PO₄ = ${fmt(results?.caxP, 1)} mmol²/L² (เกิน 75) หรือ Ca+PO₄ รวม > 45 mmol — ลด Ca หรือ PO₄ ลง หรือสั่งแยก line`} />
-      )}
+
+      {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
+      <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} />
 
       {/* ── Key stat pills ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
@@ -87,7 +53,7 @@ export default function ResultsPanel({ results, inputs }) {
         <StatPill label="BW"          value={parseFloat(inputs.bw) || '—'} suffix="kg"         tone="slate"   decimals={2} />
       </div>
 
-      {/* ── Lipid rate card (TPN rate is physician-prescribed, not auto-displayed) ── */}
+      {/* ── Infusion rates card ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
           <Droplet size={14} className="text-slate-400" />
@@ -105,7 +71,7 @@ export default function ResultsPanel({ results, inputs }) {
             </p>
             {gir !== null && (
               <p className={`text-[9px] mt-0.5 font-sans font-semibold ${girHigh || girLow ? 'text-amber-600' : 'text-teal-600'}`}>
-                GIR = {fmt(gir, 2)} mg/kg/min {girHigh ? '⚠ สูง' : girLow ? '⚠ ต่ำ' : '✓'}
+                GIR = {fmt(gir, 2)} mg/kg/min {girHigh ? '⚠ High' : girLow ? '⚠ Low' : '✓'}
               </p>
             )}
           </div>

@@ -25,7 +25,14 @@
       "Bash(npx shadcn@latest add --list)",
       "Bash(npx shadcn@latest --help)",
       "Bash(npx shadcn@latest search list https://ui.shadcn.com)",
-      "Bash(npx shadcn@latest add slider --yes)"
+      "Bash(npx shadcn@latest add slider --yes)",
+      "Bash(npx shadcn@latest add alert-dialog --yes)",
+      "WebFetch(domain:github.com)",
+      "Bash(npx skills *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(cp -r \".agents/skills/frontend-design\" \".claude/skills/\")",
+      "Bash(cp -r \".agents/skills/vercel-react-best-practices\" \".claude/skills/\")",
+      "Bash(cp -r \".agents/skills/shadcn\" \".claude/skills/\")"
     ]
   }
 }

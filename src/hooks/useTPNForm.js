@@ -27,6 +27,7 @@ export const DEFAULTS = {
   heparinConc: '0.5',
   manualTPNRate: '',
   manualLipidRate: '',
+  urineOutput: false,
 };
 
 function buildFilename(inputs) {

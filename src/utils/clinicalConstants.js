@@ -77,3 +77,62 @@ export const FAT_RATE_MAX_G_KG_HR      = 0.17;  // g/kg/hr — max lipid infusio
 
 // ── Rate variance warning (prescribed vs calculated) ──────────────────────
 export const LIPID_RATE_WARN_THRESHOLD = 0.5;   // ml/hr
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PediNAT 2565 Clinical Decision Support Thresholds
+// Reference: Thai Neonatal Nutrition Guideline (PediNAT) B.E. 2565
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Fluid (ml/kg/day) — PediNAT p.21 ────────────────────────────────────────
+export const FLUID_CRITICAL_LOW      = 60;    // ml/kg/day
+export const FLUID_MODERATE_LOW      = 80;    // ml/kg/day
+export const FLUID_MODERATE_HIGH     = 150;   // ml/kg/day
+export const FLUID_CRITICAL_HIGH     = 180;   // ml/kg/day
+
+// ── GIR intermediate threshold — PediNAT neonatal metabolic section ──────────
+export const GIR_MODERATE_HIGH       = 10;    // mg/kg/min — approaching max (12)
+
+// ── Amino Acids / Protein (g/kg/day) — PediNAT p.94 ─────────────────────────
+export const AA_CRITICAL_LOW         = 1.0;   // g/kg/day
+export const AA_MODERATE_LOW         = 1.5;   // g/kg/day
+export const AA_MODERATE_HIGH        = 3.5;   // g/kg/day
+export const AA_CRITICAL_HIGH        = 4.0;   // g/kg/day — PediNAT maximum
+
+// ── Lipid (g/kg/day) — PediNAT p.94 ────────────────────────────────────────
+export const LIPID_MODERATE_LOW      = 1.0;   // g/kg/day
+export const LIPID_MODERATE_HIGH     = 3.5;   // g/kg/day
+export const LIPID_CRITICAL_HIGH     = 4.0;   // g/kg/day — PediNAT maximum
+export const FAT_RATE_MODERATE_HIGH  = 0.12;  // g/kg/hr — approaching 0.17 limit
+
+// ── Sodium (mEq/kg/day) — PediNAT p.21 — DOL-aware ─────────────────────────
+export const NA_DOL_RESTRICTION_DAYS = 2;     // DOL ≤ this → Na restriction phase
+export const NA_RESTRICTION_MAX      = 2;     // mEq/kg/day — max during restriction
+export const NA_SAFE_MAX             = 4;     // mEq/kg/day — maintenance target
+export const NA_MODERATE_HIGH        = 5;     // mEq/kg/day
+export const NA_CRITICAL_HIGH        = 6;     // mEq/kg/day
+
+// ── Potassium (mEq/kg/day) — PediNAT p.21 — DOL + urine output aware ────────
+export const K_DOL_RESTRICTION_DAYS  = 3;     // DOL < this → K restriction phase
+export const K_SAFE_MAX              = 3;     // mEq/kg/day — maintenance target
+export const K_MODERATE_HIGH         = 3;     // mEq/kg/day — approaching limit
+export const K_CRITICAL_HIGH         = 4;     // mEq/kg/day — hyperkalemia risk
+
+// ── Calcium (mmol/kg/day) — PediNAT p.94 ────────────────────────────────────
+export const CA_CDS_SAFE_MIN         = 0.5;   // mmol/kg/day
+export const CA_CDS_SAFE_MAX         = 2.0;   // mmol/kg/day
+export const CA_CDS_CRITICAL_HIGH    = 2.5;   // mmol/kg/day
+
+// ── Phosphate (mmol/kg/day) — PediNAT p.94, p.29 ────────────────────────────
+export const PO4_TARGET_MIN          = 1.0;   // mmol/kg/day — minimum for preterm
+export const PO4_MODERATE_LOW        = 0.5;   // mmol/kg/day — below target
+export const PO4_SAFE_MAX            = 2.0;   // mmol/kg/day
+export const PO4_CRITICAL_HIGH       = 2.0;   // mmol/kg/day — hyperphosphatemia risk
+
+// ── Magnesium (mEq/kg/day) — PediNAT p.94 ───────────────────────────────────
+export const MG_CDS_SAFE_MIN         = 0.3;   // mEq/kg/day
+export const MG_CDS_SAFE_MAX         = 0.5;   // mEq/kg/day
+export const MG_CDS_MODERATE_HIGH    = 0.7;   // mEq/kg/day
+export const MG_CDS_CRITICAL_HIGH    = 1.0;   // mEq/kg/day
+
+// ── Osmolarity peripheral warning — PediNAT p.21, p.51 ──────────────────────
+export const OSMO_MODERATE_HIGH      = 800;   // mOsm/L — approaching peripheral limit

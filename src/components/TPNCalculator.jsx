@@ -1,7 +1,10 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2, AlertCircle, AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { ShimmerButton } from '@/components/ui/shimmer-button';
@@ -15,6 +18,7 @@ import HeparinSection      from './tpn/HeparinSection';
 import RateSection         from './tpn/RateSection';
 import ResultsPanel        from './tpn/ResultsPanel';
 import IngredientsTable    from './tpn/IngredientsTable';
+import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSupport';
 
 const PdfModalContent = lazy(() => import('@/components/PdfModalContent'));
 
@@ -66,7 +70,7 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
           className="flex items-center gap-3 px-4 shrink-0"
           style={{ height: '48px', background: headerBg, borderRadius: undefined }}
         >
-          <FileText size={15} className="text-white/60 shrink-0" />
+          <FileText size={15} className="text-white/60 shrink-0" aria-hidden="true" />
           <span className="text-white font-mitr font-medium text-sm truncate flex-1 min-w-0">
             {filename}
           </span>
@@ -124,10 +128,10 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
 
           <button
             onClick={onClose}
+            aria-label="Close preview"
             className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-colors shrink-0"
-            title="ปิด (Esc)"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
@@ -152,13 +156,29 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   );
 }
 
+const PARAM_LABELS = {
+  fluid: 'Fluid Volume', gir: 'GIR', protein: 'Amino Acids', lipid: 'Lipid',
+  na: 'Sodium (Na)', k: 'Potassium (K)', ca: 'Calcium', po4: 'Phosphate (PO₄)',
+  mg: 'Magnesium', osmolarity: 'Osmolarity', dextrose: 'Dextrose %',
+};
+
 export default function TPNCalculator({ hospital }) {
   const { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal } = useTPNForm(hospital);
+  const [cdsDialogOpen, setCdsDialogOpen] = useState(false);
 
   const waterNegative  = !!results?.isWaterNegative;
   const dexPct         = parseFloat(inputs.dextrosePct) || 0;
   const hasErrors      = validation.errors.length > 0;
   const canExport      = !waterNegative && !!results && !isExporting && !hasErrors;
+  const cds            = evaluateClinicalTiers(inputs, results) ?? {};
+  const { critical, moderate } = countTiers(cds);
+  function handleExportClick() {
+    if (critical > 0) {
+      setCdsDialogOpen(true);
+    } else {
+      handleExportPDF();
+    }
+  }
 
   const exportDisabledReason = isExporting ? null
     : !inputs.bw || parseFloat(inputs.bw) <= 0 ? 'กรุณากรอก BW ก่อน Export'
@@ -168,6 +188,51 @@ export default function TPNCalculator({ hospital }) {
 
   return (
     <div className="min-h-full">
+
+      {/* ── CDS Acknowledgment Dialog ── */}
+      <AlertDialog open={cdsDialogOpen} onOpenChange={setCdsDialogOpen}>
+        <AlertDialogContent className="font-sans max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-rose-700">
+              Clinical Alerts
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-left">
+                <p className="text-[12px] text-slate-600">
+                  The following alerts are active. Please review and acknowledge.
+                </p>
+                <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                  {Object.entries(cds)
+                    .filter(([, v]) => v.tier === 'critical')
+                    .map(([key, v]) => (
+                      <div key={key} className="flex items-start gap-2 px-3 py-2">
+                        <span className="text-[11px] shrink-0 mt-px">🚨</span>
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-bold text-rose-700">
+                            {PARAM_LABELS[key] ?? key}:{' '}
+                          </span>
+                          <span className="text-[11px] text-rose-700">{v.message}</span>
+                          {v.risk && (
+                            <p className="text-[10px] mt-0.5 text-rose-400">{v.risk}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-sans text-sm">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExportPDF}
+              className="font-sans text-sm bg-teal-600 hover:bg-teal-700 text-white"
+            >
+              Acknowledge &amp; Export
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ── PDF Preview Modal (desktop) ── */}
       <PdfPreviewModal
@@ -200,7 +265,7 @@ export default function TPNCalculator({ hospital }) {
                     onClick={reset}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
                   >
-                    <RotateCcw size={14} />
+                    <RotateCcw size={14} aria-hidden="true" />
                     <span className="hidden sm:inline">Reset</span>
                   </button>
                 </TooltipTrigger>
@@ -210,14 +275,14 @@ export default function TPNCalculator({ hospital }) {
               {/* Export PDF */}
               {canExport ? (
                 <ShimmerButton
-                  onClick={handleExportPDF}
+                  onClick={handleExportClick}
                   shimmerColor="rgba(255,255,255,0.6)"
                   shimmerDuration="2.5s"
                   borderRadius="12px"
                   background="linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)"
                   className="gap-2 px-3 sm:px-4 py-2 text-sm font-mitr font-medium"
                 >
-                  <Download size={15} />
+                  <Download size={15} aria-hidden="true" />
                   <span className="hidden sm:inline">Export PDF</span>
                 </ShimmerButton>
               ) : (
@@ -231,7 +296,7 @@ export default function TPNCalculator({ hospital }) {
                     >
                       {isExporting
                         ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
-                        : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
+                        : <><Download size={15} aria-hidden="true" /><span className="hidden sm:inline">Export PDF</span></>
                       }
                     </button>
                   </TooltipTrigger>
@@ -255,39 +320,9 @@ export default function TPNCalculator({ hospital }) {
         {/* LEFT: input sections */}
         <section className="lg:col-span-7 space-y-4">
 
-          {/* Validation errors — hard blocks */}
-          {validation.errors.length > 0 && (
-            <Alert variant="destructive" className="rounded-2xl border-l-4 font-sans">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle className="font-mitr text-xs">ค่าที่กรอกอยู่นอกช่วงที่ปลอดภัย — Export ถูกล็อก</AlertTitle>
-              <AlertDescription className="space-y-0.5 mt-1">
-                {validation.errors.map((msg, i) => (
-                  <p key={i} className="text-[11px] flex items-start gap-1.5">
-                    <span className="shrink-0 mt-0.5">⛔</span>{msg}
-                  </p>
-                ))}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Validation warnings — allow export but flag */}
-          {validation.warnings.length > 0 && validation.errors.length === 0 && (
-            <Alert className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 text-amber-800 [&>svg]:text-amber-500 font-sans">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle className="font-mitr text-xs text-amber-800">ค่าบางส่วนอยู่นอกช่วงปกติ — โปรดตรวจสอบก่อนสั่งจ่าย</AlertTitle>
-              <AlertDescription className="space-y-0.5 mt-1 text-amber-700">
-                {validation.warnings.map((msg, i) => (
-                  <p key={i} className="text-[11px] flex items-start gap-1.5">
-                    <span className="shrink-0 mt-0.5">⚠</span>{msg}
-                  </p>
-                ))}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <PatientInfoSection  inputs={inputs} update={update} />
-          <MacroSection        inputs={inputs} update={update} />
-          <ElectrolyteSection  inputs={inputs} update={update} results={results} />
+          <PatientInfoSection  inputs={inputs} update={update} cds={cds} />
+          <MacroSection        inputs={inputs} update={update} cds={cds} />
+          <ElectrolyteSection  inputs={inputs} update={update} cds={cds} />
           <VitaminSection      results={results} />
           <HeparinSection      inputs={inputs} update={update} results={results} />
           <RateSection         inputs={inputs} update={update} results={results} />
@@ -296,7 +331,7 @@ export default function TPNCalculator({ hospital }) {
         {/* RIGHT: live results */}
         <aside className="lg:col-span-5">
           <div className="lg:sticky lg:top-20 space-y-4">
-            <ResultsPanel    results={results} inputs={inputs} />
+            <ResultsPanel    results={results} inputs={inputs} validation={validation} />
             <IngredientsTable results={results} dexPct={dexPct} />
             {DISCLAIMER}
           </div>

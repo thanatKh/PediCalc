@@ -14,12 +14,19 @@ export const TONES = {
   amber:   { bg: 'bg-amber-50',   text: 'text-amber-700',   sub: 'text-amber-400',   ring: 'ring-amber-200' },
 };
 
+// ── tier → style mapping for NumberField ────────────────────────────────────
+const TIER_STYLES = {
+  critical: { border: 'border-rose-400',  ring: 'ring-rose-300/60',  badge: 'bg-rose-50 text-rose-700 border-rose-200',   icon: '🚨' },
+  moderate: { border: 'border-amber-400', ring: 'ring-amber-300/60', badge: 'bg-amber-50 text-amber-700 border-amber-200', icon: '⚠️' },
+};
+
 // ── NumberField ──────────────────────────────────────────────────────────────
-export function NumberField({ id, label, suffix, value, onChange, step = '0.1', required = false, hint, min, className }) {
+export function NumberField({ id, label, suffix, value, onChange, step = '0.1', required = false, hint, min, className, tier, tierMessage }) {
+  const ts = TIER_STYLES[tier];
   return (
     <div className={cn('space-y-1.5 min-w-0', className)}>
       <Label htmlFor={id} className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
-        {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
+        {label}
       </Label>
       <div className="relative">
         <Input
@@ -30,7 +37,10 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           min={min}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-white border-slate-200 rounded-xl pr-14 h-11 md:h-10 text-base md:text-sm font-sans text-slate-800 shadow-sm transition-all duration-150"
+          className={cn(
+            'bg-white rounded-xl pr-14 h-11 md:h-10 text-base md:text-sm font-sans text-slate-800 shadow-sm transition-[border-color,box-shadow] duration-150',
+            ts ? `${ts.border} ${ts.ring} border` : 'border-slate-200',
+          )}
         />
         {suffix && (
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-slate-400 max-w-[3.25rem] truncate">
@@ -38,6 +48,11 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           </span>
         )}
       </div>
+      {ts && tierMessage && (
+        <p className={cn('text-[10px] font-semibold font-sans leading-snug px-1 py-0.5 rounded-md border', ts.badge)}>
+          {ts.icon} {tierMessage}
+        </p>
+      )}
       {hint && <p className="text-[10px] text-slate-400 font-sans leading-snug px-0.5">{hint}</p>}
     </div>
   );
@@ -67,7 +82,7 @@ export function SectionCard({ title, icon: Icon, children, className }) {
   return (
     <div className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}>
       <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-        {Icon && <Icon size={14} className="text-slate-400" />}
+        {Icon && <Icon size={14} className="text-slate-400" aria-hidden="true" />}
         <h2 className="font-mitr text-sm font-semibold tracking-wide text-slate-700">{title}</h2>
       </div>
       <div className="px-4 sm:px-5 py-4">{children}</div>
