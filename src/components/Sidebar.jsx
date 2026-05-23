@@ -1,33 +1,196 @@
 import { useState, useEffect, useRef } from 'react';
-import { Baby, Activity, Pill, Stethoscope, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Baby, Activity, Pill, Stethoscope, PanelLeftClose, Menu, ChevronDown } from 'lucide-react';
+import { HOSPITALS } from '@/utils/hospitals';
 
 const MODULES = [
-  { key: 'tpn-newborn',     icon: Baby,        label: 'TPN Calculator',      sublabel: 'Neonatal · ทารกแรกเกิด',   ready: true  },
-  { key: 'pediatric-dose',  icon: Pill,        label: 'Pediatric Dosing',    sublabel: 'Drug dose · ขนาดยาเด็ก',    ready: false },
-  { key: 'fluid-resus',     icon: Activity,    label: 'Fluid Resuscitation', sublabel: 'IV Fluid · สารน้ำ / BSA',   ready: false },
-  { key: 'growth-chart',    icon: Stethoscope, label: 'Growth & Vitals',     sublabel: 'Chart · กราฟเจริญเติบโต',   ready: false },
+  { key: 'tpn-newborn',     icon: Baby,        label: 'TPN Calculator',      sublabel: 'Neonatal · ทารกแรกเกิด',  ready: true  },
+  { key: 'pediatric-dose',  icon: Pill,        label: 'Pediatric Dosing',    sublabel: 'Drug dose · ขนาดยาเด็ก',   ready: false },
+  { key: 'fluid-resus',     icon: Activity,    label: 'Fluid Resuscitation', sublabel: 'IV Fluid · สารน้ำ / BSA',  ready: false },
+  { key: 'growth-chart',    icon: Stethoscope, label: 'Growth & Vitals',     sublabel: 'กราฟเจริญเติบโต',          ready: false },
 ];
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 1024;
 
-function NavTooltip({ label, children }) {
-  const [show, setShow] = useState(false);
+/* ── Tooltip: portaled to document.body to escape the aside's transform stacking context ── */
+function Tooltip({ label, children }) {
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+
+  const show = () => {
+    if (!ref.current) return;
+    const r = ref.current.getBoundingClientRect();
+    setPos({ top: r.top + r.height / 2, left: r.right });
+  };
+  const hide = () => setPos(null);
+
   return (
-    <div className="relative" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+    <div ref={ref} onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
       {children}
-      {show && (
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none">
-          <div className="bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
+      {pos && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none"
+          style={{ top: pos.top, left: pos.left + 10, transform: 'translateY(-50%)' }}
+        >
+          <div className="bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-md shadow-lg whitespace-nowrap">
             {label}
-            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-slate-900" />
           </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+/* ── Hospital picker expanded (sidebar open) — dropdown style ── */
+function HospitalPickerExpanded({ hospital, setHospital }) {
+  const [dropOpen, setDropOpen] = useState(false);
+
+  return (
+    <div className="px-2 pb-2">
+      <p className="text-[9px] font-semibold font-sans uppercase tracking-[0.12em] text-slate-400 px-1 pb-1">
+        Hospital
+      </p>
+      <button
+        onClick={() => setDropOpen((s) => !s)}
+        className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors text-left"
+      >
+        <span
+          className="shrink-0 w-6 h-6 rounded flex items-center justify-center overflow-hidden"
+          style={{ backgroundColor: hospital.sidebarBg }}
+        >
+          <img src={hospital.logoSidebar} alt={hospital.shortName} className="w-4 h-4 object-contain"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+        </span>
+        <span className="flex-1 min-w-0 text-[11px] font-semibold font-mitr text-slate-700 truncate">
+          {hospital.shortName}
+        </span>
+        <ChevronDown size={12} className={`shrink-0 text-slate-400 transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {dropOpen && (
+        <div className="mt-1 rounded-md border border-slate-100 bg-slate-50 overflow-hidden">
+          {Object.values(HOSPITALS).map((h) => {
+            const active = h.id === hospital.id;
+            return (
+              <button
+                key={h.id}
+                onClick={() => { setHospital(h.id); setDropOpen(false); }}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 text-left transition-colors ${
+                  active ? 'bg-white' : 'hover:bg-white'
+                }`}
+              >
+                <span
+                  className="shrink-0 w-5 h-5 rounded flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: h.sidebarBg }}
+                >
+                  <img src={h.logoSidebar} alt={h.shortName} className="w-3.5 h-3.5 object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </span>
+                <span className={`flex-1 text-[11px] font-mitr font-semibold truncate ${active ? 'text-slate-800' : 'text-slate-500'}`}>
+                  {h.shortName}
+                </span>
+                {active && <span className="shrink-0 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: h.themeColor }} />}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-export default function Sidebar({ activeKey, onSelect }) {
+/* ── Hospital picker collapsed — single icon button, click → fixed popup panel ── */
+function HospitalPickerCollapsed({ hospital, setHospital }) {
+  const [popOpen, setPopOpen] = useState(false);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
+
+  /* close when clicking outside */
+  useEffect(() => {
+    if (!popOpen) return;
+    const onDown = (e) => {
+      if (!btnRef.current?.contains(e.target) && !popRef.current?.contains(e.target)) {
+        setPopOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [popOpen]);
+
+  /* compute popup position from button rect */
+  const [popPos, setPopPos] = useState({ top: 0, left: 0 });
+  const toggle = () => {
+    if (!popOpen && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPopPos({ top: r.top, left: r.right + 8 });
+    }
+    setPopOpen((s) => !s);
+  };
+
+  return (
+    <div className="flex flex-col items-center px-1.5 pb-2">
+      {/* Active hospital icon — click to open popup */}
+      <button
+        ref={btnRef}
+        onClick={toggle}
+        className={`w-8 h-8 rounded-md flex items-center justify-center overflow-hidden border-2 transition-all ${
+          popOpen ? 'border-slate-400 shadow-md' : 'border-slate-300 shadow-sm hover:border-slate-400'
+        }`}
+        style={{ backgroundColor: hospital.sidebarBg }}
+        title="เปลี่ยนโรงพยาบาล"
+      >
+        <img src={hospital.logoSidebar} alt={hospital.shortName} className="w-5 h-5 object-contain"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+      </button>
+
+      {/* Portaled popup panel — escapes aside's transform stacking context */}
+      {popOpen && createPortal(
+        <div
+          ref={popRef}
+          className="fixed z-[9999] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden"
+          style={{ top: popPos.top, left: popPos.left, minWidth: 200 }}
+        >
+          <p className="text-[9px] font-semibold font-sans uppercase tracking-[0.12em] text-slate-400 px-3 pt-2.5 pb-1.5">
+            เลือกโรงพยาบาล
+          </p>
+          {Object.values(HOSPITALS).map((h) => {
+            const active = h.id === hospital.id;
+            return (
+              <button
+                key={h.id}
+                onClick={() => { setHospital(h.id); setPopOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+                  active ? 'bg-slate-50' : 'hover:bg-slate-50'
+                }`}
+              >
+                <span
+                  className="shrink-0 w-7 h-7 rounded-md flex items-center justify-center overflow-hidden"
+                  style={{ backgroundColor: h.sidebarBg }}
+                >
+                  <img src={h.logoSidebar} alt={h.shortName} className="w-5 h-5 object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className={`block text-[12px] font-mitr font-semibold truncate ${active ? 'text-slate-800' : 'text-slate-600'}`}>
+                    {h.shortName}
+                  </span>
+                  <span className="block text-[10px] font-sans text-slate-400 truncate">{h.nameTh}</span>
+                </span>
+                {active && <span className="shrink-0 w-2 h-2 rounded-full" style={{ backgroundColor: h.themeColor }} />}
+              </button>
+            );
+          })}
+          <div className="h-1.5" />
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) {
   const [open, setOpen] = useState(() => !isMobile());
 
   useEffect(() => {
@@ -59,73 +222,71 @@ export default function Sidebar({ activeKey, onSelect }) {
       <div
         onClick={() => setOpen(false)}
         aria-hidden="true"
-        className={`fixed inset-0 z-20 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-20 bg-black/40 backdrop-blur-sm lg:hidden transition-opacity duration-200 ${
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar panel */}
       <aside
         aria-label="Main navigation"
         className={`
-          fixed top-0 left-0 z-30 h-[100dvh] flex flex-col overflow-hidden
+          fixed top-0 left-0 z-30 h-[100dvh] flex flex-col
           lg:relative lg:z-auto lg:h-full lg:flex-shrink-0
           transition-[transform,width] duration-300 ease-out
+          border-r border-slate-200/80
           ${open
-            ? 'translate-x-0 w-[min(82vw,260px)] lg:w-[220px]'
-            : '-translate-x-full lg:translate-x-0 w-[min(82vw,260px)] lg:w-[60px]'
+            ? 'translate-x-0 w-[min(82vw,240px)] lg:w-[220px]'
+            : '-translate-x-full lg:translate-x-0 w-[min(82vw,240px)] lg:w-[52px]'
           }
         `}
-        style={{
-          background: 'linear-gradient(180deg, #0d6e6e 0%, #095555 100%)',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
-          boxShadow: '4px 0 24px rgba(13,110,110,0.18)',
-        }}
+        style={{ background: 'hsl(0 0% 99%)', boxShadow: '1px 0 0 0 hsl(210 18% 90%)' }}
       >
-        {/* ── Header ── */}
+
+        {/* ── Top bar: brand name + collapse button ── */}
         <div
-          className={`flex items-center gap-3 px-3 ${open ? '' : 'lg:justify-center'}`}
-          style={{
-            paddingTop: 'calc(env(safe-area-inset-top) + 1.1rem)',
-            paddingBottom: '1.1rem',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
-          }}
+          className={`flex items-center border-b border-slate-100 ${open ? 'px-3 gap-2' : 'justify-center px-0'}`}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}
         >
-          <div className="shrink-0 w-10 h-10 flex items-center justify-center">
-            <img
-              src="/logo-kabinburi-white.PNG"
-              alt="โลโก้ รพ.กบินทร์บุรี"
-              className="w-full h-full object-contain"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-          </div>
-
-          {open && (
-            <div className="overflow-hidden flex-1 min-w-0">
-              <p className="font-mitr text-[15px] font-bold text-white leading-tight truncate tracking-wide">
-                PediCalc
-              </p>
-              <p className="text-[10px] text-teal-400/80 truncate font-sans tracking-wider uppercase">
-                Kabinburi Hospital
-              </p>
-            </div>
-          )}
-
-          {open && (
-            <button
-              onClick={() => setOpen(false)}
-              aria-label="ปิดเมนู"
-              className="lg:hidden shrink-0 p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              <X size={18} />
-            </button>
+          {open ? (
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="font-mitr text-[15px] font-bold text-slate-800 leading-tight">PediCalc</p>
+                <p className="text-[9px] text-slate-400 font-sans tracking-wide">Pediatric Drug Calculator</p>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                title="ปิด sidebar"
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <PanelLeftClose size={15} />
+              </button>
+            </>
+          ) : (
+            <Tooltip label="เปิด Sidebar">
+              <button
+                onClick={() => setOpen(true)}
+                title="เปิด sidebar"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <Menu size={16} />
+              </button>
+            </Tooltip>
           )}
         </div>
 
+        {/* ── Hospital picker ── */}
+        <div className="border-b border-slate-100 pt-2">
+          {open
+            ? <HospitalPickerExpanded hospital={hospital} setHospital={setHospital} />
+            : <HospitalPickerCollapsed hospital={hospital} setHospital={setHospital} />
+          }
+        </div>
+
         {/* ── Nav ── */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
           {open && (
-            <p className="text-[9px] uppercase tracking-[0.18em] text-white/25 px-3 pb-3 font-semibold font-sans">
+            <p className="text-[10px] font-semibold font-sans uppercase tracking-[0.12em] text-slate-400 px-2 pt-1 pb-2">
               Modules
             </p>
           )}
@@ -141,64 +302,49 @@ export default function Sidebar({ activeKey, onSelect }) {
                   onSelect(key);
                   if (isMobile()) setOpen(false);
                 }}
-                title={undefined}
                 disabled={!ready}
                 className={`
-                  w-full flex items-center gap-3 rounded-xl text-left
-                  transition-all duration-150 group relative
-                  ${open ? 'px-3 py-2.5' : 'lg:justify-center lg:px-0 lg:py-2.5 px-3 py-2.5'}
+                  w-full flex items-center gap-2.5 rounded-md text-left text-sm
+                  transition-colors duration-100 group
+                  ${open ? 'px-2 py-2' : 'justify-center px-0 py-2.5'}
                   ${active
-                    ? 'cursor-default'
+                    ? 'text-slate-800'
                     : ready
-                      ? 'hover:bg-white/[0.07] active:bg-white/10 cursor-pointer'
-                      : 'cursor-not-allowed opacity-40'}
+                      ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer'
+                      : 'text-slate-300 cursor-not-allowed'}
                 `}
-                style={active ? {
-                  background: 'rgba(13,142,142,0.22)',
-                  boxShadow: 'inset 0 0 0 1px rgba(13,200,200,0.18)',
-                } : {}}
+                style={active ? { backgroundColor: `${hospital.themeColor}12` } : {}}
               >
-                {/* Active left accent bar */}
-                {active && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
-                    style={{ background: '#2bbaba' }}
-                  />
-                )}
-
-                {/* Icon */}
                 <span
-                  className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${
+                  className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
                     active
-                      ? 'text-teal-300'
+                      ? 'text-white'
                       : ready
-                        ? 'text-white/40 group-hover:text-white/80'
-                        : 'text-white/20'
+                        ? 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-200/60'
+                        : 'text-slate-300'
                   }`}
-                  style={active ? { background: 'rgba(13,200,200,0.15)' } : {}}
+                  style={active ? { backgroundColor: hospital.themeColor } : {}}
                 >
-                  <Icon size={17} />
+                  <Icon size={15} />
                 </span>
 
-                {/* Labels */}
                 {open && (
-                  <div className="overflow-hidden flex-1 min-w-0">
-                    <p className={`font-mitr text-[13px] font-semibold leading-tight truncate tracking-wide ${
-                      active ? 'text-teal-200' : ready ? 'text-white/75 group-hover:text-white' : 'text-white/30'
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-[13px] font-semibold font-mitr leading-tight truncate ${
+                      active ? 'text-slate-800' : ready ? 'text-slate-700' : 'text-slate-300'
                     }`}>
                       {label}
                     </p>
                     <p className={`text-[10px] font-sans truncate mt-0.5 ${
-                      active ? 'text-teal-400/70' : 'text-white/25'
+                      active ? 'text-slate-500' : 'text-slate-400'
                     }`}>
                       {sublabel}
                     </p>
                   </div>
                 )}
 
-                {/* Coming soon badge */}
                 {open && !ready && (
-                  <span className="shrink-0 text-[9px] bg-white/8 border border-white/10 text-white/35 px-1.5 py-0.5 rounded-md font-sans font-medium tracking-widest">
+                  <span className="shrink-0 text-[9px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-sans font-medium tracking-wider border border-slate-200">
                     SOON
                   </span>
                 )}
@@ -206,27 +352,25 @@ export default function Sidebar({ activeKey, onSelect }) {
             );
 
             return !open
-              ? <NavTooltip key={key} label={label}>{btn}</NavTooltip>
+              ? <Tooltip key={key} label={label}>{btn}</Tooltip>
               : <div key={key}>{btn}</div>;
           })}
         </nav>
 
-        {/* ── Version / collapse footer ── */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} className="p-2 space-y-1">
-          {open && (
-            <p className="text-[9px] text-white/20 font-sans px-3 py-1 tracking-wider">
-              v1.0.0 · PediCalc
-            </p>
+        {/* ── Footer: version + author ── */}
+        <div className={`border-t border-slate-100 ${open ? 'px-3 py-3' : 'px-1.5 py-2'}`}>
+          {open ? (
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-sans font-semibold text-slate-500 leading-snug">
+                จัดทำโดย พญ.สมิตา สมโภชน์
+              </p>
+              <p className="text-[9px] text-slate-400 font-sans tracking-wider">v1.0.0 · PediCalc</p>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
+            </div>
           )}
-          <button
-            onClick={() => setOpen((s) => !s)}
-            className="hidden lg:flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-white/30 hover:text-white/70 hover:bg-white/[0.07] transition-colors"
-          >
-            {open
-              ? <><ChevronLeft size={14} /><span className="text-[11px] font-sans">Collapse</span></>
-              : <ChevronRight size={14} />
-            }
-          </button>
         </div>
       </aside>
 
@@ -234,16 +378,12 @@ export default function Sidebar({ activeKey, onSelect }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="เปิดเมนู"
-        className={`fixed left-3 z-40 lg:hidden p-2.5 rounded-xl shadow-xl text-white transition-opacity duration-200 ${
+        className={`fixed left-3 z-40 lg:hidden p-2 rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-opacity duration-200 ${
           open ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
-        style={{
-          background: 'linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)',
-          top: 'calc(env(safe-area-inset-top) + 0.625rem)',
-          boxShadow: '0 4px 16px rgba(13,110,110,0.4)',
-        }}
+        style={{ top: 'calc(env(safe-area-inset-top) + 0.625rem)' }}
       >
-        <Menu size={20} />
+        <Menu size={18} />
       </button>
     </>
   );

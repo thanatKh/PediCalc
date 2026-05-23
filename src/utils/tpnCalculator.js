@@ -30,7 +30,8 @@ import {
   OSMO_FACTOR_AA_G_PER_L,
   OSMO_AMINOVEN_10PCT_G_PER_ML,
   OSMO_FACTOR_ELECTROLYTE,
-  CA_PO4_PRECIP_THRESHOLD,
+  CA_PO4_PRODUCT_THRESHOLD,
+  CA_PO4_SUM_THRESHOLD,
   ML_TO_L,
   PROTEIN_TO_NITROGEN,
   DEXTROSE_PERIPHERAL_LIMIT,
@@ -44,17 +45,14 @@ export const calculateTPN = (inputs) => {
 
   const isNewborn = inputs.patientType === 'newborn';
 
-  // 1. TPN Volume = BW × fluid target + 25 ml (line reserve, always applied for newborn)
+  // 1. TPN Volume = BW × fluid target + 25 ml (line reserve for all patients)
   const volTarget   = parseFloat(inputs.volumeTarget) || 0;
-  const totalVolume = isNewborn
-    ? volTarget * bw + NEWBORN_LINE_RESERVE_ML
-    : volTarget * bw;
+  const totalVolume = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
 
-  // DSF (Dead Space Factor) — ratio that scales electrolytes/protein to account
-  // for the 25 ml dead-space volume that does not deliver nutrients
-  const dsf = isNewborn && (totalVolume - NEWBORN_LINE_RESERVE_ML) > 0
-    ? totalVolume / (totalVolume - NEWBORN_LINE_RESERVE_ML)
-    : 1;
+  // DSF (Dead Space Factor) — scales nutrients so patient receives intended dose
+  // despite 25 ml of line dead-space that delivers no nutrients
+  const nutrientVolume = totalVolume - NEWBORN_LINE_RESERVE_ML;
+  const dsf = nutrientVolume > 0 ? totalVolume / nutrientVolume : 1;
 
   // 2. Macronutrients
   const dexPct     = parseFloat(inputs.dextrosePct) || 0;
@@ -123,7 +121,8 @@ export const calculateTPN = (inputs) => {
   const caConc       = bagVolL > 0 ? caMmolInBag  / bagVolL : 0;
   const po4Conc      = bagVolL > 0 ? po4MmolInBag / bagVolL : 0;
   const caxP         = caConc * po4Conc;
-  const caxPHigh     = caxP > CA_PO4_PRECIP_THRESHOLD;
+  // Alert if product ([Ca]×[PO4]) > 75 mmol²/L² OR if total Ca+PO4 > 45 mmol
+  const caxPHigh     = caxP > CA_PO4_PRODUCT_THRESHOLD || (caMmolInBag + po4MmolInBag) > CA_PO4_SUM_THRESHOLD;
 
   const aaGPerL = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
   const totalNaMeq = totalNaActual * bw;

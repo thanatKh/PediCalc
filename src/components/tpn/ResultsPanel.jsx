@@ -68,7 +68,7 @@ export default function ResultsPanel({ results, inputs }) {
       )}
       {caxPHigh && !waterNegative && (
         <AlertBanner color="yellow" title="Risk of Ca-Phosphate Precipitation"
-          body={`Ca×PO₄ = ${fmt(results?.caxP, 1)} mmol²/L² (เกิน 55) — ลด Ca หรือ PO₄ ลง หรือสั่งแยก line`} />
+          body={`Ca×PO₄ = ${fmt(results?.caxP, 1)} mmol²/L² (เกิน 75) หรือ Ca+PO₄ รวม > 45 mmol — ลด Ca หรือ PO₄ ลง หรือสั่งแยก line`} />
       )}
 
       {/* ── Key stat pills ── */}
@@ -94,7 +94,7 @@ export default function ResultsPanel({ results, inputs }) {
             <p className="font-mitr font-bold text-slate-700 text-2xl tabular-nums leading-tight mt-0.5">
               {inputs.manualTPNRate !== '' && parseFloat(inputs.manualTPNRate) > 0
                 ? <>{fmt(parseFloat(inputs.manualTPNRate), 1)}<span className="text-[11px] font-sans font-normal text-slate-400 ml-1">ml/hr</span></>
-                : <span className="text-slate-300 text-lg">— ระบุใน Rate Section</span>
+                : <span className="text-slate-300 text-lg">—</span>
               }
             </p>
             {gir !== null && (

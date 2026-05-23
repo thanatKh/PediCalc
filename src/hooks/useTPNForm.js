@@ -28,9 +28,18 @@ export const DEFAULTS = {
   manualLipidRate: '',
 };
 
-export function useTPNForm() {
+function buildFilename(inputs) {
+  const hn      = (inputs.hn || 'NONAME').replace(/[^a-zA-Z0-9]/g, '');
+  const bwStr   = (inputs.bw || '0').replace('.', '_');
+  const today   = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+  return `TPN_${hn}_${bwStr}kg_${dateStr}.pdf`;
+}
+
+export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
+  const [pdfModal, setPdfModal] = useState(null); // { filename, logoUrl } | null
 
   const update = useCallback(
     (key) => (evOrVal) => {
@@ -44,20 +53,54 @@ export function useTPNForm() {
 
   const results = useMemo(() => calculateTPN(inputs), [inputs]);
 
+  const closePdfModal = useCallback(() => setPdfModal(null), []);
+
   const handleExportPDF = useCallback(() => {
     if (!results || results.isWaterNegative || isExporting) return;
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const filename = buildFilename(inputs);
+
+    if (isMobile) {
+      // ── Mobile: generate blob then navigate current tab ───────────────
+      startExportTransition(async () => {
+        try {
+          const [{ pdf }, { default: TPNPdfDocument }] = await Promise.all([
+            import('@react-pdf/renderer'),
+            import('@/components/TPNPdfTemplate'),
+          ]);
+
+          let logoUrl = null;
+          try {
+            const res = await fetch(hospital?.logoForPdf ?? '/logo-kabinburi.PNG');
+            const buf = await res.arrayBuffer();
+            const u8  = new Uint8Array(buf);
+            let b64 = '';
+            for (let i = 0; i < u8.length; i += 8192) {
+              b64 += String.fromCharCode(...u8.subarray(i, i + 8192));
+            }
+            logoUrl = `data:image/png;base64,${btoa(b64)}`;
+          } catch { /* logo optional */ }
+
+          const element = createElement(TPNPdfDocument, { inputs, results, logoUrl, hospital });
+          const blob    = await pdf(element).toBlob();
+          window.location.href = URL.createObjectURL(blob);
+        } catch (err) {
+          console.error('Export PDF failed:', err);
+          alert(`PDF export error: ${err?.message ?? err}`);
+        }
+      });
+      return;
+    }
+
+    // ── Desktop: open in-app preview modal ───────────────────────────────
     startExportTransition(async () => {
       try {
-        const [{ pdf }, { default: TPNPdfDocument }] = await Promise.all([
-          import('@react-pdf/renderer'),
-          import('@/components/TPNPdfTemplate'),
-        ]);
-
         let logoUrl = null;
         try {
-          const res  = await fetch('/logo-kabinburi.PNG');
-          const buf  = await res.arrayBuffer();
-          const u8   = new Uint8Array(buf);
+          const res = await fetch(hospital?.logoForPdf ?? '/logo-kabinburi.PNG');
+          const buf = await res.arrayBuffer();
+          const u8  = new Uint8Array(buf);
           let b64 = '';
           for (let i = 0; i < u8.length; i += 8192) {
             b64 += String.fromCharCode(...u8.subarray(i, i + 8192));
@@ -65,45 +108,13 @@ export function useTPNForm() {
           logoUrl = `data:image/png;base64,${btoa(b64)}`;
         } catch { /* logo optional */ }
 
-        const element = createElement(TPNPdfDocument, { inputs, results, logoUrl });
-        const blob = await pdf(element).toBlob();
-
-        const hn      = (inputs.hn || 'NONAME').replace(/[^a-zA-Z0-9]/g, '');
-        const bwStr   = (inputs.bw || '0').replace('.', '_');
-        const today   = new Date();
-        const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-        const filename = `TPN_${hn}_${bwStr}kg_${dateStr}.pdf`;
-
-        // Post message to SW so it can serve the blob with correct filename
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          const swChannel = new MessageChannel();
-          const blobArray = await blob.arrayBuffer();
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'REGISTER_PDF', filename, buffer: blobArray },
-            [swChannel.port2, blobArray]
-          );
-          // SW will respond with the token URL to open
-          swChannel.port1.onmessage = (e) => {
-            if (e.data?.url) window.open(e.data.url, '_blank', 'noopener');
-          };
-        } else {
-          // Fallback: HTML wrapper (SW not yet active)
-          const blobUrl = URL.createObjectURL(blob);
-          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${filename}</title>
-<style>*{margin:0;padding:0}html,body,iframe{width:100%;height:100%;border:none;display:block}</style>
-</head><body><iframe src="${blobUrl}" title="${filename}"></iframe>
-<script>setTimeout(()=>URL.revokeObjectURL("${blobUrl}"),5*60*1000)<\/script></body></html>`;
-          const htmlBlob = new Blob([html], { type: 'text/html' });
-          const htmlUrl  = URL.createObjectURL(htmlBlob);
-          window.open(htmlUrl, '_blank', 'noopener');
-          setTimeout(() => URL.revokeObjectURL(htmlUrl), 5 * 60 * 1000);
-        }
+        setPdfModal({ filename, logoUrl, hospital });
       } catch (err) {
         console.error('Export PDF failed:', err);
         alert(`PDF export error: ${err?.message ?? err}`);
       }
     });
-  }, [inputs, results, isExporting]);
+  }, [inputs, results, isExporting, hospital]);
 
-  return { inputs, update, reset, results, isExporting, handleExportPDF };
+  return { inputs, update, reset, results, isExporting, handleExportPDF, pdfModal, closePdfModal };
 }

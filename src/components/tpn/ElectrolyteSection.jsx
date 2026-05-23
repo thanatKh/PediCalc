@@ -93,7 +93,7 @@ export default function ElectrolyteSection({ inputs, update, results }) {
       {/* Ca×PO4 warning from results */}
       {results?.caxPHigh && (
         <p className="text-[10px] font-semibold text-amber-700 bg-amber-50 ring-1 ring-amber-200 rounded-lg px-3 py-1.5 mb-4">
-          ⚠ Ca×PO₄ = {fmt(results.caxP, 1)} mmol²/L² — เกินขีดจำกัด 55 ลด Ca หรือ PO₄ ลง
+          ⚠ Ca×PO₄ = {fmt(results.caxP, 1)} mmol²/L² — เกินขีดจำกัด (Ca×PO₄ &gt; 75 หรือ Ca+PO₄ &gt; 45 mmol) ลด Ca หรือ PO₄ ลง
         </p>
       )}
 
