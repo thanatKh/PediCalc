@@ -110,11 +110,9 @@
   }
 }
 
-/* ── Dot-grid background texture ── */
+/* ── App background ── */
 .bg-dot-grid {
-  background-color: #f5f7f8;
-  background-image: radial-gradient(circle, #d1d9dc 1px, transparent 1px);
-  background-size: 22px 22px;
+  background-color: #f0f4f4;
 }
 
 /* ── Glass card ── */
@@ -225,6 +223,76 @@ input:focus {
 /* ── Alert slide-in ── */
 .alert-enter {
   animation: fade-up 0.3s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+/* ── CDS panel — premium enter/exit ── */
+@keyframes cds-safe-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes cds-alert-in {
+  from { opacity: 0; transform: translateY(10px) scaleY(0.96); }
+  to   { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+@keyframes cds-row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes safe-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(16,185,129,0.30); }
+  60%  { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+@keyframes badge-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  65%  { transform: scale(1.12); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+@keyframes shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.cds-safe-enter  { animation: cds-safe-in  0.38s cubic-bezier(0.22,1,0.36,1) both; }
+.cds-alert-enter { animation: cds-alert-in 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+.cds-row-enter   { animation: cds-row-in   0.30s cubic-bezier(0.22,1,0.36,1) both; }
+.cds-badge-pop   { animation: badge-pop    0.32s cubic-bezier(0.34,1.56,0.64,1) both; }
+.cds-safe-pulse  { animation: safe-pulse   1.2s ease 0.4s both; }
+
+/* Stagger for CDS rows (up to 10) */
+.cds-rows > *:nth-child(1)  { animation-delay:  30ms; }
+.cds-rows > *:nth-child(2)  { animation-delay:  80ms; }
+.cds-rows > *:nth-child(3)  { animation-delay: 120ms; }
+.cds-rows > *:nth-child(4)  { animation-delay: 155ms; }
+.cds-rows > *:nth-child(5)  { animation-delay: 185ms; }
+.cds-rows > *:nth-child(6)  { animation-delay: 210ms; }
+.cds-rows > *:nth-child(7)  { animation-delay: 230ms; }
+.cds-rows > *:nth-child(8)  { animation-delay: 248ms; }
+.cds-rows > *:nth-child(9)  { animation-delay: 264ms; }
+.cds-rows > *:nth-child(10) { animation-delay: 278ms; }
+
+/* Shimmer sweep on the safe badge */
+.cds-safe-shimmer {
+  background: linear-gradient(
+    105deg,
+    #d1fae5 0%, #d1fae5 35%,
+    #a7f3d0 50%,
+    #d1fae5 65%, #d1fae5 100%
+  );
+  background-size: 200% auto;
+  animation: shimmer-sweep 2.2s linear 0.6s 1 both;
+}
+
+/* ── Field attention blink (triggered via JS, color set inline) ── */
+@keyframes field-attention {
+  0%   { opacity: 1; }
+  25%  { opacity: 0.35; }
+  50%  { opacity: 1; }
+  75%  { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+.field-attention {
+  animation: field-attention 0.7s ease both;
 }
 
 @theme inline {

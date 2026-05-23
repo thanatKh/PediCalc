@@ -17,7 +17,7 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
 
       {/* Sodium sources */}
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2.5">
+        <p className="text-sm font-semibold text-slate-500 mb-2.5">
           Sodium (Na) — ระบุปริมาณจากแต่ละแหล่ง
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -46,7 +46,7 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
 
       {/* Potassium sources */}
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2.5">
+        <p className="text-sm font-semibold text-slate-500 mb-2.5">
           Potassium (K) — ระบุปริมาณจากแต่ละแหล่ง
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -88,12 +88,12 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
               : isMod ? 'bg-amber-50 ring-amber-300/60'
               : 'bg-white ring-slate-200/80'
             }`}>
-              <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-slate-400 mb-0.5">
+              <p className="text-xs font-bold text-slate-400 mb-1 tracking-wide">
                 {isCrit ? '🚨 ' : isMod ? '⚠️ ' : ''}{label}
               </p>
               <p className={`font-mitr font-semibold text-base tabular-nums leading-tight ${isCrit ? 'text-rose-700' : isMod ? 'text-amber-700' : 'text-slate-700'}`}>
                 {fmt(value, 2)}
-                <span className="text-[10px] font-sans font-normal ml-1 opacity-70">{unit}</span>
+                <span className="text-xs font-sans font-normal ml-1 opacity-70">{unit}</span>
               </p>
             </div>
           );

@@ -23,7 +23,7 @@ import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSuppo
 const PdfModalContent = lazy(() => import('@/components/PdfModalContent'));
 
 const DISCLAIMER = (
-  <p className="text-[10px] text-slate-400 font-sans px-1">
+  <p className="text-xs text-slate-400 font-sans px-1">
     * PediCalc ใช้สนับสนุนการตัดสินใจทางคลินิกเท่านั้น — แพทย์ผู้สั่งยาควรทบทวนก่อนใช้กับผู้ป่วยจริงทุกครั้ง
   </p>
 );
@@ -180,6 +180,28 @@ export default function TPNCalculator({ hospital }) {
     }
   }
 
+  function handleNavigateToField(fieldIds, color = '#e11d48') {
+    const ids = Array.isArray(fieldIds) ? fieldIds : [fieldIds];
+    let scrolled = false;
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!scrolled) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scrolled = true;
+      }
+      const prev = el.style.borderColor;
+      el.style.borderColor = color;
+      el.classList.remove('field-attention');
+      void el.offsetWidth;
+      el.classList.add('field-attention');
+      el.addEventListener('animationend', () => {
+        el.classList.remove('field-attention');
+        el.style.borderColor = prev;
+      }, { once: true });
+    });
+  }
+
   const exportDisabledReason = isExporting ? null
     : !inputs.bw || parseFloat(inputs.bw) <= 0 ? 'กรุณากรอก BW ก่อน Export'
     : waterNegative ? 'Sterile Water ติดลบ — ลด targets ก่อน'
@@ -244,14 +266,14 @@ export default function TPNCalculator({ hospital }) {
 
       {/* ── Sticky header ── */}
       <header className="sticky top-0 z-10 glass-card border-b border-white/60" style={{ borderRadius: 0 }}>
-        <div className="max-w-6xl mx-auto pl-14 pr-3 sm:pr-4 lg:pl-6 lg:pr-6 flex items-center justify-between gap-3"
+        <div className="max-w-screen-2xl mx-auto pl-14 pr-3 sm:pr-4 lg:pl-6 lg:pr-6 flex items-center justify-between gap-3"
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}
         >
           <div className="min-w-0">
             <h1 className="font-mitr text-lg sm:text-xl font-bold leading-tight truncate text-teal-600">
               Neonatal TPN Calculator
             </h1>
-            <p className="text-[11px] text-slate-400 font-sans hidden sm:block tracking-wide">
+            <p className="text-xs text-slate-400 font-sans hidden sm:block tracking-wide">
               สูตรสารอาหารทางหลอดเลือดดำ ทารกแรกเกิด
             </p>
           </div>
@@ -315,10 +337,10 @@ export default function TPNCalculator({ hospital }) {
       </header>
 
       {/* ── Main content ── */}
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+      <main className="max-w-screen-2xl mx-auto px-3 sm:px-6 xl:px-10 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
         {/* LEFT: input sections */}
-        <section className="lg:col-span-7 space-y-4">
+        <section className="lg:col-span-7 xl:col-span-8 space-y-4">
 
           <PatientInfoSection  inputs={inputs} update={update} cds={cds} />
           <MacroSection        inputs={inputs} update={update} cds={cds} />
@@ -329,9 +351,9 @@ export default function TPNCalculator({ hospital }) {
         </section>
 
         {/* RIGHT: live results */}
-        <aside className="lg:col-span-5">
+        <aside className="lg:col-span-5 xl:col-span-4">
           <div className="lg:sticky lg:top-20 space-y-4">
-            <ResultsPanel    results={results} inputs={inputs} validation={validation} />
+            <ResultsPanel    results={results} inputs={inputs} validation={validation} onNavigate={handleNavigateToField} />
             <IngredientsTable results={results} dexPct={dexPct} />
             {DISCLAIMER}
           </div>

@@ -22,22 +22,22 @@ const LIPID_ROWS = [
 
 function TableHeader() {
   return (
-    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-100/80">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Ingredients</span>
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 text-right w-16">Volume (ml)</span>
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 text-right w-12">Bag</span>
+    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-3 bg-slate-50 border-b border-slate-100/80">
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Ingredients</span>
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500 text-right w-16">Volume (ml)</span>
+      <span className="text-xs font-bold uppercase tracking-wide text-slate-500 text-right w-12">Bag</span>
     </div>
   );
 }
 
 function TableRow({ label, value, bag, accent, zebra }) {
   return (
-    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/40' : 'bg-white'}`}>
+    <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-3 items-center transition-colors hover:bg-teal-50/30 ${zebra ? 'bg-slate-50/40' : 'bg-white'}`}>
       <span className="text-sm font-sans text-slate-600 leading-snug min-w-0">{label}</span>
       <span className={`text-sm font-mitr font-semibold tabular-nums text-right w-16 ${accent || 'text-slate-700'}`}>
         {value}
       </span>
-      <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">
+      <span className="text-xs font-bold text-right w-12 text-slate-400 uppercase tracking-wide">
         {bag}
       </span>
     </div>
@@ -46,9 +46,9 @@ function TableRow({ label, value, bag, accent, zebra }) {
 
 function SeparatorRow({ label }) {
   return (
-    <div className="px-4 sm:px-5 py-1.5 bg-slate-50">
-      <Separator className="mb-1.5" />
-      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{label}</span>
+    <div className="px-4 sm:px-5 py-2 bg-slate-50">
+      <Separator className="mb-2" />
+      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</span>
     </div>
   );
 }
@@ -58,9 +58,9 @@ export default function IngredientsTable({ results, dexPct }) {
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
-      <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-        <FileText size={14} className="text-slate-400" />
-        <span className="font-mitr text-sm font-semibold text-slate-700">รายการส่วนประกอบ · Ingredients</span>
+      <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
+        <FileText size={16} className="text-teal-500" />
+        <span className="font-mitr text-base font-semibold text-teal-600">รายการส่วนประกอบ · Ingredients</span>
       </div>
 
       <div className="overflow-x-auto">
@@ -79,23 +79,23 @@ export default function IngredientsTable({ results, dexPct }) {
           ))}
 
           {/* Sterile water */}
-          <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center ${waterNegative ? 'bg-rose-50' : 'bg-slate-50/60'}`}>
+          <div className={`grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-3 items-center ${waterNegative ? 'bg-rose-50' : 'bg-slate-50/60'}`}>
             <span className={`text-sm font-mitr font-semibold ${waterNegative ? 'text-rose-700' : 'text-slate-700'}`}>
               Sterile Water for Injection
             </span>
             <span className={`text-sm font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-slate-700'}`}>
               {fmt(results?.sterileWaterMl, 2)}
             </span>
-            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
+            <span className="text-xs font-bold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
           </div>
 
           {/* TPN Volume total */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center bg-slate-100/60 border-t border-slate-200">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-3 items-center bg-slate-100/60 border-t border-slate-200">
             <span className="text-sm font-mitr font-bold text-slate-700">TPN Volume</span>
             <span className="text-sm font-mitr font-bold tabular-nums text-right w-16 text-slate-700">
               {fmt(results?.tpnVolume ?? results?.bag2in1Vol, 2)}
             </span>
-            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
+            <span className="text-xs font-bold text-right w-12 text-slate-400 uppercase tracking-wide">ml</span>
           </div>
 
           <SeparatorRow label="แยกสาย · Lipid bag" />
@@ -112,7 +112,7 @@ export default function IngredientsTable({ results, dexPct }) {
           ))}
 
           {/* Heparin */}
-          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-2.5 items-center bg-slate-50/40">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 px-4 sm:px-5 py-3 items-center bg-slate-50/40">
             <span className="text-sm font-sans text-slate-600">
               Heparin ({fmt(results?.heparinUnitPerMl, 1)} u/ml)
             </span>
@@ -120,11 +120,11 @@ export default function IngredientsTable({ results, dexPct }) {
               <span className="text-sm font-mitr font-semibold tabular-nums text-slate-700">
                 {fmt(results?.heparinMl, 2)}
               </span>
-              <span className="block text-[10px] text-slate-400 font-sans">
+              <span className="block text-xs text-slate-400 font-sans">
                 ({fmt(results?.heparinUnits, 0)} u)
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
+            <span className="text-xs font-bold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
           </div>
         </div>
       </div>

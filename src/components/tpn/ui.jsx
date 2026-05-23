@@ -25,7 +25,7 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
   const ts = TIER_STYLES[tier];
   return (
     <div className={cn('space-y-1.5 min-w-0', className)}>
-      <Label htmlFor={id} className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
+      <Label htmlFor={id} className="text-sm font-semibold text-slate-600 leading-none">
         {label}
       </Label>
       <div className="relative">
@@ -38,22 +38,22 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={cn(
-            'bg-white rounded-xl pr-14 h-11 md:h-10 text-base md:text-sm font-sans text-slate-800 shadow-sm transition-[border-color,box-shadow] duration-150',
+            'bg-white rounded-xl pr-16 h-11 text-base font-sans text-slate-800 shadow-sm transition-[border-color,box-shadow] duration-150',
             ts ? `${ts.border} ${ts.ring} border` : 'border-slate-200',
           )}
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-slate-400 max-w-[3.25rem] truncate">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-slate-400 max-w-[3.75rem] truncate">
             {suffix}
           </span>
         )}
       </div>
       {ts && tierMessage && (
-        <p className={cn('text-[10px] font-semibold font-sans leading-snug px-1 py-0.5 rounded-md border', ts.badge)}>
+        <p className={cn('text-xs font-semibold font-sans leading-snug px-1.5 py-1 rounded-lg border', ts.badge)}>
           {ts.icon} {tierMessage}
         </p>
       )}
-      {hint && <p className="text-[10px] text-slate-400 font-sans leading-snug px-0.5">{hint}</p>}
+      {hint && <p className="text-xs text-slate-400 font-sans leading-snug px-0.5 mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -64,14 +64,14 @@ export function StatPill({ label, value, suffix, tone = 'slate', decimals = 1 })
   const numVal = parseFloat(value);
   const isNumeric = !isNaN(numVal) && value !== '—';
   return (
-    <div className={cn('stat-pill animate-fade-up px-3 py-2.5 rounded-2xl ring-1 flex flex-col gap-0.5 shadow-sm', t.bg, t.ring)}>
-      <span className={cn('text-[9px] uppercase tracking-[0.12em] font-bold', t.sub)}>{label}</span>
+    <div className={cn('stat-pill animate-fade-up px-3 py-3 rounded-2xl ring-1 flex flex-col gap-1 shadow-sm', t.bg, t.ring)}>
+      <span className={cn('text-xs uppercase tracking-[0.1em] font-bold leading-none', t.sub)}>{label}</span>
       <span className={cn('text-lg font-mitr font-semibold tabular-nums leading-tight', t.text)}>
         {isNumeric
           ? <NumberTicker value={numVal} decimalPlaces={decimals} className={cn('font-mitr font-semibold', t.text)} />
           : value
         }
-        {suffix && <span className="text-[11px] font-sans font-normal ml-1 opacity-70">{suffix}</span>}
+        {suffix && <span className="text-xs font-sans font-normal ml-1 opacity-70">{suffix}</span>}
       </span>
     </div>
   );
@@ -81,11 +81,11 @@ export function StatPill({ label, value, suffix, tone = 'slate', decimals = 1 })
 export function SectionCard({ title, icon: Icon, children, className }) {
   return (
     <div className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}>
-      <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-        {Icon && <Icon size={14} className="text-slate-400" aria-hidden="true" />}
-        <h2 className="font-mitr text-sm font-semibold tracking-wide text-slate-700">{title}</h2>
+      <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
+        {Icon && <Icon size={16} className="text-teal-500" aria-hidden="true" />}
+        <h2 className="font-mitr text-base font-semibold text-teal-600">{title}</h2>
       </div>
-      <div className="px-4 sm:px-5 py-4">{children}</div>
+      <div className="px-4 sm:px-5 py-5">{children}</div>
     </div>
   );
 }
@@ -93,8 +93,8 @@ export function SectionCard({ title, icon: Icon, children, className }) {
 // ── AutoBadge ────────────────────────────────────────────────────────────────
 export function AutoBadge() {
   return (
-    <Badge variant="outline" className="gap-0.5 px-1.5 py-0 text-[9px] font-semibold text-teal-600 bg-teal-50 border-teal-200/80 rounded-full h-auto leading-none">
-      <Zap size={8} />AUTO
+    <Badge variant="outline" className="gap-0.5 px-1.5 py-0.5 text-[10px] font-bold text-teal-600 bg-teal-50 border-teal-200/80 rounded-full h-auto leading-none">
+      <Zap size={9} />AUTO
     </Badge>
   );
 }

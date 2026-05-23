@@ -13,7 +13,7 @@ import {
   FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
-export default function ResultsPanel({ results, inputs, validation }) {
+export default function ResultsPanel({ results, inputs, validation, onNavigate }) {
   const dexPct        = parseFloat(inputs.dextrosePct) || 0;
   const waterNegative = !!results?.isWaterNegative;
   const sterileWater  = results?.sterileWaterMl ?? null;
@@ -41,7 +41,7 @@ export default function ResultsPanel({ results, inputs, validation }) {
       )}
 
       {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
-      <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} />
+      <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} onNavigate={onNavigate} />
 
       {/* ── Key stat pills ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
@@ -55,38 +55,38 @@ export default function ResultsPanel({ results, inputs, validation }) {
 
       {/* ── Infusion rates card ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
-        <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-          <Droplet size={14} className="text-slate-400" />
-          <span className="font-mitr text-sm font-semibold text-slate-700">อัตราหยด · Infusion Rates</span>
+        <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
+          <Droplet size={16} className="text-teal-500" />
+          <span className="font-mitr text-base font-semibold text-teal-600">อัตราหยด · Infusion Rates</span>
         </div>
         <div className="px-4 sm:px-5 py-4 grid grid-cols-2 gap-3">
           {/* TPN Rate — physician prescribed */}
-          <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3">
-            <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400">TPN Rate (สั่ง)</p>
-            <p className="font-mitr font-bold text-slate-700 text-2xl tabular-nums leading-tight mt-0.5">
+          <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3.5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">TPN Rate (สั่ง)</p>
+            <p className="font-mitr font-bold text-slate-700 text-2xl tabular-nums leading-tight mt-1">
               {inputs.manualTPNRate !== '' && parseFloat(inputs.manualTPNRate) > 0
-                ? <>{fmt(parseFloat(inputs.manualTPNRate), 1)}<span className="text-[11px] font-sans font-normal text-slate-400 ml-1">ml/hr</span></>
+                ? <>{fmt(parseFloat(inputs.manualTPNRate), 1)}<span className="text-sm font-sans font-normal text-slate-400 ml-1">ml/hr</span></>
                 : <span className="text-slate-300 text-lg">—</span>
               }
             </p>
             {gir !== null && (
-              <p className={`text-[9px] mt-0.5 font-sans font-semibold ${girHigh || girLow ? 'text-amber-600' : 'text-teal-600'}`}>
+              <p className={`text-xs mt-1 font-sans font-semibold ${girHigh || girLow ? 'text-amber-600' : 'text-teal-600'}`}>
                 GIR = {fmt(gir, 2)} mg/kg/min {girHigh ? '⚠ High' : girLow ? '⚠ Low' : '✓'}
               </p>
             )}
           </div>
           {/* Lipid Rate */}
-          <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3">
-            <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400">Lipid Rate</p>
-            <p className={`font-mitr font-bold text-2xl tabular-nums leading-tight mt-0.5 ${fatRateHigh ? 'text-rose-600' : 'text-slate-700'}`}>
+          <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3.5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Lipid Rate</p>
+            <p className={`font-mitr font-bold text-2xl tabular-nums leading-tight mt-1 ${fatRateHigh ? 'text-rose-600' : 'text-slate-700'}`}>
               {fmt(results?.lipidRate, 1)}
-              <span className="text-[11px] font-sans font-normal text-slate-400 ml-1">ml/hr</span>
+              <span className="text-sm font-sans font-normal text-slate-400 ml-1">ml/hr</span>
             </p>
-            <p className={`text-[9px] mt-0.5 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-slate-400'}`}>
+            <p className={`text-xs mt-1 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-slate-400'}`}>
               Fat {fmt(results?.fatRateGKgHr, 3)} g/kg/hr {fatRateHigh ? `⚠ >0.17` : `✓ ≤${FAT_RATE_MAX_G_KG_HR}`}
             </p>
             {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-              <p className="text-[10px] text-slate-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
+              <p className="text-xs text-slate-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
             )}
           </div>
         </div>
@@ -94,21 +94,21 @@ export default function ResultsPanel({ results, inputs, validation }) {
 
       {/* ── Energy distribution ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
-        <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-          <Zap size={14} className="text-slate-400" />
-          <span className="font-mitr text-sm font-semibold text-slate-700">พลังงาน · Energy</span>
+        <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
+          <Zap size={16} className="text-teal-500" />
+          <span className="font-mitr text-base font-semibold text-teal-600">พลังงาน · Energy</span>
         </div>
-        <div className="px-4 sm:px-5 py-4 space-y-2">
+        <div className="px-4 sm:px-5 py-4 space-y-2.5">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-sans text-slate-500">Total Energy</span>
+            <span className="text-sm font-sans text-slate-500">Total Energy</span>
             <span className="font-mitr font-semibold text-slate-700">
-              {fmt(results?.totalEnergy, 1)}<span className="text-[10px] font-sans text-slate-400 ml-1">kcal/day</span>
+              {fmt(results?.totalEnergy, 1)}<span className="text-xs font-sans text-slate-400 ml-1">kcal/day</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-sans text-slate-500">kcal/kg/day</span>
+            <span className="text-sm font-sans text-slate-500">kcal/kg/day</span>
             <span className="font-mitr font-semibold text-slate-700">
-              {fmt(results?.kcalPerKg, 1)}<span className="text-[10px] font-sans text-slate-400 ml-1">kcal/kg</span>
+              {fmt(results?.kcalPerKg, 1)}<span className="text-xs font-sans text-slate-400 ml-1">kcal/kg</span>
             </span>
           </div>
           <Separator className="my-1" />
@@ -117,8 +117,8 @@ export default function ResultsPanel({ results, inputs, validation }) {
             { label: 'Protein (4 kcal/g)', kcal: results?.protein_kcal, pct: results?.proteinPct, color: '[&>div]:bg-slate-500' },
             { label: 'Fat (2 kcal/ml)',    kcal: results?.fat_kcal,     pct: results?.fatPct,     color: '[&>div]:bg-slate-400' },
           ].map((row) => (
-            <div key={row.label} className="space-y-0.5">
-              <div className="flex justify-between text-[11px] font-sans">
+            <div key={row.label} className="space-y-1">
+              <div className="flex justify-between text-sm font-sans">
                 <span className="text-slate-500">{row.label}</span>
                 <span className="text-slate-700 font-semibold">{fmt(row.kcal, 1)} kcal ({fmt(row.pct, 1)}%)</span>
               </div>
@@ -129,7 +129,7 @@ export default function ResultsPanel({ results, inputs, validation }) {
             </div>
           ))}
           <Separator className="my-1" />
-          <div className="flex justify-between items-center text-[11px] font-sans">
+          <div className="flex justify-between items-center text-sm font-sans">
             <span className="text-slate-400">NPC:N ratio</span>
             <span className={`font-semibold ${
               (results?.npcN ?? 0) < NPC_N_TARGET_MIN || (results?.npcN ?? 0) > NPC_N_TARGET_MAX
@@ -152,7 +152,7 @@ export default function ResultsPanel({ results, inputs, validation }) {
           <Droplet size={24} style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400 truncate">Sterile Water for Injection</p>
+          <p className="text-xs uppercase tracking-[0.12em] font-bold text-slate-400 truncate">Sterile Water for Injection</p>
           <p className="font-mitr text-xl sm:text-2xl font-semibold tabular-nums leading-tight truncate"
             style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }}>
             {sterileWater !== null

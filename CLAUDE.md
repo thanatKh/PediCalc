@@ -14,11 +14,19 @@ npm test           # Vitest regression tests (27 cases)
 
 ## Architecture
 
-**PediCalc** is a single-page React PWA (Vite 8, React 19, Tailwind CSS v4) for calculating Neonatal/Pediatric TPN (Total Parenteral Nutrition) at Kabinburi Hospital.
+**PediCalc** is a single-page React PWA (Vite 8, React 19, Tailwind CSS v4) for calculating Neonatal/Pediatric TPN (Total Parenteral Nutrition). Supports multiple hospitals with per-hospital branding.
 
 ### Routing
 
 There is **no react-router-dom**. Navigation is a single `useState('tpn-newborn')` in `src/App.jsx`. The sidebar calls `onSelect(key)`; App renders the matching module.
+
+### Multi-hospital support
+
+`src/utils/hospitals.js` — `HOSPITALS` map keyed by hospital ID (currently `kabinburi`, `abhaibhubejhr`). Each entry has `nameTh`, `nameEn`, `shortName`, `logo`, `logoSidebar`, `logoForPdf`, `themeColor`, `sidebarBg`.
+
+`src/hooks/useHospital.js` — reads/writes `pedicale-hospital` in `localStorage`. Returns `{ hospital, setHospital }`. Hospital object is passed down to `TPNCalculator` and `Sidebar`. The PDF and sidebar branding derive from the active hospital — **do not hardcode Kabinburi strings in new code**.
+
+To add a new hospital: add an entry to `HOSPITALS`, add its logo files to `public/`, and optionally add a theme color token to `src/index.css`.
 
 ### Calculation engine
 
@@ -50,6 +58,18 @@ Export is blocked when: `results` is null, `isWaterNegative`, currently exportin
 - `exportDisabledReason` is shown as a hint below the disabled button. On mobile, tapping the disabled button triggers an `alert()` with the reason.
 - Validation errors render as a rose banner; warnings render as an amber banner above the input sections.
 
+### Clinical Decision Support
+
+`src/utils/clinicalDecisionSupport.js` — `evaluateClinicalTiers(inputs, results) → checks`. Evaluates 11 parameters (fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %) against PediNAT B.E. 2565 thresholds. Each check returns `{ tier, value, message, risk }` where `tier` is `'critical'` | `'moderate'` | `'safe'`. **Critical tier does NOT block export** — it's advisory only; `tpnValidation.js` errors are what block export.
+
+`countTiers(checks) → { critical, moderate, safe }` — convenience aggregator used by `ClinicalAlertsPanel`.
+
+`src/components/tpn/ClinicalAlertsPanel.jsx` — renders the tiered alert panel. Shows a green "all safe" badge when everything passes; otherwise shows a rose/amber bordered panel with per-parameter rows. Receives `inputs`, `results`, `validation` props. Validation `errors` (from `tpnValidation.js`) render as ⛔ rows and are distinct from CDS `critical` tiers.
+
+Animation replay on tier change uses a `transitionKey` state derived from `stateKey(hasErrors, critical, moderate, errorCount)`. When the key changes (safe↔alert or alert count changes) React remounts the component, replaying CSS `animation: ... both` keyframes. The animation classes (`cds-safe-enter`, `cds-alert-enter`, `cds-row-enter`, `cds-badge-pop`, `cds-safe-pulse`, `cds-safe-shimmer`) are defined in `src/index.css`.
+
+**Add new clinical range checks to `clinicalDecisionSupport.js`, not to `tpnValidation.js`**, unless the check should hard-block export.
+
 ### Section components
 
 All in `src/components/tpn/`:
@@ -65,6 +85,7 @@ All in `src/components/tpn/`:
 | `RateSection.jsx` | Manual TPN/lipid rate entry with deviation warning |
 | `ResultsPanel.jsx` | Always visible — shows `—` when no results; alerts, stat pills, energy chart |
 | `IngredientsTable.jsx` | Ingredients table with 2-in-1 / Lipid bag columns |
+| `ClinicalAlertsPanel.jsx` | Tiered CDS alert panel — safe badge or rose/amber rows |
 
 ### PDF export
 
@@ -103,24 +124,24 @@ The PDF shows both calculated and prescribed lipid rates when a manual rate is e
 
 - **Tailwind CSS v4** via `@tailwindcss/vite` plugin. Custom tokens in `src/index.css` under `@theme {}`. No `tailwind.config.js`.
 - Brand color: `#0d6e6e` (deep teal). Alias: `teal-600`.
-- Custom classes: `.bg-dot-grid`, `.glass-card`, `.stat-pill`, `.nav-item`, `.alert-enter`, `.animate-fade-up`, `.stagger`.
+- Custom classes: `.bg-dot-grid` (plain `#f0f4f4` background — no dot pattern), `.glass-card`, `.stat-pill`, `.nav-item`, `.alert-enter`, `.animate-fade-up`, `.stagger`.
 - Font classes: `font-sans` = Sarabun, `font-mitr` = Kanit.
 - `.glass-card:hover` — shadow only, **no transform** (transform causes input cards to shift while typing).
 
 ### shadcn/ui
 
-Config in `components.json`. Style: `new-york`, base: `radix`, no TypeScript. Install components with `npx shadcn@latest add <component>`. Installed: button, card, input, label, switch, number-ticker, shimmer-button.
+Config in `components.json`. Style: `new-york`, base: `radix`, no TypeScript. Install components with `npx shadcn@latest add <component>`. Installed: alert, alert-dialog, badge, button, card, input, label, number-ticker, progress, separator, shimmer-button, slider, switch, tooltip.
 
 ### Regression tests
 
-`src/utils/tpnCalculator.test.js` — 27 Vitest tests for `calculateTPN`. Run with `npm test`. Config in `vite.config.js` under the `test` key (`environment: 'node'`). **When changing any formula in `tpnCalculator.js`, run `npm test` to check for regressions.**
+`src/utils/tpnCalculator.test.js` — 28 Vitest tests for `calculateTPN`. Run with `npm test`. Config in `vite.config.js` under the `test` key (`environment: 'node'`). **When changing any formula in `tpnCalculator.js`, run `npm test` to check for regressions.**
 
 ### Key constraints
 
 - **`html2canvas` and `jsPDF` have been removed.** PDF pipeline is entirely `@react-pdf/renderer`. Do not re-add them.
 - The `@` alias maps to `./src/`. Use `@/components/...`, `@/utils/...`, `@/lib/utils` etc.
 - Vite 8 uses **rolldown**. `manualChunks` must be a function, not an object.
-- `src/components/LandingPage.jsx` has been deleted. Do not reference it.
+- `src/components/LandingPage.jsx` and `src/assets/` have been deleted. Do not reference them.
 - `useTPNForm.js` is a `.js` file — use `createElement` from React, not JSX syntax.
 - `ResultsPanel` always renders (no early `return null`) — uses `results?.field ?? '—'` for placeholders.
 - `pako` must remain as a direct dependency — it is an undeclared transitive dep of `@react-pdf/pdfkit` and the build fails without it even though app code never imports it directly.

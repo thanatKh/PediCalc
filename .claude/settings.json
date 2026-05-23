@@ -32,7 +32,20 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(cp -r \".agents/skills/frontend-design\" \".claude/skills/\")",
       "Bash(cp -r \".agents/skills/vercel-react-best-practices\" \".claude/skills/\")",
-      "Bash(cp -r \".agents/skills/shadcn\" \".claude/skills/\")"
+      "Bash(cp -r \".agents/skills/shadcn\" \".claude/skills/\")",
+      "Skill(shadcn)",
+      "Skill(shadcn:*)",
+      "Bash(del \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\\\\components\\\\ui\\\\calendar.jsx\")",
+      "Bash(curl -s http://localhost:5174)",
+      "Bash(Remove-Item -Recurse -Force \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\.claude\\\\skills\\\\frontend-design\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "PowerShell(cd \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\"; Get-ChildItem -Recurse -Force -Name | Where-Object { $_ -notmatch 'node_modules' -and $_ -notmatch '\\\\.git' -and $_ -notmatch '^dist' } | Sort-Object)"
+    ],
+    "additionalDirectories": [
+      "d:\\OneDrive - PTTOR\\03 Documents ��ǹ���\\2026 05 Web Cal ��\\PediCalc\\src\\components\\ui",
+      "d:\\OneDrive - PTTOR\\03 Documents ��ǹ���\\2026 05 Web Cal ��\\PediCalc\\.claude\\skills"
     ]
   }
 }
