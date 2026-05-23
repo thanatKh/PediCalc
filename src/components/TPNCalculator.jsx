@@ -1,5 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Download, Loader2, RotateCcw, X, FileText, Printer } from 'lucide-react';
+import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2 } from 'lucide-react';
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { useTPNForm } from '@/hooks/useTPNForm';
 
@@ -20,10 +22,6 @@ const DISCLAIMER = (
   </p>
 );
 
-function printFromUrl(url) {
-  window.open(url, '_blank');
-}
-
 function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   const [blobUrl, setBlobUrl] = useState(null);
 
@@ -39,6 +37,16 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   const headerBg = hospital?.themeColor ?? '#0d6e6e';
   const loading = !blobUrl;
 
+  async function handleShare() {
+    if (!blobUrl) return;
+    const res  = await fetch(blobUrl);
+    const blob = await res.blob();
+    const file = new File([blob], filename, { type: 'application/pdf' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename });
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
 
@@ -52,38 +60,56 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
           {filename}
         </span>
 
-        {/* Print button */}
-        <button
-          onClick={() => { if (blobUrl) printFromUrl(blobUrl); }}
-          disabled={loading}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
-            loading
-              ? 'bg-white/10 text-white/40 cursor-wait'
-              : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
-          }`}
-        >
-          {loading
-            ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-            : <><Printer size={13} /> พิมพ์</>
-          }
-        </button>
-
-        {/* Download button */}
-        <a
-          href={blobUrl ?? '#'}
-          download={filename}
-          onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
-            loading
-              ? 'bg-white/10 text-white/40 pointer-events-none'
-              : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
-          }`}
-        >
-          {loading
-            ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-            : <><Download size={13} /> ดาวน์โหลด PDF</>
-          }
-        </a>
+        {isMobile ? (
+          /* Mobile: Share button — opens OS share sheet with correct filename */
+          <button
+            onClick={handleShare}
+            disabled={loading}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
+              loading
+                ? 'bg-white/10 text-white/40 cursor-wait'
+                : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
+            }`}
+          >
+            {loading
+              ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+              : <><Share2 size={13} /> แชร์</>
+            }
+          </button>
+        ) : (
+          /* Desktop: Print + Download */
+          <>
+            <button
+              onClick={() => { if (blobUrl) window.open(blobUrl, '_blank'); }}
+              disabled={loading}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
+                loading
+                  ? 'bg-white/10 text-white/40 cursor-wait'
+                  : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
+              }`}
+            >
+              {loading
+                ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+                : <><Printer size={13} /> พิมพ์</>
+              }
+            </button>
+            <a
+              href={blobUrl ?? '#'}
+              download={filename}
+              onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
+                loading
+                  ? 'bg-white/10 text-white/40 pointer-events-none'
+                  : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
+              }`}
+            >
+              {loading
+                ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+                : <><Download size={13} /> ดาวน์โหลด PDF</>
+              }
+            </a>
+          </>
+        )}
 
         <button
           onClick={onClose}
@@ -115,11 +141,18 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
 }
 
 export default function TPNCalculator({ hospital }) {
-  const { inputs, update, reset, results, isExporting, handleExportPDF, pdfModal, closePdfModal } = useTPNForm(hospital);
+  const { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal } = useTPNForm(hospital);
 
-  const waterNegative = !!results?.isWaterNegative;
-  const dexPct        = parseFloat(inputs.dextrosePct) || 0;
-  const canExport     = !waterNegative && !!results && !isExporting;
+  const waterNegative  = !!results?.isWaterNegative;
+  const dexPct         = parseFloat(inputs.dextrosePct) || 0;
+  const hasErrors      = validation.errors.length > 0;
+  const canExport      = !waterNegative && !!results && !isExporting && !hasErrors;
+
+  const exportDisabledReason = isExporting ? null
+    : !inputs.bw || parseFloat(inputs.bw) <= 0 ? 'กรุณากรอก BW ก่อน Export'
+    : waterNegative ? 'Sterile Water ติดลบ — ลด targets ก่อน'
+    : hasErrors ? validation.errors[0]
+    : null;
 
   return (
     <div className="min-h-full">
@@ -146,42 +179,48 @@ export default function TPNCalculator({ hospital }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Reset */}
-            <button
-              onClick={reset}
-              title="Reset ทุกช่องกลับค่าเริ่มต้น"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
-            >
-              <RotateCcw size={14} />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-
-            {/* Export PDF */}
-            {canExport ? (
-              <ShimmerButton
-                onClick={handleExportPDF}
-                shimmerColor="rgba(255,255,255,0.6)"
-                shimmerDuration="2.5s"
-                borderRadius="12px"
-                background="linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)"
-                className="gap-2 px-3 sm:px-4 py-2 text-sm font-mitr font-medium"
-              >
-                <Download size={15} />
-                <span className="hidden sm:inline">Export PDF</span>
-              </ShimmerButton>
-            ) : (
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <div className="flex items-center gap-2">
+              {/* Reset */}
               <button
-                onClick={handleExportPDF}
-                disabled
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
-                style={{ background: '#94a3b8' }}
+                onClick={reset}
+                title="Reset ทุกช่องกลับค่าเริ่มต้น"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
               >
-                {isExporting
-                  ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
-                  : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
-                }
+                <RotateCcw size={14} />
+                <span className="hidden sm:inline">Reset</span>
               </button>
+
+              {/* Export PDF */}
+              {canExport ? (
+                <ShimmerButton
+                  onClick={handleExportPDF}
+                  shimmerColor="rgba(255,255,255,0.6)"
+                  shimmerDuration="2.5s"
+                  borderRadius="12px"
+                  background="linear-gradient(135deg, #0d8f8f 0%, #0d6e6e 100%)"
+                  className="gap-2 px-3 sm:px-4 py-2 text-sm font-mitr font-medium"
+                >
+                  <Download size={15} />
+                  <span className="hidden sm:inline">Export PDF</span>
+                </ShimmerButton>
+              ) : (
+                <button
+                  onClick={exportDisabledReason ? () => alert(exportDisabledReason) : undefined}
+                  disabled={isExporting}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
+                  style={{ background: '#94a3b8' }}
+                >
+                  {isExporting
+                    ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
+                    : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
+                  }
+                </button>
+              )}
+            </div>
+            {/* Disabled reason hint — visible when export is blocked */}
+            {!canExport && exportDisabledReason && (
+              <p className="text-[10px] text-slate-400 font-sans text-right pr-0.5">{exportDisabledReason}</p>
             )}
           </div>
         </div>
@@ -192,6 +231,31 @@ export default function TPNCalculator({ hospital }) {
 
         {/* LEFT: input sections */}
         <section className="lg:col-span-7 space-y-4">
+
+          {/* Validation errors — hard blocks */}
+          {validation.errors.length > 0 && (
+            <div className="rounded-2xl border-l-4 border-rose-500 bg-rose-50 px-4 py-3 space-y-1">
+              <p className="text-xs font-bold text-rose-700 font-mitr">ค่าที่กรอกอยู่นอกช่วงที่ปลอดภัย — Export ถูกล็อก</p>
+              {validation.errors.map((msg, i) => (
+                <p key={i} className="text-[11px] text-rose-600 font-sans flex items-start gap-1.5">
+                  <span className="shrink-0 mt-0.5">⛔</span>{msg}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Validation warnings — allow export but flag */}
+          {validation.warnings.length > 0 && validation.errors.length === 0 && (
+            <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 space-y-1">
+              <p className="text-xs font-bold text-amber-800 font-mitr">ค่าบางส่วนอยู่นอกช่วงปกติ — โปรดตรวจสอบก่อนสั่งจ่าย</p>
+              {validation.warnings.map((msg, i) => (
+                <p key={i} className="text-[11px] text-amber-700 font-sans flex items-start gap-1.5">
+                  <span className="shrink-0 mt-0.5">⚠</span>{msg}
+                </p>
+              ))}
+            </div>
+          )}
+
           <PatientInfoSection  inputs={inputs} update={update} />
           <MacroSection        inputs={inputs} update={update} />
           <ElectrolyteSection  inputs={inputs} update={update} results={results} />

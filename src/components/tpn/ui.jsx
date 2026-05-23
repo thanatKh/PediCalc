@@ -3,15 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { cn } from '@/lib/utils';
-
-// ── Formatting helper ────────────────────────────────────────────────────────
-export const fmt = (n, d = 2) =>
-  n === undefined || n === null || Number.isNaN(n)
-    ? '—'
-    : Number(n).toLocaleString('en-US', {
-        minimumFractionDigits: d,
-        maximumFractionDigits: d,
-      });
+export { fmt } from '@/utils/fmt';
 
 // ── Tone map (semantic color tokens) ────────────────────────────────────────
 export const TONES = {

@@ -7,7 +7,9 @@ import {
   CA_PO4_SUM_THRESHOLD,
   NPC_N_TARGET_MIN, NPC_N_TARGET_MAX,
   HOURS_PER_DAY,
+  LIPID_RATE_WARN_THRESHOLD,
 } from '@/utils/clinicalConstants';
+import { fmt } from '@/utils/fmt';
 
 const BASE = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -73,11 +75,6 @@ const T = { caption: 7, body: 8.5, emphasis: 9.5, sub: 11, heading: 13 };
 
 // ── Spacing scale (pt) ───────────────────────────────────────────────────────
 const SP = { xs: 2, sm: 4, md: 8, lg: 12, xl: 16 };
-
-const fmt = (n, d = 2) =>
-  n === undefined || n === null || Number.isNaN(n)
-    ? '—'
-    : Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 
 const fmtDate = (iso) => {
   if (!iso) return '—';
@@ -280,10 +277,12 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   const k15Pct    = parseFloat(inputs.k15PctTarget)    || 0;
   const k2hpo4    = parseFloat(inputs.k2hpo4Target)    || 0;
 
-  const manualTPNRate   = parseFloat(inputs.manualTPNRate);
-  const manualLipidRate = parseFloat(inputs.manualLipidRate);
-  const hasManualTPN    = !isNaN(manualTPNRate)   && inputs.manualTPNRate   !== '' && manualTPNRate   > 0;
-  const hasManualLipid  = !isNaN(manualLipidRate) && inputs.manualLipidRate !== '';
+  const manualTPNRate      = parseFloat(inputs.manualTPNRate);
+  const manualLipidRate    = parseFloat(inputs.manualLipidRate);
+  const hasManualTPN       = !isNaN(manualTPNRate)   && inputs.manualTPNRate   !== '' && manualTPNRate   > 0;
+  const hasManualLipid     = !isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && manualLipidRate > 0;
+  const lipidRateDeviation = hasManualLipid ? Math.abs(manualLipidRate - (results.lipidRate ?? 0)) : 0;
+  const lipidRateWarn      = hasManualLipid && lipidRateDeviation > LIPID_RATE_WARN_THRESHOLD;
 
   // NPC:N tone
   const npcOutOfRange = (results.npcN ?? 0) < NPC_N_TARGET_MIN || (results.npcN ?? 0) > NPC_N_TARGET_MAX;
@@ -413,13 +412,20 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               {results.gir !== null ? 'mg/kg/min' : 'enter TPN rate'}
             </Text>
           </View>
-          {/* Lipid Rate */}
-          <View style={fatRateHigh ? { ...s.bannerCardLast, backgroundColor: C.redBg } : s.bannerCardLast}>
-            <Text style={s.bannerLabel}>Lipid Rate</Text>
+          {/* Lipid Rate — shows prescribed vs calculated when both present */}
+          <View style={fatRateHigh || lipidRateWarn
+            ? { ...s.bannerCardLast, backgroundColor: fatRateHigh ? C.redBg : C.amberBg }
+            : s.bannerCardLast}>
+            <Text style={s.bannerLabel}>Lipid Rate (Calc.)</Text>
             <Text style={[s.bannerValue, { color: fatRateHigh ? C.red : C.slate }]}>
               {fmt(results.lipidRate, 1)}
             </Text>
             <Text style={[s.bannerSub, { color: fatRateHigh ? C.red : C.muted }]}>ml / hr</Text>
+            {hasManualLipid && (
+              <Text style={[s.bannerSub, { color: lipidRateWarn ? C.amber : C.green, fontWeight: 700, marginTop: 1 }]}>
+                {lipidRateWarn ? `⚠ สั่ง: ${fmt(manualLipidRate, 1)} ml/hr (ต่างกัน ${fmt(lipidRateDeviation, 1)})` : `✓ สั่ง: ${fmt(manualLipidRate, 1)} ml/hr`}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -441,6 +447,10 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
         {caxPHigh && (
           <WarnBanner level="yellow"
             text={`PRECIPITATION RISK — Ca×PO4 = ${fmt(results.caxP, 1)} mmol²/L² (threshold: >${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO4 total >${CA_PO4_SUM_THRESHOLD} mmol — Reduce Calcium or Phosphate, or administer via separate line`} />
+        )}
+        {lipidRateWarn && (
+          <WarnBanner level="amber"
+            text={`LIPID RATE MISMATCH — Prescribed: ${fmt(manualLipidRate, 1)} ml/hr · Calculated: ${fmt(results.lipidRate, 1)} ml/hr · Deviation: ${fmt(lipidRateDeviation, 1)} ml/hr — Please verify prescribed lipid rate before dispensing`} />
         )}
 
         {/* ══════════════════════════════════════════════════════════════════

@@ -1,5 +1,7 @@
 import {
   NEWBORN_LINE_RESERVE_ML,
+  GIR_MAX_SAFE,
+  GIR_MIN_SAFE,
   CONC_DEXTROSE_50PCT,
   CONC_AMINOVEN_10PCT,
   CONC_SMOFLIPID_20PCT,
@@ -43,9 +45,7 @@ export const calculateTPN = (inputs) => {
   const bw = parseFloat(inputs.bw) || 0;
   if (bw <= 0) return null;
 
-  const isNewborn = inputs.patientType === 'newborn';
-
-  // 1. TPN Volume = BW × fluid target + 25 ml (line reserve for all patients)
+  // 1. TPN Volume = BW × fluid target + 25 ml (institution-wide line reserve)
   const volTarget   = parseFloat(inputs.volumeTarget) || 0;
   const totalVolume = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
 
@@ -141,8 +141,8 @@ export const calculateTPN = (inputs) => {
   const fatRateHigh  = fatRateGKgHr > FAT_RATE_MAX_G_KG_HR;
 
   // GIR alert flags only meaningful when a rate is entered
-  const girHigh = gir !== null && gir > 12;
-  const girLow  = gir !== null && gir < 4;
+  const girHigh = gir !== null && gir > GIR_MAX_SAFE;
+  const girLow  = gir !== null && gir < GIR_MIN_SAFE;
 
   // 9. Energy distribution
   const cho_kcal     = (dexPct / 100) * totalVolume * CONC_DEXTROSE_50PCT * KCAL_PER_G_DEXTROSE;

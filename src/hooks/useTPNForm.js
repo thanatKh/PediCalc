@@ -1,5 +1,6 @@
-import { createElement, useCallback, useMemo, useState, useTransition } from 'react';
+import { useCallback, useMemo, useState, useTransition } from 'react';
 import { calculateTPN } from '@/utils/tpnCalculator';
+import { validateTPNInputs } from '@/utils/tpnValidation';
 
 export const DEFAULTS = {
   name: '',
@@ -51,57 +52,17 @@ export function useTPNForm(hospital) {
 
   const reset = useCallback(() => setInputs(DEFAULTS), []);
 
-  const results = useMemo(() => calculateTPN(inputs), [inputs]);
+  const results    = useMemo(() => calculateTPN(inputs), [inputs]);
+  const validation = useMemo(() => validateTPNInputs(inputs), [inputs]);
 
   const closePdfModal = useCallback(() => setPdfModal(null), []);
 
   const handleExportPDF = useCallback(() => {
     if (!results || results.isWaterNegative || isExporting) return;
+    if (validation.errors.length > 0) return;
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const filename = buildFilename(inputs);
 
-    if (isMobile) {
-      // ── Mobile: open a blank tab immediately (same user-gesture tick),
-      //    then fill it with the PDF blob once ready — avoids popup blocker.
-      const tab = window.open('', '_blank');
-      startExportTransition(async () => {
-        try {
-          const [{ pdf }, { default: TPNPdfDocument }] = await Promise.all([
-            import('@react-pdf/renderer'),
-            import('@/components/TPNPdfTemplate'),
-          ]);
-
-          let logoUrl = null;
-          try {
-            const res = await fetch(hospital?.logoForPdf ?? '/logo-kabinburi.PNG');
-            const buf = await res.arrayBuffer();
-            const u8  = new Uint8Array(buf);
-            let b64 = '';
-            for (let i = 0; i < u8.length; i += 8192) {
-              b64 += String.fromCharCode(...u8.subarray(i, i + 8192));
-            }
-            logoUrl = `data:image/png;base64,${btoa(b64)}`;
-          } catch { /* logo optional */ }
-
-          const element = createElement(TPNPdfDocument, { inputs, results, logoUrl, hospital });
-          const blob    = await pdf(element).toBlob();
-          const url     = URL.createObjectURL(blob);
-          if (tab && !tab.closed) {
-            tab.location.href = url;
-          } else {
-            window.open(url, '_blank');
-          }
-        } catch (err) {
-          tab?.close();
-          console.error('Export PDF failed:', err);
-          alert(`PDF export error: ${err?.message ?? err}`);
-        }
-      });
-      return;
-    }
-
-    // ── Desktop: open in-app preview modal ───────────────────────────────
     startExportTransition(async () => {
       try {
         let logoUrl = null;
@@ -124,5 +85,5 @@ export function useTPNForm(hospital) {
     });
   }, [inputs, results, isExporting, hospital]);
 
-  return { inputs, update, reset, results, isExporting, handleExportPDF, pdfModal, closePdfModal };
+  return { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal };
 }

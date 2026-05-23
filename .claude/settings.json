@@ -15,7 +15,10 @@
       "Bash(node -e \"const m = require\\('./node_modules/@react-pdf/renderer/lib/react-pdf.browser.es.js'\\); console.log\\(Object.keys\\(m\\).filter\\(k => k.includes\\('PDF'\\) || k.includes\\('pdf'\\) || k.includes\\('use'\\)\\)\\)\")",
       "Bash(node -e \"const p=require\\('./node_modules/@react-pdf/pdfkit/package.json'\\); console.log\\(JSON.stringify\\(p.dependencies,null,2\\)\\)\")",
       "Bash(node -e \"const p=require\\('./node_modules/@react-pdf/pdfkit/package.json'\\); console.log\\(Object.keys\\(p.dependencies||{}\\)\\)\")",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(npm test *)",
+      "Bash(Get-ChildItem -Filter \"*.md\" -Depth 0)",
+      "Bash(Select-Object Name)"
     ]
   }
 }
