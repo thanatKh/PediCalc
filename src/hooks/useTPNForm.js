@@ -62,7 +62,9 @@ export function useTPNForm(hospital) {
     const filename = buildFilename(inputs);
 
     if (isMobile) {
-      // ── Mobile: generate blob then navigate current tab ───────────────
+      // ── Mobile: open a blank tab immediately (same user-gesture tick),
+      //    then fill it with the PDF blob once ready — avoids popup blocker.
+      const tab = window.open('', '_blank');
       startExportTransition(async () => {
         try {
           const [{ pdf }, { default: TPNPdfDocument }] = await Promise.all([
@@ -84,15 +86,14 @@ export function useTPNForm(hospital) {
 
           const element = createElement(TPNPdfDocument, { inputs, results, logoUrl, hospital });
           const blob    = await pdf(element).toBlob();
-          const file    = new File([blob], filename, { type: 'application/pdf' });
-
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], title: filename });
+          const url     = URL.createObjectURL(blob);
+          if (tab && !tab.closed) {
+            tab.location.href = url;
           } else {
-            // fallback: open blob URL in current tab (share sheet unavailable)
-            window.location.href = URL.createObjectURL(blob);
+            window.open(url, '_blank');
           }
         } catch (err) {
+          tab?.close();
           console.error('Export PDF failed:', err);
           alert(`PDF export error: ${err?.message ?? err}`);
         }
