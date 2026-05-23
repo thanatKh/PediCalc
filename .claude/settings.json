@@ -9,7 +9,13 @@
       "Bash(Select-Object FullName)",
       "Bash(Select-String -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\public\\\\manifest.webmanifest\" -Pattern \".\")",
       "Bash(Select-Object -First 50)",
-      "Read(//d/OneDrive - PTTOR/03 Documents ส่วนตäre/2026 05 Web Cal ยา/PediCalc/src/components/**)"
+      "Read(//d/OneDrive - PTTOR/03 Documents ส่วนตäre/2026 05 Web Cal ยา/PediCalc/src/components/**)",
+      "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\" -Force)",
+      "Read(//d/OneDrive - PTTOR/03 Documents ��ǹ���/2026 05 Web Cal ��/**)",
+      "Bash(node -e \"const m = require\\('./node_modules/@react-pdf/renderer/lib/react-pdf.browser.es.js'\\); console.log\\(Object.keys\\(m\\).filter\\(k => k.includes\\('PDF'\\) || k.includes\\('pdf'\\) || k.includes\\('use'\\)\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/@react-pdf/pdfkit/package.json'\\); console.log\\(JSON.stringify\\(p.dependencies,null,2\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/@react-pdf/pdfkit/package.json'\\); console.log\\(Object.keys\\(p.dependencies||{}\\)\\)\")",
+      "Bash(npx playwright *)"
     ]
   }
 }

@@ -1,5 +1,5 @@
-import { Suspense, lazy, useEffect } from 'react';
-import { Download, Loader2, RotateCcw, X, FileText } from 'lucide-react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { Download, Loader2, RotateCcw, X, FileText, Printer } from 'lucide-react';
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { useTPNForm } from '@/hooks/useTPNForm';
 
@@ -12,11 +12,7 @@ import RateSection         from './tpn/RateSection';
 import ResultsPanel        from './tpn/ResultsPanel';
 import IngredientsTable    from './tpn/IngredientsTable';
 
-// Both lazy imports resolve from the same chunk — Vite deduplicates the module
-const PdfModalContent   = lazy(() => import('@/components/PdfModalContent'));
-const PdfDownloadButton = lazy(() =>
-  import('@/components/PdfModalContent').then((m) => ({ default: m.PdfDownloadButton }))
-);
+const PdfModalContent = lazy(() => import('@/components/PdfModalContent'));
 
 const DISCLAIMER = (
   <p className="text-[10px] text-slate-400 font-sans px-1">
@@ -24,9 +20,15 @@ const DISCLAIMER = (
   </p>
 );
 
+function printFromUrl(url) {
+  window.open(url, '_blank');
+}
+
 function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
+  const [blobUrl, setBlobUrl] = useState(null);
+
   useEffect(() => {
-    if (!pdfModal) return;
+    if (!pdfModal) { setBlobUrl(null); return; }
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -35,9 +37,9 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   if (!pdfModal) return null;
   const { filename, logoUrl, hospital } = pdfModal;
   const headerBg = hospital?.themeColor ?? '#0d6e6e';
+  const loading = !blobUrl;
 
   return (
-    // Full-screen overlay — no padding, no max-width cap
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
 
       {/* Compact header bar */}
@@ -50,20 +52,38 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
           {filename}
         </span>
 
-        {/* Download button — right of filename, left of close */}
-        <Suspense fallback={
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mitr text-white/40">
-            <Loader2 size={12} className="animate-spin" /> …
-          </span>
-        }>
-          <PdfDownloadButton
-            inputs={inputs}
-            results={results}
-            logoUrl={logoUrl}
-            filename={filename}
-            hospital={hospital}
-          />
-        </Suspense>
+        {/* Print button */}
+        <button
+          onClick={() => { if (blobUrl) printFromUrl(blobUrl); }}
+          disabled={loading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
+            loading
+              ? 'bg-white/10 text-white/40 cursor-wait'
+              : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
+          }`}
+        >
+          {loading
+            ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+            : <><Printer size={13} /> พิมพ์</>
+          }
+        </button>
+
+        {/* Download button */}
+        <a
+          href={blobUrl ?? '#'}
+          download={filename}
+          onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
+            loading
+              ? 'bg-white/10 text-white/40 pointer-events-none'
+              : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
+          }`}
+        >
+          {loading
+            ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+            : <><Download size={13} /> ดาวน์โหลด PDF</>
+          }
+        </a>
 
         <button
           onClick={onClose}
@@ -74,7 +94,7 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
         </button>
       </div>
 
-      {/* PDF viewer fills every remaining pixel */}
+      {/* PDF viewer */}
       <div className="flex-1 min-h-0">
         <Suspense fallback={
           <div className="flex items-center justify-center h-full gap-3 text-slate-400 font-sans text-sm">
@@ -85,8 +105,8 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
             inputs={inputs}
             results={results}
             logoUrl={logoUrl}
-            filename={filename}
             hospital={hospital}
+            onBlobReady={setBlobUrl}
           />
         </Suspense>
       </div>

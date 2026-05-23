@@ -48,9 +48,7 @@ export const KCAL_PER_ML_LIPID_20PCT   = 2;     // kcal/ml  (20% SMOFlipid)
 // Derived from: (ml/hr × g/100ml × 1000 mg/g) / (60 min/hr × BW)
 //             = (rate × dex%) / (6 × BW)
 export const GIR_REVERSE_DIVISOR      = 6;     // constant in reverse GIR formula
-export const GIR_DEXTROSE_FACTOR       = 10;    // kept for legacy osmolarity calc
 export const HOURS_PER_DAY             = 24;
-export const MINUTES_PER_HOUR         = 60;
 
 // ── Osmolarity estimation ──────────────────────────────────────────────────
 // Formula: Osm = (dex% × 50) + (AA g/L × 10) + ((Na+K) mEq/L × 1)
@@ -63,7 +61,6 @@ export const OSMO_FACTOR_ELECTROLYTE   = 1;     // mOsm/L per mEq/L (Na or K, cl
 // ── Ca × PO4 precipitation thresholds ────────────────────────────────────
 export const CA_PO4_PRODUCT_THRESHOLD  = 75;    // mmol²/L²  — [Ca]×[PO4] precipitate risk
 export const CA_PO4_SUM_THRESHOLD      = 45;    // mmol      — total Ca mmol + total PO4 mmol
-export const CA_PO4_PRECIP_THRESHOLD   = CA_PO4_PRODUCT_THRESHOLD; // legacy alias
 export const ML_TO_L                   = 1000;  // divisor to convert ml → L for concentration
 
 // ── NPC:N ratio ────────────────────────────────────────────────────────────
@@ -79,5 +76,4 @@ export const OSMOLARITY_PERIPHERAL_MAX = 900;   // mOsm/L — max for peripheral
 export const FAT_RATE_MAX_G_KG_HR      = 0.17;  // g/kg/hr — max lipid infusion rate
 
 // ── Rate variance warning (prescribed vs calculated) ──────────────────────
-export const TPN_RATE_WARN_THRESHOLD   = 1;     // ml/hr — warn if |prescribed − calc| > this
 export const LIPID_RATE_WARN_THRESHOLD = 0.5;   // ml/hr
