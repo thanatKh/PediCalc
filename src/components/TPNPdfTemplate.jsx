@@ -82,10 +82,12 @@ const fmtDate = (iso) => {
   return new Date(y, m - 1, d).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
-const genDocId = () => {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `PN-${now.getFullYear()}-${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
+const genDocId = (hn) => {
+  const now  = new Date();
+  const pad  = (n) => String(n).padStart(2, '0');
+  const mmdd = `${pad(now.getMonth()+1)}${pad(now.getDate())}`;
+  const hhmm = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+  return hn ? `TPN-${hn}-${mmdd}-${hhmm}` : `TPN-${mmdd}-${hhmm}`;
 };
 
 const s = StyleSheet.create({
@@ -254,7 +256,8 @@ const renderIngredientRow = (row, i) => (
 export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   if (!results) return null;
 
-  const docId      = genDocId();
+  const hn         = (inputs.hn || '').replace(/[^a-zA-Z0-9]/g, '');
+  const docId      = genDocId(hn);
   const nowDate    = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
   const nowTime    = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   const hospNameTh = hospital?.nameTh ?? 'โรงพยาบาลกบินทร์บุรี';
@@ -318,11 +321,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
       target: '4 ml/kg/day',                 ml: results.vitalipidMl, note: 'Fat-soluble vitamins · add to lipid bag · max 10 ml/day' },
   ];
 
-  const hn      = (inputs.hn || 'NONAME').replace(/[^a-zA-Z0-9]/g, '');
-  const bwStr   = (inputs.bw || '0').replace('.', '-');
-  const today   = new Date();
-  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
-  const pdfTitle = `TPN_${hn}_${bwStr}kg_${dateStr}`;
+  const pdfTitle = docId;
 
   return (
     <Document title={pdfTitle} author={`PediCalc — ${hospNameEn}`} subject="Neonatal/Pediatric TPN Order Form">
@@ -476,7 +475,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
           <View style={s.tRowHL} wrap={false}>
             <Text style={[s.tCName,   { width: '35%', fontWeight: 700, color: '#92400e' }]}>Sterile Water for Injection</Text>
             <Text style={[s.tCTarget, { width: '21%', color: '#92400e' }]}>q.s. to volume</Text>
-            <Text style={[s.tCVol,    { width: '15%', color: '#92400e', fontSize: T.sub }]}>{fmt(results.sterileWaterMl)}</Text>
+            <Text style={[s.tCVol,    { width: '15%', color: '#92400e' }]}>{fmt(results.sterileWaterMl)}</Text>
             <Text style={[s.tCNote,   { width: '29%', color: '#92400e' }]}>Adjust to reach prescribed TPN volume</Text>
           </View>
 
@@ -626,7 +625,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
         ══════════════════════════════════════════════════════════════════ */}
         <View style={s.footer} fixed>
           <Text style={{ fontStyle: 'italic', flex: 1 }}>
-            {thaiBreak(`* เอกสารนี้สร้างโดยระบบ PediCalc — ${hospNameTh} — กรุณาตรวจสอบโดยผู้มีสิทธิ์ก่อนใช้งานทุกครั้ง`)}
+            {thaiBreak(`* เอกสารนี้สร้างโดยระบบ PediCalc — แพทย์ผู้สั่งยาต้องลงนามก่อนใช้กับผู้ป่วยจริงทุกครั้ง`)}
           </Text>
           <Text
             style={{ fontFamily: 'Kanit', color: C.muted }}

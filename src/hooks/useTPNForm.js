@@ -30,11 +30,13 @@ export const DEFAULTS = {
 };
 
 function buildFilename(inputs) {
-  const hn      = (inputs.hn || 'NONAME').replace(/[^a-zA-Z0-9]/g, '');
-  const bwStr   = (inputs.bw || '0').replace('.', '_');
-  const today   = new Date();
-  const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-  return `TPN_${hn}_${bwStr}kg_${dateStr}.pdf`;
+  const hn   = (inputs.hn || '').replace(/[^a-zA-Z0-9]/g, '');
+  const now  = new Date();
+  const pad  = (n) => String(n).padStart(2, '0');
+  const mmdd = `${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+  const hhmm = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const base = hn ? `TPN-${hn}-${mmdd}-${hhmm}` : `TPN-${mmdd}-${hhmm}`;
+  return `${base}.pdf`;
 }
 
 export function useTPNForm(hospital) {

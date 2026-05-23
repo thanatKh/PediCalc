@@ -1,5 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2 } from 'lucide-react';
+import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { ShimmerButton } from '@/components/ui/shimmer-button';
@@ -48,93 +50,103 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#0f172a' }}>
-
-      {/* Compact header bar */}
+    /* Backdrop — clicking outside closes the modal on desktop */
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6"
+      style={{ background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(4px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      {/* Modal panel — full-height on mobile, tall card on desktop */}
       <div
-        className="flex items-center gap-3 px-4 shrink-0"
-        style={{ height: '48px', background: headerBg }}
+        className="flex flex-col w-full h-full sm:h-[90vh] sm:max-w-4xl sm:rounded-2xl overflow-hidden shadow-2xl"
+        style={{ background: '#0f172a' }}
       >
-        <FileText size={15} className="text-white/60 shrink-0" />
-        <span className="text-white font-mitr font-medium text-sm truncate flex-1 min-w-0">
-          {filename}
-        </span>
+        {/* Compact header bar */}
+        <div
+          className="flex items-center gap-3 px-4 shrink-0"
+          style={{ height: '48px', background: headerBg, borderRadius: undefined }}
+        >
+          <FileText size={15} className="text-white/60 shrink-0" />
+          <span className="text-white font-mitr font-medium text-sm truncate flex-1 min-w-0">
+            {filename}
+          </span>
 
-        {isMobile ? (
-          /* Mobile: Share button — opens OS share sheet with correct filename */
-          <button
-            onClick={handleShare}
-            disabled={loading}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
-              loading
-                ? 'bg-white/10 text-white/40 cursor-wait'
-                : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
-            }`}
-          >
-            {loading
-              ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-              : <><Share2 size={13} /> แชร์</>
-            }
-          </button>
-        ) : (
-          /* Desktop: Print + Download */
-          <>
+          {isMobile ? (
+            /* Mobile: Share button — opens OS share sheet with correct filename */
             <button
-              onClick={() => { if (blobUrl) window.open(blobUrl, '_blank'); }}
+              onClick={handleShare}
               disabled={loading}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
                 loading
                   ? 'bg-white/10 text-white/40 cursor-wait'
-                  : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
-              }`}
-            >
-              {loading
-                ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-                : <><Printer size={13} /> พิมพ์</>
-              }
-            </button>
-            <a
-              href={blobUrl ?? '#'}
-              download={filename}
-              onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
-                loading
-                  ? 'bg-white/10 text-white/40 pointer-events-none'
                   : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
               }`}
             >
               {loading
                 ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-                : <><Download size={13} /> ดาวน์โหลด PDF</>
+                : <><Share2 size={13} /> แชร์</>
               }
-            </a>
-          </>
-        )}
+            </button>
+          ) : (
+            /* Desktop: Print + Download */
+            <>
+              <button
+                onClick={() => { if (blobUrl) window.open(blobUrl, '_blank'); }}
+                disabled={loading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
+                  loading
+                    ? 'bg-white/10 text-white/40 cursor-wait'
+                    : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
+                }`}
+              >
+                {loading
+                  ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+                  : <><Printer size={13} /> พิมพ์</>
+                }
+              </button>
+              <a
+                href={blobUrl ?? '#'}
+                download={filename}
+                onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
+                  loading
+                    ? 'bg-white/10 text-white/40 pointer-events-none'
+                    : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
+                }`}
+              >
+                {loading
+                  ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
+                  : <><Download size={13} /> ดาวน์โหลด PDF</>
+                }
+              </a>
+            </>
+          )}
 
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-colors shrink-0"
-          title="ปิด"
-        >
-          <X size={18} />
-        </button>
-      </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-colors shrink-0"
+            title="ปิด (Esc)"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-      {/* PDF viewer */}
-      <div className="flex-1 min-h-0">
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full gap-3 text-slate-400 font-sans text-sm">
-            <Loader2 size={20} className="animate-spin text-teal-400" /> กำลังโหลด PDF…
-          </div>
-        }>
-          <PdfModalContent
-            inputs={inputs}
-            results={results}
-            logoUrl={logoUrl}
-            hospital={hospital}
-            onBlobReady={setBlobUrl}
-          />
-        </Suspense>
+        {/* PDF viewer */}
+        <div className="flex-1 min-h-0">
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-full gap-3 text-slate-400 font-sans text-sm">
+              <Loader2 size={20} className="animate-spin text-teal-400" /> กำลังโหลด PDF…
+            </div>
+          }>
+            <PdfModalContent
+              inputs={inputs}
+              results={results}
+              logoUrl={logoUrl}
+              hospital={hospital}
+              onBlobReady={setBlobUrl}
+            />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
@@ -182,14 +194,18 @@ export default function TPNCalculator({ hospital }) {
           <div className="flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-2">
               {/* Reset */}
-              <button
-                onClick={reset}
-                title="Reset ทุกช่องกลับค่าเริ่มต้น"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
-              >
-                <RotateCcw size={14} />
-                <span className="hidden sm:inline">Reset</span>
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={reset}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-mitr font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors"
+                  >
+                    <RotateCcw size={14} />
+                    <span className="hidden sm:inline">Reset</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="font-sans text-xs">Reset ทุกช่องกลับค่าเริ่มต้น</TooltipContent>
+              </Tooltip>
 
               {/* Export PDF */}
               {canExport ? (
@@ -205,21 +221,28 @@ export default function TPNCalculator({ hospital }) {
                   <span className="hidden sm:inline">Export PDF</span>
                 </ShimmerButton>
               ) : (
-                <button
-                  onClick={exportDisabledReason ? () => alert(exportDisabledReason) : undefined}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
-                  style={{ background: '#94a3b8' }}
-                >
-                  {isExporting
-                    ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
-                    : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
-                  }
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={exportDisabledReason && !isMobile ? undefined : exportDisabledReason ? () => alert(exportDisabledReason) : undefined}
+                      disabled={isExporting}
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
+                      style={{ background: '#94a3b8' }}
+                    >
+                      {isExporting
+                        ? <><Loader2 size={15} className="animate-spin" /><span className="hidden sm:inline">กำลังสร้าง PDF…</span></>
+                        : <><Download size={15} /><span className="hidden sm:inline">Export PDF</span></>
+                      }
+                    </button>
+                  </TooltipTrigger>
+                  {exportDisabledReason && (
+                    <TooltipContent className="font-sans text-xs max-w-52">{exportDisabledReason}</TooltipContent>
+                  )}
+                </Tooltip>
               )}
             </div>
-            {/* Disabled reason hint — visible when export is blocked */}
-            {!canExport && exportDisabledReason && (
+            {/* Disabled reason hint — mobile only (tooltip not shown on touch) */}
+            {!canExport && exportDisabledReason && isMobile && (
               <p className="text-[10px] text-slate-400 font-sans text-right pr-0.5">{exportDisabledReason}</p>
             )}
           </div>
@@ -234,26 +257,32 @@ export default function TPNCalculator({ hospital }) {
 
           {/* Validation errors — hard blocks */}
           {validation.errors.length > 0 && (
-            <div className="rounded-2xl border-l-4 border-rose-500 bg-rose-50 px-4 py-3 space-y-1">
-              <p className="text-xs font-bold text-rose-700 font-mitr">ค่าที่กรอกอยู่นอกช่วงที่ปลอดภัย — Export ถูกล็อก</p>
-              {validation.errors.map((msg, i) => (
-                <p key={i} className="text-[11px] text-rose-600 font-sans flex items-start gap-1.5">
-                  <span className="shrink-0 mt-0.5">⛔</span>{msg}
-                </p>
-              ))}
-            </div>
+            <Alert variant="destructive" className="rounded-2xl border-l-4 font-sans">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="font-mitr text-xs">ค่าที่กรอกอยู่นอกช่วงที่ปลอดภัย — Export ถูกล็อก</AlertTitle>
+              <AlertDescription className="space-y-0.5 mt-1">
+                {validation.errors.map((msg, i) => (
+                  <p key={i} className="text-[11px] flex items-start gap-1.5">
+                    <span className="shrink-0 mt-0.5">⛔</span>{msg}
+                  </p>
+                ))}
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Validation warnings — allow export but flag */}
           {validation.warnings.length > 0 && validation.errors.length === 0 && (
-            <div className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 px-4 py-3 space-y-1">
-              <p className="text-xs font-bold text-amber-800 font-mitr">ค่าบางส่วนอยู่นอกช่วงปกติ — โปรดตรวจสอบก่อนสั่งจ่าย</p>
-              {validation.warnings.map((msg, i) => (
-                <p key={i} className="text-[11px] text-amber-700 font-sans flex items-start gap-1.5">
-                  <span className="shrink-0 mt-0.5">⚠</span>{msg}
-                </p>
-              ))}
-            </div>
+            <Alert className="rounded-2xl border-l-4 border-amber-400 bg-amber-50 text-amber-800 [&>svg]:text-amber-500 font-sans">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle className="font-mitr text-xs text-amber-800">ค่าบางส่วนอยู่นอกช่วงปกติ — โปรดตรวจสอบก่อนสั่งจ่าย</AlertTitle>
+              <AlertDescription className="space-y-0.5 mt-1 text-amber-700">
+                {validation.warnings.map((msg, i) => (
+                  <p key={i} className="text-[11px] flex items-start gap-1.5">
+                    <span className="shrink-0 mt-0.5">⚠</span>{msg}
+                  </p>
+                ))}
+              </AlertDescription>
+            </Alert>
           )}
 
           <PatientInfoSection  inputs={inputs} update={update} />

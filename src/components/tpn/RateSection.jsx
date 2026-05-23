@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle2, Gauge } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { fmt, NumberField, SectionCard } from './ui';
 import { LIPID_RATE_WARN_THRESHOLD } from '@/utils/clinicalConstants';
 
@@ -27,18 +28,18 @@ export default function RateSection({ inputs, update, results }) {
           />
           {/* Derived GIR display */}
           {hasRate && gir !== null && (
-            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold font-sans ${
-              girHigh ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
-              : girLow  ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-              : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
+            <Badge className={`gap-1 px-2.5 py-1 text-[10px] font-semibold font-sans rounded-lg h-auto w-full justify-start border ${
+              girHigh ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50'
+              : girLow  ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50'
+              : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50'
             }`}>
               {girHigh || girLow
                 ? <AlertTriangle size={10} className="shrink-0" />
                 : <CheckCircle2 size={10} className="shrink-0" />}
-              GIR = <span className="font-mitr font-bold ml-0.5">{fmt(gir, 2)}</span>&nbsp;mg/kg/min
+              GIR = <span className="font-mitr font-bold">{fmt(gir, 2)}</span> mg/kg/min
               {girHigh && ' — สูงเกิน 12'}
               {girLow  && ' — ต่ำกว่า 4'}
-            </div>
+            </Badge>
           )}
           {!hasRate && (
             <p className="text-[10px] text-slate-400 font-sans px-0.5">กรุณาระบุ TPN Rate เพื่อคำนวณ GIR จริง</p>
@@ -57,14 +58,15 @@ export default function RateSection({ inputs, update, results }) {
             hint={`คำนวณได้ ${fmt(results?.lipidRate, 1)} ml/hr`}
           />
           {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-            <p className={`flex items-center gap-1 text-[10px] font-semibold px-0.5 ${
+            <Badge className={`gap-1 px-2.5 py-1 text-[10px] font-semibold font-sans rounded-lg h-auto w-full justify-start border ${
               Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
-                ? 'text-amber-600' : 'text-emerald-600'
+                ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50'
             }`}>
               {Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
                 ? <><AlertTriangle size={10} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualLipidRate - calcLipidRate), 1)} ml/hr</>
                 : <><CheckCircle2 size={10} className="shrink-0" />ใกล้เคียงกับที่คำนวณ</>}
-            </p>
+            </Badge>
           )}
         </div>
       </div>

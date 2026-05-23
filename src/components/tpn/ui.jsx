@@ -2,6 +2,7 @@ import { Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NumberTicker } from '@/components/ui/number-ticker';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 export { fmt } from '@/utils/fmt';
 
@@ -32,7 +33,7 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           className="bg-white border-slate-200 rounded-xl pr-14 h-11 md:h-10 text-base md:text-sm font-sans text-slate-800 shadow-sm transition-all duration-150"
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-teal-600/70 max-w-[3.25rem] truncate">
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[11px] font-semibold text-slate-400 max-w-[3.25rem] truncate">
             {suffix}
           </span>
         )}
@@ -66,8 +67,8 @@ export function SectionCard({ title, icon: Icon, children, className }) {
   return (
     <div className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}>
       <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-        {Icon && <Icon size={14} className="text-teal-600" />}
-        <h2 className="font-mitr text-sm font-semibold tracking-wide text-teal-700">{title}</h2>
+        {Icon && <Icon size={14} className="text-slate-400" />}
+        <h2 className="font-mitr text-sm font-semibold tracking-wide text-slate-700">{title}</h2>
       </div>
       <div className="px-4 sm:px-5 py-4">{children}</div>
     </div>
@@ -77,9 +78,9 @@ export function SectionCard({ title, icon: Icon, children, className }) {
 // ── AutoBadge ────────────────────────────────────────────────────────────────
 export function AutoBadge() {
   return (
-    <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full ring-1 ring-teal-200/60">
+    <Badge variant="outline" className="gap-0.5 px-1.5 py-0 text-[9px] font-semibold text-teal-600 bg-teal-50 border-teal-200/80 rounded-full h-auto leading-none">
       <Zap size={8} />AUTO
-    </span>
+    </Badge>
   );
 }
 

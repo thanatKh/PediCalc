@@ -97,7 +97,7 @@ The PDF shows both calculated and prescribed lipid rates when a manual rate is e
   - Sidebar header: `paddingTop: calc(env(safe-area-inset-top) + 1.25rem)`
   - App header inner div: `paddingTop: calc(env(safe-area-inset-top) + 0.75rem)`
   - Mobile menu button: `top: calc(env(safe-area-inset-top) + 0.625rem)`
-- `body` has `padding-bottom: env(safe-area-inset-bottom)` for the iPhone home indicator.
+- `body` background is `#ffffff` (white) so the iPhone home indicator area matches the white glass header; no bottom safe area padding.
 
 ### Styling
 

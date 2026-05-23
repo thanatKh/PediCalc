@@ -1,4 +1,5 @@
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fmt, NumberField, SectionCard } from './ui';
 import { PO4_PER_MEQ_NA_GLYCERO, PO4_PER_MEQ_K2HPO4 } from '@/utils/clinicalConstants';
 
@@ -17,7 +18,7 @@ export default function ElectrolyteSection({ inputs, update, results }) {
 
       {/* Sodium sources */}
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-wider text-teal-600 font-bold mb-2.5">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2.5">
           Sodium (Na) — ระบุปริมาณจากแต่ละแหล่ง
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -42,7 +43,7 @@ export default function ElectrolyteSection({ inputs, update, results }) {
 
       {/* Potassium sources */}
       <div className="mb-4">
-        <p className="text-[10px] uppercase tracking-wider text-teal-600 font-bold mb-2.5">
+        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2.5">
           Potassium (K) — ระบุปริมาณจากแต่ละแหล่ง
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -67,23 +68,23 @@ export default function ElectrolyteSection({ inputs, update, results }) {
 
       {/* Derived totals summary */}
       <div className="mb-4 flex flex-wrap gap-2">
-        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-teal-200/80 px-3 py-2.5 text-center shadow-sm">
-          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-teal-400 mb-0.5">Total Na</p>
-          <p className="font-mitr font-semibold text-teal-700 text-base tabular-nums leading-tight">
+        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-slate-200/80 px-3 py-2.5 text-center shadow-sm">
+          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-slate-400 mb-0.5">Total Na</p>
+          <p className="font-mitr font-semibold text-slate-700 text-base tabular-nums leading-tight">
             {fmt(totalNa, 2)}
             <span className="text-[10px] font-sans font-normal ml-1 opacity-70">mEq/kg/d</span>
           </p>
         </div>
-        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-blue-200/80 px-3 py-2.5 text-center shadow-sm">
-          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-blue-400 mb-0.5">Total K</p>
-          <p className="font-mitr font-semibold text-blue-700 text-base tabular-nums leading-tight">
+        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-slate-200/80 px-3 py-2.5 text-center shadow-sm">
+          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-slate-400 mb-0.5">Total K</p>
+          <p className="font-mitr font-semibold text-slate-700 text-base tabular-nums leading-tight">
             {fmt(totalK, 2)}
             <span className="text-[10px] font-sans font-normal ml-1 opacity-70">mEq/kg/d</span>
           </p>
         </div>
-        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-purple-200/80 px-3 py-2.5 text-center shadow-sm">
-          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-purple-400 mb-0.5">Total PO₄</p>
-          <p className="font-mitr font-semibold text-purple-700 text-base tabular-nums leading-tight">
+        <div className="stat-pill flex-1 min-w-[80px] rounded-2xl bg-white ring-1 ring-slate-200/80 px-3 py-2.5 text-center shadow-sm">
+          <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-slate-400 mb-0.5">Total PO₄</p>
+          <p className="font-mitr font-semibold text-slate-700 text-base tabular-nums leading-tight">
             {fmt(totalPO4, 2)}
             <span className="text-[10px] font-sans font-normal ml-1 opacity-70">mmol/kg/d</span>
           </p>
@@ -92,9 +93,12 @@ export default function ElectrolyteSection({ inputs, update, results }) {
 
       {/* Ca×PO4 warning from results */}
       {results?.caxPHigh && (
-        <p className="text-[10px] font-semibold text-amber-700 bg-amber-50 ring-1 ring-amber-200 rounded-lg px-3 py-1.5 mb-4">
-          ⚠ Ca×PO₄ = {fmt(results.caxP, 1)} mmol²/L² — เกินขีดจำกัด (Ca×PO₄ &gt; 75 หรือ Ca+PO₄ &gt; 45 mmol) ลด Ca หรือ PO₄ ลง
-        </p>
+        <Alert className="rounded-xl border-l-4 border-amber-400 bg-amber-50 text-amber-800 [&>svg]:text-amber-500 font-sans mb-4 py-2.5">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-[10px] font-semibold text-amber-700">
+            Ca×PO₄ = {fmt(results.caxP, 1)} mmol²/L² — เกินขีดจำกัด (Ca×PO₄ &gt; 75 หรือ Ca+PO₄ &gt; 45 mmol) ลด Ca หรือ PO₄ ลง
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Calcium & Magnesium */}

@@ -20,7 +20,7 @@ export default function VitaminSection({ results }) {
               <AutoBadge />
             </div>
             <div className="h-11 md:h-10 flex items-center px-3 rounded-xl bg-slate-50 ring-1 ring-slate-200/80">
-              <span className="font-mitr font-semibold text-teal-700 text-sm">
+              <span className="font-mitr font-semibold text-slate-700 text-sm">
                 {fmt(results?.[item.key], 2)}
               </span>
               <span className="text-[10px] text-slate-400 ml-1 font-sans">{item.unit}</span>

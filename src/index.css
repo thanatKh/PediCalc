@@ -101,7 +101,7 @@
 
   body {
     margin: 0;
-    background-color: #f4f7f7;
+    background-color: #ffffff;
     color: var(--color-foreground);
     font-family: 'Sarabun', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -111,8 +111,8 @@
 
 /* ── Dot-grid background texture ── */
 .bg-dot-grid {
-  background-color: #eef3f3;
-  background-image: radial-gradient(circle, #b2cece 1px, transparent 1px);
+  background-color: #f5f7f8;
+  background-image: radial-gradient(circle, #d1d9dc 1px, transparent 1px);
   background-size: 22px 22px;
 }
 

@@ -18,7 +18,14 @@
       "Bash(npx playwright *)",
       "Bash(npm test *)",
       "Bash(Get-ChildItem -Filter \"*.md\" -Depth 0)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"d:\\\\OneDrive - PTTOR\\\\03 Documents ส่วนตัว\\\\2026 05 Web Cal ยา\\\\PediCalc\\\\src\\\\components\\\\tpn\\\\\" -File)",
+      "Bash(npx shadcn@latest add alert badge tooltip separator progress --yes)",
+      "Bash(npx shadcn@latest diff)",
+      "Bash(npx shadcn@latest add --list)",
+      "Bash(npx shadcn@latest --help)",
+      "Bash(npx shadcn@latest search list https://ui.shadcn.com)",
+      "Bash(npx shadcn@latest add slider --yes)"
     ]
   }
 }

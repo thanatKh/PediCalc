@@ -1,5 +1,8 @@
-import { AlertTriangle, Droplet, Zap } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Droplet, Zap } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { fmt, StatPill } from './ui';
 import {
   GIR_MAX_SAFE,
@@ -11,22 +14,25 @@ import {
   FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
-const ALERT_STYLES = {
-  rose:   { wrap: 'bg-rose-50 border-rose-500',    icon: 'text-rose-500',   title: 'text-rose-700',   body: 'text-rose-600' },
-  amber:  { wrap: 'bg-amber-50 border-amber-500',   icon: 'text-amber-500',  title: 'text-amber-800',  body: 'text-amber-600' },
-  yellow: { wrap: 'bg-yellow-50 border-yellow-500', icon: 'text-yellow-600', title: 'text-yellow-900', body: 'text-yellow-700' },
+const ALERT_CLASSES = {
+  rose:   'alert-enter rounded-2xl border-l-4 border-rose-500 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans',
+  amber:  'alert-enter rounded-2xl border-l-4 border-amber-500 bg-amber-50 text-amber-800 [&>svg]:text-amber-500 font-sans',
+  yellow: 'alert-enter rounded-2xl border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 [&>svg]:text-yellow-600 font-sans',
+};
+const ALERT_BODY_CLASSES = {
+  rose:   'text-rose-600',
+  amber:  'text-amber-600',
+  yellow: 'text-yellow-700',
 };
 
 function AlertBanner({ color, title, body }) {
-  const s = ALERT_STYLES[color] ?? ALERT_STYLES.amber;
+  const Icon = color === 'rose' ? AlertCircle : AlertTriangle;
   return (
-    <div className={`alert-enter rounded-2xl p-4 flex gap-3 border-l-4 ${s.wrap}`}>
-      <AlertTriangle className={`shrink-0 mt-0.5 ${s.icon}`} size={20} />
-      <div className="text-sm font-sans">
-        <p className={`font-bold ${s.title}`}>{title}</p>
-        <p className={`mt-0.5 ${s.body}`}>{body}</p>
-      </div>
-    </div>
+    <Alert className={ALERT_CLASSES[color] ?? ALERT_CLASSES.amber}>
+      <Icon className="h-4 w-4" />
+      <AlertTitle className="font-bold text-sm">{title}</AlertTitle>
+      <AlertDescription className={`mt-0.5 text-sm ${ALERT_BODY_CLASSES[color] ?? ALERT_BODY_CLASSES.amber}`}>{body}</AlertDescription>
+    </Alert>
   );
 }
 
@@ -84,8 +90,8 @@ export default function ResultsPanel({ results, inputs }) {
       {/* ── Lipid rate card (TPN rate is physician-prescribed, not auto-displayed) ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-          <Droplet size={14} className="text-teal-600" />
-          <span className="font-mitr text-sm font-semibold text-teal-700">อัตราหยด · Infusion Rates</span>
+          <Droplet size={14} className="text-slate-400" />
+          <span className="font-mitr text-sm font-semibold text-slate-700">อัตราหยด · Infusion Rates</span>
         </div>
         <div className="px-4 sm:px-5 py-4 grid grid-cols-2 gap-3">
           {/* TPN Rate — physician prescribed */}
@@ -104,17 +110,17 @@ export default function ResultsPanel({ results, inputs }) {
             )}
           </div>
           {/* Lipid Rate */}
-          <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200/60 px-3 py-3">
-            <p className="text-[9px] uppercase tracking-wider font-bold text-emerald-400">Lipid Rate</p>
-            <p className={`font-mitr font-bold text-2xl tabular-nums leading-tight mt-0.5 ${fatRateHigh ? 'text-rose-600' : 'text-emerald-700'}`}>
+          <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3">
+            <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400">Lipid Rate</p>
+            <p className={`font-mitr font-bold text-2xl tabular-nums leading-tight mt-0.5 ${fatRateHigh ? 'text-rose-600' : 'text-slate-700'}`}>
               {fmt(results?.lipidRate, 1)}
-              <span className="text-[11px] font-sans font-normal text-emerald-400 ml-1">ml/hr</span>
+              <span className="text-[11px] font-sans font-normal text-slate-400 ml-1">ml/hr</span>
             </p>
-            <p className={`text-[9px] mt-0.5 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-emerald-400'}`}>
+            <p className={`text-[9px] mt-0.5 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-slate-400'}`}>
               Fat {fmt(results?.fatRateGKgHr, 3)} g/kg/hr {fatRateHigh ? `⚠ >0.17` : `✓ ≤${FAT_RATE_MAX_G_KG_HR}`}
             </p>
             {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-              <p className="text-[10px] text-emerald-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
+              <p className="text-[10px] text-slate-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
             )}
           </div>
         </div>
@@ -123,40 +129,40 @@ export default function ResultsPanel({ results, inputs }) {
       {/* ── Energy distribution ── */}
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100/80 flex items-center gap-2">
-          <Zap size={14} className="text-teal-600" />
-          <span className="font-mitr text-sm font-semibold text-teal-700">พลังงาน · Energy</span>
+          <Zap size={14} className="text-slate-400" />
+          <span className="font-mitr text-sm font-semibold text-slate-700">พลังงาน · Energy</span>
         </div>
         <div className="px-4 sm:px-5 py-4 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-[11px] font-sans text-slate-500">Total Energy</span>
-            <span className="font-mitr font-semibold text-teal-700">
+            <span className="font-mitr font-semibold text-slate-700">
               {fmt(results?.totalEnergy, 1)}<span className="text-[10px] font-sans text-slate-400 ml-1">kcal/day</span>
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-[11px] font-sans text-slate-500">kcal/kg/day</span>
-            <span className="font-mitr font-semibold text-teal-700">
+            <span className="font-mitr font-semibold text-slate-700">
               {fmt(results?.kcalPerKg, 1)}<span className="text-[10px] font-sans text-slate-400 ml-1">kcal/kg</span>
             </span>
           </div>
-          <div className="h-px bg-slate-100 my-1" />
+          <Separator className="my-1" />
           {[
-            { label: 'CHO (3.4 kcal/g)',   kcal: results?.cho_kcal,     pct: results?.choPct,     color: 'bg-blue-500' },
-            { label: 'Protein (4 kcal/g)', kcal: results?.protein_kcal, pct: results?.proteinPct, color: 'bg-amber-500' },
-            { label: 'Fat (2 kcal/ml)',    kcal: results?.fat_kcal,     pct: results?.fatPct,     color: 'bg-emerald-500' },
+            { label: 'CHO (3.4 kcal/g)',   kcal: results?.cho_kcal,     pct: results?.choPct,     color: '[&>div]:bg-teal-600' },
+            { label: 'Protein (4 kcal/g)', kcal: results?.protein_kcal, pct: results?.proteinPct, color: '[&>div]:bg-slate-500' },
+            { label: 'Fat (2 kcal/ml)',    kcal: results?.fat_kcal,     pct: results?.fatPct,     color: '[&>div]:bg-slate-400' },
           ].map((row) => (
             <div key={row.label} className="space-y-0.5">
               <div className="flex justify-between text-[11px] font-sans">
                 <span className="text-slate-500">{row.label}</span>
                 <span className="text-slate-700 font-semibold">{fmt(row.kcal, 1)} kcal ({fmt(row.pct, 1)}%)</span>
               </div>
-              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                <div className={`h-full rounded-full ${row.color}`}
-                  style={{ width: `${Math.min(row.pct ?? 0, 100)}%`, transition: 'width 0.3s ease' }} />
-              </div>
+              <Progress
+                value={Math.min(row.pct ?? 0, 100)}
+                className={`h-1.5 bg-slate-100 ${row.color}`}
+              />
             </div>
           ))}
-          <div className="h-px bg-slate-100 my-1" />
+          <Separator className="my-1" />
           <div className="flex justify-between items-center text-[11px] font-sans">
             <span className="text-slate-400">NPC:N ratio</span>
             <span className={`font-semibold ${

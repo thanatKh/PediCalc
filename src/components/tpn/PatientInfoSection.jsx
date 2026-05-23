@@ -68,7 +68,7 @@ export default function PatientInfoSection({ inputs, update }) {
         </div>
 
         {/* Patient type + Line type toggles */}
-        <div className="col-span-2 md:col-span-4 mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl ring-1 ring-slate-200/80 bg-teal-50/40">
+        <div className="col-span-2 md:col-span-4 mt-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl ring-1 ring-slate-200/80 bg-slate-50">
           <div className="flex items-center gap-3">
             <Switch
               id="patientType"
