@@ -366,7 +366,10 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
         </nav>
 
         {/* ── Footer: version + author ── */}
-        <div className={`border-t border-slate-100 ${open ? 'px-3 py-3' : 'px-1.5 py-2'}`}>
+        <div
+          className={`border-t border-slate-100 ${open ? 'px-3 pt-3' : 'px-1.5 pt-2'}`}
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
+        >
           {open ? (
             <div className="space-y-0.5">
               <p className="text-[10px] font-sans font-semibold text-slate-500 leading-snug">
