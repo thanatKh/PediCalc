@@ -1,7 +1,7 @@
 // Service Worker — PediCalc PWA
 // Handles: (1) PDF preview with correct filename, (2) app shell caching for offline
 
-const SW_VERSION   = 'v13';
+const SW_VERSION   = 'v14';
 const CACHE_NAME   = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE    = 'pedicale-pdf-store';
 

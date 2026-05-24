@@ -132,7 +132,7 @@ Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `
 
 ### Service Worker
 
-`public/sw.js` (SW v13, cache `pedicale-shell-v13`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. TTL is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts. The fetch handler reads this header and serves a friendly Thai-language redirect page on expiry or cache miss rather than a blank 404. Both the redirect page and the PDF generation error page use white-toned design with Sarabun + Kanit fonts loaded from `/fonts/`, matching the app's visual theme.
+`public/sw.js` (SW v14, cache `pedicale-shell-v14`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. TTL is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts. The fetch handler reads this header and serves a friendly Thai-language redirect page on expiry or cache miss rather than a blank 404. Both the redirect page and the PDF generation error page use white-toned design with Sarabun + Kanit fonts loaded from `/fonts/`, matching the app's visual theme.
 
 ### PWA / Safe area
 
