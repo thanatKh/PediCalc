@@ -1,15 +1,17 @@
+import { memo } from 'react';
 import { AlertTriangle, CheckCircle2, Gauge } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { fmt, NumberField, SectionCard } from './ui';
 import { LIPID_RATE_WARN_THRESHOLD } from '@/utils/clinicalConstants';
 
-export default function RateSection({ inputs, update, results }) {
-  const manualLipidRate = parseFloat(inputs.manualLipidRate);
-  const calcLipidRate   = results?.lipidRate ?? 0;
-  const gir             = results?.gir ?? null;
-  const girHigh         = results?.girHigh ?? false;
-  const girLow          = results?.girLow  ?? false;
-  const hasRate         = inputs.manualTPNRate !== '' && parseFloat(inputs.manualTPNRate) > 0;
+function RateSection({
+  manualTPNRate, manualLipidRate,
+  lipidRate, gir, girHigh, girLow,
+  update,
+}) {
+  const manualLipidRateNum = parseFloat(manualLipidRate);
+  const calcLipidRate      = lipidRate ?? 0;
+  const hasRate            = manualTPNRate !== '' && parseFloat(manualTPNRate) > 0;
 
   return (
     <SectionCard title="Prescribed Rates · อัตราหยดที่สั่ง" icon={Gauge}>
@@ -21,12 +23,11 @@ export default function RateSection({ inputs, update, results }) {
             id="manualTPNRate"
             label="TPN Fluid Rate (สั่งจริง)"
             suffix="ml/hr"
-            value={inputs.manualTPNRate}
+            value={manualTPNRate}
             onChange={update('manualTPNRate')}
             step="0.1"
             hint="แพทย์ระบุ — ใช้คำนวณ GIR จริง"
           />
-          {/* Derived GIR display */}
           {hasRate && gir !== null && (
             <Badge className={`gap-1.5 px-2.5 py-1.5 text-sm font-semibold font-sans rounded-lg h-auto w-full justify-start border ${
               girHigh ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-50'
@@ -52,19 +53,19 @@ export default function RateSection({ inputs, update, results }) {
             id="manualLipidRate"
             label="Lipid rate (สั่งจริง)"
             suffix="ml/hr"
-            value={inputs.manualLipidRate}
+            value={manualLipidRate}
             onChange={update('manualLipidRate')}
             step="0.1"
-            hint={`คำนวณได้ ${fmt(results?.lipidRate, 1)} ml/hr`}
+            hint={`คำนวณได้ ${fmt(lipidRate, 1)} ml/hr`}
           />
-          {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
+          {!isNaN(manualLipidRateNum) && manualLipidRate !== '' && (
             <Badge className={`gap-1.5 px-2.5 py-1.5 text-sm font-semibold font-sans rounded-lg h-auto w-full justify-start border ${
-              Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
+              Math.abs(manualLipidRateNum - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
                 ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50'
                 : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50'
             }`}>
-              {Math.abs(manualLipidRate - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
-                ? <><AlertTriangle size={13} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualLipidRate - calcLipidRate), 1)} ml/hr</>
+              {Math.abs(manualLipidRateNum - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
+                ? <><AlertTriangle size={13} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualLipidRateNum - calcLipidRate), 1)} ml/hr</>
                 : <><CheckCircle2 size={13} className="shrink-0" />ใกล้เคียงกับที่คำนวณ</>}
             </Badge>
           )}
@@ -73,3 +74,5 @@ export default function RateSection({ inputs, update, results }) {
     </SectionCard>
   );
 }
+
+export default memo(RateSection);

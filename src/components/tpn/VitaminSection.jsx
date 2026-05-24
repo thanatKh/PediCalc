@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Pill, X } from 'lucide-react';
 import { fmt, SectionCard } from './ui';
 import { Badge } from '@/components/ui/badge';
@@ -10,13 +11,20 @@ const VITAMIN_META = [
   { label: 'Pediatrace',         autoKey: 'pediatraceAuto', overrideKey: 'pediatraceOverride', unit: 'ml/day', note: '1 ml/kg/day, max 10 ml/day' },
 ];
 
-export default function VitaminSection({ results, inputs, update }) {
+function VitaminSection({
+  soluvitOverride, vitalipidOverride, pediatraceOverride,
+  soluvitAuto,     vitalipidAuto,     pediatraceAuto,
+  update,
+}) {
+  const autoVals    = { soluvitAuto,     vitalipidAuto,     pediatraceAuto };
+  const overrideVals = { soluvitOverride, vitalipidOverride, pediatraceOverride };
+
   return (
     <SectionCard title="Vitamins / Trace · วิตามินและสารอาหารรอง" icon={Pill}>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {VITAMIN_META.map((item) => {
-          const autoVal    = results?.[item.autoKey] ?? null;
-          const overrideRaw = inputs?.[item.overrideKey] ?? '';
+          const autoVal    = autoVals[item.autoKey]      ?? null;
+          const overrideRaw = overrideVals[item.overrideKey] ?? '';
           const isManual   = overrideRaw !== '';
 
           return (
@@ -68,3 +76,5 @@ export default function VitaminSection({ results, inputs, update }) {
     </SectionCard>
   );
 }
+
+export default memo(VitaminSection);

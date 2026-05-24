@@ -1,7 +1,14 @@
+import { memo } from 'react';
 import { Beaker } from 'lucide-react';
 import { NumberField, SectionCard } from './ui';
 
-export default function MacroSection({ inputs, update, cds = {} }) {
+function MacroSection({
+  dextrosePct, proteinTarget, lipidTarget,
+  update,
+  dextroseTier, dextroseMessage,
+  proteinTier,  proteinMessage,
+  lipidTier,    lipidMessage,
+}) {
   return (
     <SectionCard title="Macronutrients · สารอาหารหลัก" icon={Beaker}>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -9,34 +16,36 @@ export default function MacroSection({ inputs, update, cds = {} }) {
           id="dextrosePct"
           label="Dextrose"
           suffix="%"
-          value={inputs.dextrosePct}
+          value={dextrosePct}
           onChange={update('dextrosePct')}
           step="0.5"
           hint="เริ่ม 6–8%; เพิ่มทีละ 1–2%/d; max 12.5% (peripheral)"
-          tier={cds.dextrose?.tier}
-          tierMessage={cds.dextrose?.message}
+          tier={dextroseTier}
+          tierMessage={dextroseMessage}
         />
         <NumberField
           id="proteinTarget"
           label="Protein target"
           suffix="g/kg"
-          value={inputs.proteinTarget}
+          value={proteinTarget}
           onChange={update('proteinTarget')}
           hint="Newborn: เริ่ม 2–2.5 g/kg/d; เป้าหมาย 3–4 g/kg/d"
-          tier={cds.protein?.tier}
-          tierMessage={cds.protein?.message}
+          tier={proteinTier}
+          tierMessage={proteinMessage}
         />
         <NumberField
           id="lipidTarget"
           label="Lipid target"
           suffix="g/kg"
-          value={inputs.lipidTarget}
+          value={lipidTarget}
           onChange={update('lipidTarget')}
           hint="เริ่ม 1–2 g/kg/d; เป้าหมาย 3–4 g/kg/d; max 4 g/kg/d"
-          tier={cds.lipid?.tier}
-          tierMessage={cds.lipid?.message}
+          tier={lipidTier}
+          tierMessage={lipidMessage}
         />
       </div>
     </SectionCard>
   );
 }
+
+export default memo(MacroSection);

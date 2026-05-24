@@ -401,6 +401,28 @@ export function countTiers(checks) {
   };
 }
 
+// ── Parameter display labels — single source of truth for web UI and PDF ─────
+export const CDS_PARAM_LABELS = {
+  fluid:        'Fluid Volume',
+  gir:          'GIR',
+  protein:      'Amino Acids',
+  lipid:        'Lipid',
+  na:           'Sodium (Na)',
+  k:            'Potassium (K)',
+  ca:           'Calcium',
+  po4:          'Phosphate (PO₄)',
+  mg:           'Magnesium',
+  osmolarity:   'Osmolarity',
+  dextrose:     'Dextrose %',
+  caxp:         'Ca×PO₄ Precipitation',
+  capo4balance: 'Ca / PO₄ Balance',
+  energy:       'Total Energy',
+  npcn:         'NPC:N Ratio',
+  soluvit:      'Soluvit-N',
+  vitalipid:    'Vitalipid N Infant',
+  pediatrace:   'Pediatrace',
+};
+
 // ── PDF critical-only filter ──────────────────────────────────────────────────
 // Single source of truth for PDF alert banners. Runs the full CDS engine and
 // returns only critical-tier checks so the PDF never diverges from web logic.

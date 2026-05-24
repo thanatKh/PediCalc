@@ -1,72 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, AlertTriangle, AlertOctagon, XCircle, ShieldCheck, MousePointerClick } from 'lucide-react';
-import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSupport';
-
-const PARAM_LABELS = {
-  fluid:      'Fluid Volume',
-  gir:        'GIR',
-  protein:    'Amino Acids',
-  lipid:      'Lipid',
-  na:         'Sodium (Na)',
-  k:          'Potassium (K)',
-  ca:         'Calcium',
-  po4:        'Phosphate (PO₄)',
-  mg:         'Magnesium',
-  osmolarity: 'Osmolarity',
-  dextrose:   'Dextrose %',
-  caxp:         'Ca×PO₄ Precipitation',
-  capo4balance: 'Ca / PO₄ Balance',
-  energy:       'Total Energy',
-  npcn:         'NPC:N Ratio',
-  soluvit:      'Soluvit-N',
-  vitalipid:  'Vitalipid N Infant',
-  pediatrace: 'Pediatrace',
-};
+import { countTiers, CDS_PARAM_LABELS } from '@/utils/clinicalDecisionSupport';
 
 const FIELD_MAP = {
-  fluid:      ['volumeTarget'],
-  gir:        ['manualTPNRate'],
-  protein:    ['proteinTarget'],
-  lipid:      ['lipidTarget'],
-  na:         ['na3PctTarget', 'naGlyceroTarget'],
-  k:          ['k15PctTarget', 'k2hpo4Target'],
-  ca:         ['caTarget'],
-  po4:        ['naGlyceroTarget', 'k2hpo4Target'],
-  mg:         ['mgTarget'],
-  osmolarity: ['dextrosePct'],
-  dextrose:   ['dextrosePct'],
+  fluid:        ['volumeTarget'],
+  gir:          ['manualTPNRate'],
+  protein:      ['proteinTarget'],
+  lipid:        ['lipidTarget'],
+  na:           ['na3PctTarget', 'naGlyceroTarget'],
+  k:            ['k15PctTarget', 'k2hpo4Target'],
+  ca:           ['caTarget'],
+  po4:          ['naGlyceroTarget', 'k2hpo4Target'],
+  mg:           ['mgTarget'],
+  osmolarity:   ['dextrosePct'],
+  dextrose:     ['dextrosePct'],
   caxp:         ['caTarget', 'naGlyceroTarget', 'k2hpo4Target'],
   capo4balance: ['caTarget', 'naGlyceroTarget', 'k2hpo4Target'],
   energy:       ['proteinTarget', 'lipidTarget', 'dextrosePct'],
   npcn:         ['proteinTarget', 'lipidTarget', 'dextrosePct'],
   soluvit:      ['soluvitOverride'],
-  vitalipid:  ['vitalipidOverride'],
-  pediatrace: ['pediatraceOverride'],
+  vitalipid:    ['vitalipidOverride'],
+  pediatrace:   ['pediatraceOverride'],
 };
 
-/* Derives a stable string key from the current alert state so we can
-   remount (and replay the entry animation) whenever the state changes. */
 function stateKey(hasErrors, critical, moderate, errorCount) {
-  if (hasErrors)   return `err-${errorCount}`;
+  if (hasErrors)    return `err-${errorCount}`;
   if (critical > 0) return `crit-${critical}`;
   if (moderate > 0) return `mod-${moderate}`;
   return 'safe';
 }
 
-export default function ClinicalAlertsPanel({ inputs, results, validation, onNavigate }) {
-  const checks   = evaluateClinicalTiers(inputs, results) ?? {};
-  const { critical, moderate } = countTiers(checks);
+export default function ClinicalAlertsPanel({ cds = {}, validation, onNavigate }) {
+  const { critical, moderate } = countTiers(cds);
 
   const errors   = validation?.errors   ?? [];
   const warnings = validation?.warnings ?? [];
 
-  const criticals = Object.entries(checks).filter(([, v]) => v.tier === 'critical');
-  const moderates = Object.entries(checks).filter(([, v]) => v.tier === 'moderate');
+  const criticals = Object.entries(cds).filter(([, v]) => v.tier === 'critical');
+  const moderates = Object.entries(cds).filter(([, v]) => v.tier === 'moderate');
 
   const hasErrors   = errors.length > 0;
   const hasAnything = hasErrors || warnings.length > 0 || critical > 0 || moderate > 0;
 
-  /* Track previous state to detect safe↔alert transitions */
   const prevSafe = useRef(!hasAnything);
   const [transitionKey, setTransitionKey] = useState(
     () => stateKey(hasErrors, critical, moderate, errors.length)
@@ -74,11 +49,9 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
 
   useEffect(() => {
     const newKey = stateKey(hasErrors, critical, moderate, errors.length);
-    if (newKey !== transitionKey) {
-      setTransitionKey(newKey);
-    }
+    if (newKey !== transitionKey) setTransitionKey(newKey);
     prevSafe.current = !hasAnything;
-  });
+  }, [hasErrors, critical, moderate, errors.length, transitionKey, hasAnything]);
 
   /* ── Safe state ──────────────────────────────────────────────── */
   if (!hasAnything) {
@@ -109,9 +82,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
   const headerBg    = isCritical ? 'bg-rose-50'        : 'bg-amber-50';
   const headerText  = isCritical ? 'text-rose-700'     : 'text-amber-700';
   const iconColor   = isCritical ? 'text-rose-500'     : 'text-amber-500';
-  const shadowColor = isCritical
-    ? 'shadow-rose-100/80'
-    : 'shadow-amber-100/60';
+  const shadowColor = isCritical ? 'shadow-rose-100/80' : 'shadow-amber-100/60';
 
   return (
     <div
@@ -168,7 +139,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
         ))}
 
         {criticals.map(([key, v]) => {
-          const fields = FIELD_MAP[key];
+          const fields    = FIELD_MAP[key];
           const clickable = onNavigate && fields;
           return (
             <div
@@ -179,7 +150,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
             >
               <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
-                <span className="text-sm font-bold text-rose-700">{PARAM_LABELS[key] ?? key}: </span>
+                <span className="text-sm font-bold text-rose-700">{CDS_PARAM_LABELS[key] ?? key}: </span>
                 <span className="text-sm text-rose-700">{v.message}</span>
                 {v.risk && <p className="text-xs text-rose-400/80 mt-0.5 leading-tight">{v.risk}</p>}
               </div>
@@ -191,7 +162,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
         })}
 
         {moderates.map(([key, v]) => {
-          const fields = FIELD_MAP[key];
+          const fields    = FIELD_MAP[key];
           const clickable = onNavigate && fields;
           return (
             <div
@@ -202,7 +173,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
             >
               <AlertTriangle size={15} className="text-amber-500 shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
-                <span className="text-sm font-bold text-amber-700">{PARAM_LABELS[key] ?? key}: </span>
+                <span className="text-sm font-bold text-amber-700">{CDS_PARAM_LABELS[key] ?? key}: </span>
                 <span className="text-sm text-amber-700">{v.message}</span>
                 {v.risk && <p className="text-xs text-amber-400/80 mt-0.5 leading-tight">{v.risk}</p>}
               </div>

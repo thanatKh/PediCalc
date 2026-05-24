@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { Download, Loader2, RotateCcw, AlertOctagon, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { useTPNForm } from '@/hooks/useTPNForm';
+import { countTiers, CDS_PARAM_LABELS } from '@/utils/clinicalDecisionSupport';
 
 import PatientInfoSection  from './tpn/PatientInfoSection';
 import MacroSection        from './tpn/MacroSection';
@@ -16,19 +17,12 @@ import HeparinSection      from './tpn/HeparinSection';
 import RateSection         from './tpn/RateSection';
 import ResultsPanel        from './tpn/ResultsPanel';
 import IngredientsTable    from './tpn/IngredientsTable';
-import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSupport';
 
 const DISCLAIMER = (
   <p className="text-xs text-slate-400 font-sans px-1">
     * PediCalc ใช้สนับสนุนการตัดสินใจทางคลินิกเท่านั้น — แพทย์ผู้สั่งยาควรทบทวนก่อนใช้กับผู้ป่วยจริงทุกครั้ง
   </p>
 );
-
-const PARAM_LABELS = {
-  fluid: 'Fluid Volume', gir: 'GIR', protein: 'Amino Acids', lipid: 'Lipid',
-  na: 'Sodium (Na)', k: 'Potassium (K)', ca: 'Calcium', po4: 'Phosphate (PO₄)',
-  mg: 'Magnesium', osmolarity: 'Osmolarity', dextrose: 'Dextrose %',
-};
 
 function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
   const count = errorCount + critical + moderate;
@@ -63,15 +57,14 @@ function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
 }
 
 export default function TPNCalculator({ hospital }) {
-  const { inputs, update, reset, results, validation, isExporting, handleExportPDF } = useTPNForm(hospital);
+  const { inputs, update, reset, results, validation, cds, isExporting, handleExportPDF } = useTPNForm(hospital);
   const [cdsDialogOpen, setCdsDialogOpen] = useState(false);
 
+  const { critical, moderate } = countTiers(cds);
   const waterNegative  = !!results?.isWaterNegative;
   const dexPct         = parseFloat(inputs.dextrosePct) || 0;
   const hasErrors      = validation.errors.length > 0;
   const canExport      = !waterNegative && !!results && !isExporting && !hasErrors;
-  const cds            = evaluateClinicalTiers(inputs, results) ?? {};
-  const { critical, moderate } = countTiers(cds);
 
   function handleExportClick() {
     if (critical > 0) {
@@ -81,7 +74,8 @@ export default function TPNCalculator({ hospital }) {
     }
   }
 
-  function handleNavigateToField(fieldIds, color = '#e11d48') {
+  // Stable reference — only created once; no deps because it only reads DOM
+  const handleNavigateToField = useCallback((fieldIds, color = '#e11d48') => {
     const ids = Array.isArray(fieldIds) ? fieldIds : [fieldIds];
     let scrolled = false;
     ids.forEach((id) => {
@@ -101,7 +95,7 @@ export default function TPNCalculator({ hospital }) {
         el.style.borderColor = prev;
       }, { once: true });
     });
-  }
+  }, []);
 
   const exportDisabledReason = isExporting ? null
     : !inputs.bw || parseFloat(inputs.bw) <= 0 ? 'กรุณากรอก BW ก่อน Export'
@@ -132,7 +126,7 @@ export default function TPNCalculator({ hospital }) {
                         <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
                         <div className="min-w-0">
                           <span className="text-sm font-bold text-rose-700">
-                            {PARAM_LABELS[key] ?? key}:{' '}
+                            {CDS_PARAM_LABELS[key] ?? key}:{' '}
                           </span>
                           <span className="text-sm text-rose-700">{v.message}</span>
                           {v.risk && (
@@ -234,18 +228,73 @@ export default function TPNCalculator({ hospital }) {
         {/* LEFT: input sections */}
         <section className="lg:col-span-7 xl:col-span-8 space-y-4">
 
-          <PatientInfoSection  inputs={inputs} update={update} cds={cds} />
-          <MacroSection        inputs={inputs} update={update} cds={cds} />
-          <ElectrolyteSection  inputs={inputs} update={update} cds={cds} />
-          <VitaminSection      results={results} inputs={inputs} update={update} />
-          <HeparinSection      inputs={inputs} update={update} results={results} />
-          <RateSection         inputs={inputs} update={update} results={results} />
+          <PatientInfoSection
+            name={inputs.name}           hn={inputs.hn}               ward={inputs.ward}
+            startDate={inputs.startDate} height={inputs.height}        ageMonth={inputs.ageMonth}
+            ageDay={inputs.ageDay}       bw={inputs.bw}                volumeTarget={inputs.volumeTarget}
+            patientType={inputs.patientType}  lineType={inputs.lineType}  urineOutput={inputs.urineOutput}
+            update={update}
+            fluidTier={cds.fluid?.tier}       fluidMessage={cds.fluid?.message}
+          />
+
+          <MacroSection
+            dextrosePct={inputs.dextrosePct}     proteinTarget={inputs.proteinTarget}  lipidTarget={inputs.lipidTarget}
+            update={update}
+            dextroseTier={cds.dextrose?.tier}    dextroseMessage={cds.dextrose?.message}
+            proteinTier={cds.protein?.tier}      proteinMessage={cds.protein?.message}
+            lipidTier={cds.lipid?.tier}          lipidMessage={cds.lipid?.message}
+          />
+
+          <ElectrolyteSection
+            na3PctTarget={inputs.na3PctTarget}       naGlyceroTarget={inputs.naGlyceroTarget}
+            k15PctTarget={inputs.k15PctTarget}       k2hpo4Target={inputs.k2hpo4Target}
+            caTarget={inputs.caTarget}               mgTarget={inputs.mgTarget}
+            update={update}
+            naTier={cds.na?.tier}     naMessage={cds.na?.message}
+            kTier={cds.k?.tier}       kMessage={cds.k?.message}
+            caTier={cds.ca?.tier}     caMessage={cds.ca?.message}
+            mgTier={cds.mg?.tier}     mgMessage={cds.mg?.message}
+            po4Tier={cds.po4?.tier}   po4Message={cds.po4?.message}
+          />
+
+          <VitaminSection
+            soluvitOverride={inputs.soluvitOverride}
+            vitalipidOverride={inputs.vitalipidOverride}
+            pediatraceOverride={inputs.pediatraceOverride}
+            soluvitAuto={results?.soluvitAuto}
+            vitalipidAuto={results?.vitalipidAuto}
+            pediatraceAuto={results?.pediatraceAuto}
+            update={update}
+          />
+
+          <HeparinSection
+            heparinConc={inputs.heparinConc}
+            heparinUnits={results?.heparinUnits}
+            heparinMl={results?.heparinMl}
+            update={update}
+          />
+
+          <RateSection
+            manualTPNRate={inputs.manualTPNRate}
+            manualLipidRate={inputs.manualLipidRate}
+            lipidRate={results?.lipidRate}
+            gir={results?.gir}
+            girHigh={results?.girHigh ?? false}
+            girLow={results?.girLow  ?? false}
+            update={update}
+          />
         </section>
 
         {/* RIGHT: live results */}
         <aside className="lg:col-span-5 xl:col-span-4">
           <div className="lg:sticky lg:top-20 space-y-4">
-            <ResultsPanel    results={results} inputs={inputs} validation={validation} onNavigate={handleNavigateToField} />
+            <ResultsPanel
+              results={results}
+              inputs={inputs}
+              validation={validation}
+              onNavigate={handleNavigateToField}
+              cds={cds}
+            />
             <IngredientsTable results={results} dexPct={dexPct} />
             {DISCLAIMER}
           </div>

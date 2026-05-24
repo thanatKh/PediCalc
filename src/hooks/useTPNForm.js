@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, useTransition, createElement } from 'react';
 import { calculateTPN } from '@/utils/tpnCalculator';
 import { validateTPNInputs } from '@/utils/tpnValidation';
+import { evaluateClinicalTiers } from '@/utils/clinicalDecisionSupport';
 
 export const DEFAULTS = {
   name: '',
@@ -78,6 +79,7 @@ export function useTPNForm(hospital) {
 
   const results    = useMemo(() => calculateTPN(inputs), [inputs]);
   const validation = useMemo(() => validateTPNInputs(inputs), [inputs]);
+  const cds        = useMemo(() => evaluateClinicalTiers(inputs, results) ?? {}, [inputs, results]);
 
   const handleExportPDF = useCallback(() => {
     if (!results || results.isWaterNegative || isExporting) return;
@@ -143,16 +145,41 @@ export function useTPNForm(hospital) {
           if (tab && !tab.closed) {
             tab.document.open();
             tab.document.write(
-              '<!doctype html><meta charset=utf-8>' +
-              '<meta name=viewport content="width=device-width,initial-scale=1">' +
-              '<style>*{margin:0;box-sizing:border-box}' +
+              '<!doctype html><html lang="th"><head>' +
+              '<meta charset="utf-8">' +
+              '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+              '<title>เกิดข้อผิดพลาด — PediCalc</title>' +
+              '<style>' +
+              '@font-face{font-family:"Sarabun";src:url("/fonts/Sarabun-Regular.ttf") format("truetype");font-weight:400;font-display:swap}' +
+              '@font-face{font-family:"Sarabun";src:url("/fonts/Sarabun-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}' +
+              '@font-face{font-family:"Kanit";src:url("/fonts/Kanit-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}' +
+              '*{margin:0;box-sizing:border-box}' +
               'body{min-height:100svh;display:flex;align-items:center;justify-content:center;' +
-              'background:#0f172a;font-family:system-ui,sans-serif;padding:2rem;text-align:center}</style>' +
-              '<div>' +
-              '<p style="font-size:2.5rem">⚠️</p>' +
-              '<p style="color:#f1f5f9;font-size:1.1rem;margin:.75rem 0 .5rem">เกิดข้อผิดพลาดในการสร้าง PDF</p>' +
-              '<p style="color:#94a3b8;font-size:.875rem">กรุณาปิดหน้านี้และลองใหม่อีกครั้ง</p>' +
-              '</div>'
+              'background:#fff;font-family:"Sarabun",system-ui,sans-serif;padding:2rem;text-align:center;' +
+              '-webkit-font-smoothing:antialiased}' +
+              '.card{background:#fff;border:1px solid #d4e9e9;border-radius:1.25rem;' +
+              'padding:2rem 2.5rem;max-width:340px;width:100%;' +
+              'box-shadow:0 4px 24px rgba(13,110,110,0.08),0 1px 4px rgba(13,110,110,0.04)}' +
+              '.brand{font-family:"Kanit",system-ui,sans-serif;font-weight:600;font-size:.8rem;' +
+              'color:#0d6e6e;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem;opacity:.7}' +
+              '.icon{font-size:2.25rem;line-height:1;margin-bottom:.875rem}' +
+              'h1{font-family:"Kanit",system-ui,sans-serif;font-weight:600;' +
+              'color:#0d6e6e;font-size:1.1rem;margin-bottom:.625rem}' +
+              '.sub{color:#64748b;font-size:.875rem;line-height:1.6;margin-bottom:1.5rem}' +
+              '.btn{display:inline-block;background:#0d6e6e;color:#fff;text-decoration:none;' +
+              'padding:.625rem 1.5rem;border-radius:.75rem;font-size:.875rem;font-weight:600;' +
+              'font-family:"Sarabun",system-ui,sans-serif;border:none;cursor:pointer;transition:background .2s}' +
+              '.btn:hover{background:#095555}' +
+              '</style>' +
+              '</head><body>' +
+              '<div class="card">' +
+              '<p class="brand">PediCalc</p>' +
+              '<div class="icon">⚠️</div>' +
+              '<h1>เกิดข้อผิดพลาดในการสร้าง PDF</h1>' +
+              '<p class="sub">กรุณาปิดหน้านี้และลองใหม่อีกครั้ง<br>หากปัญหายังคงอยู่ ลองรีเฟรชหน้าหลัก</p>' +
+              '<button class="btn" onclick="window.close()">ปิดหน้านี้</button>' +
+              '</div>' +
+              '</body></html>'
             );
             tab.document.close();
             wroteToTab = true;
@@ -166,5 +193,5 @@ export function useTPNForm(hospital) {
     });
   }, [inputs, results, isExporting, hospital]);
 
-  return { inputs, update, reset, results, validation, isExporting, handleExportPDF };
+  return { inputs, update, reset, results, validation, cds, isExporting, handleExportPDF };
 }

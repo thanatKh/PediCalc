@@ -12,7 +12,7 @@ import {
   FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
-export default function ResultsPanel({ results, inputs, validation, onNavigate }) {
+export default function ResultsPanel({ results, inputs, validation, onNavigate, cds }) {
   const dexPct        = parseFloat(inputs.dextrosePct) || 0;
   const waterNegative = !!results?.isWaterNegative;
   const sterileWater  = results?.sterileWaterMl ?? null;
@@ -45,7 +45,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
 
       {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
       <div id="cds-alerts">
-        <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} onNavigate={onNavigate} />
+        <ClinicalAlertsPanel cds={cds} validation={validation} onNavigate={onNavigate} />
       </div>
 
       {/* ── Key stat pills ── */}

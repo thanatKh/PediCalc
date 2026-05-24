@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { Syringe } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { fmt, NumberField, SectionCard } from './ui';
 
-export default function HeparinSection({ inputs, update, results }) {
+function HeparinSection({ heparinConc, heparinUnits, heparinMl, update }) {
   return (
     <SectionCard title="Heparin · เฮปาริน" icon={Syringe}>
       <div className="grid grid-cols-2 gap-3">
@@ -10,7 +11,7 @@ export default function HeparinSection({ inputs, update, results }) {
           id="heparinConc"
           label="Multiplier (units/ml)"
           suffix="u/ml"
-          value={inputs.heparinConc}
+          value={heparinConc}
           onChange={update('heparinConc')}
           step="0.1"
           min="0.5"
@@ -23,12 +24,12 @@ export default function HeparinSection({ inputs, update, results }) {
           </Label>
           <div className="h-11 flex items-center px-3 rounded-xl bg-slate-50 ring-1 ring-slate-200/80 gap-1.5">
             <span className="font-mitr font-bold text-slate-700 text-base tabular-nums">
-              {fmt(results?.heparinUnits, 0)}
+              {fmt(heparinUnits, 0)}
             </span>
             <span className="text-sm text-slate-500 font-semibold font-sans">units</span>
             <span className="text-slate-300 mx-1.5">·</span>
             <span className="font-mitr font-semibold text-slate-700 text-base tabular-nums">
-              {fmt(results?.heparinMl, 2)}
+              {fmt(heparinMl, 2)}
             </span>
             <span className="text-sm text-slate-400 font-sans">ml</span>
           </div>
@@ -40,3 +41,5 @@ export default function HeparinSection({ inputs, update, results }) {
     </SectionCard>
   );
 }
+
+export default memo(HeparinSection);

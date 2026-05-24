@@ -66,7 +66,9 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 **Add new CDS range checks to `clinicalDecisionSupport.js`**, not to `tpnValidation.js`, unless the check must hard-block export.
 
-`src/components/tpn/ClinicalAlertsPanel.jsx` — renders the tiered alert panel. `PARAM_LABELS` and `FIELD_MAP` inside this file drive display names and scroll-to-field navigation per check key. When adding a new CDS check, add its label and field map entry here too.
+`clinicalDecisionSupport.js` also exports `CDS_PARAM_LABELS` — a 18-key map of check key → display label. This is the **single source of truth** for CDS display names used by both `TPNCalculator.jsx` and `ClinicalAlertsPanel.jsx`. When adding a new CDS check, add its label here.
+
+`src/components/tpn/ClinicalAlertsPanel.jsx` — renders the tiered alert panel. Accepts a `cds` prop (pre-computed result from `useTPNForm`). `FIELD_MAP` inside this file drives scroll-to-field navigation per check key — add a field map entry here when adding a new CDS check. Display labels come from `CDS_PARAM_LABELS` imported from `clinicalDecisionSupport.js`.
 
 ### Formatting helper
 
@@ -74,14 +76,16 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 ### Custom hook
 
-`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `isExporting`, and `handleExportPDF`. The export handler opens a blank tab synchronously (beats popup blockers), then generates the PDF blob, stores it in the SW cache via `REGISTER_PDF`, and navigates the tab to `/pdf-preview/{filename}`. Uses `createElement` from React — **not JSX** — since the file is `.js`.
+`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `cds`, `isExporting`, and `handleExportPDF`. `cds` is a `useMemo`-wrapped result of `evaluateClinicalTiers(inputs, results)` — computed once here and threaded as a prop to avoid duplicate evaluation. The export handler opens a blank tab synchronously (beats popup blockers), then generates the PDF blob, stores it in the SW cache via `REGISTER_PDF`, and navigates the tab to `/pdf-preview/{filename}`. Uses `createElement` from React — **not JSX** — since the file is `.js`.
 
 Export is blocked when: `results` is null, `isWaterNegative`, currently exporting, or `validation.errors.length > 0`.
 
 ### Main calculator component
 
-`src/components/TPNCalculator.jsx` — thin shell. Imports `useTPNForm` and composes all section components. **Do not add business logic here.**
+`src/components/TPNCalculator.jsx` — thin shell. Imports `useTPNForm` (which now returns `cds`) and composes all section components. **Do not add business logic here.**
 
+- Destructures `cds` from `useTPNForm` and passes **flat primitive props** to each section component (e.g. `fluidTier={cds.fluid?.tier}`, `proteinMessage={cds.protein?.message}`). This enables `React.memo` to bail out correctly — objects always have new references; primitive strings do not.
+- `handleNavigateToField` is wrapped in `useCallback` to keep its reference stable across renders.
 - Header and sidebar top bar both use `minHeight: calc(env(safe-area-inset-top) + 3.5rem)` for consistent height alignment.
 - `canExport` gates the ShimmerButton.
 - `exportDisabledReason` shown as tooltip on desktop, `alert()` on mobile.
@@ -105,6 +109,8 @@ All in `src/components/tpn/`:
 
 `NumberField` in `ui.jsx` suppresses native scroll-wheel and arrow-key increment on `<input type="number">` via `onWheel` blur + `onKeyDown` prevention.
 
+All six input section components (`PatientInfoSection`, `MacroSection`, `ElectrolyteSection`, `VitaminSection`, `HeparinSection`, `RateSection`) are wrapped with `React.memo` and accept individual primitive props extracted from `inputs` and `cds`. Never pass the `inputs` object or `cds` object directly to these components.
+
 ### PDF export
 
 `src/components/TPNPdfTemplate.jsx` — uses `@react-pdf/renderer`. No HTML/CSS — all layout via react-pdf `StyleSheet` (pt units). Thai fonts (Sarabun + Kanit) in `public/fonts/` registered with absolute URLs. Hyphenation disabled globally to prevent Thai character corruption.
@@ -120,13 +126,13 @@ PDF header uses `hospital.logoForPdf` (hospital-specific). Do not use `APP_LOGO`
 **Fallback (SW not yet active — first load / dev mode):**
 - `storePdfInSW` returns `null`; blank tab closes; `<a download=filename>` triggers a named download directly.
 
-**Stale URL handling:** If someone opens an expired or shared `/pdf-preview/` URL (cache miss), the SW serves a Thai-language redirect page that counts down 5 seconds then redirects to `/`.
+**Stale URL handling:** If someone opens an expired or shared `/pdf-preview/` URL (cache miss), the SW serves a Thai-language redirect page that counts down 3 seconds then redirects to `/`.
 
 Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `PdfModalContent.jsx` has been deleted — there is no modal.
 
 ### Service Worker
 
-`public/sw.js` (SW v11, cache `pedicale-shell-v11`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. Cache-miss on `/pdf-preview/*` serves a friendly HTML redirect page rather than a blank 404.
+`public/sw.js` (SW v13, cache `pedicale-shell-v13`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. TTL is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts. The fetch handler reads this header and serves a friendly Thai-language redirect page on expiry or cache miss rather than a blank 404. Both the redirect page and the PDF generation error page use white-toned design with Sarabun + Kanit fonts loaded from `/fonts/`, matching the app's visual theme.
 
 ### PWA / Safe area
 

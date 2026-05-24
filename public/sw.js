@@ -1,7 +1,7 @@
 // Service Worker — PediCalc PWA
 // Handles: (1) PDF preview with correct filename, (2) app shell caching for offline
 
-const SW_VERSION   = 'v12';
+const SW_VERSION   = 'v13';
 const CACHE_NAME   = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE    = 'pedicale-pdf-store';
 
@@ -54,19 +54,22 @@ self.addEventListener('message', (e) => {
   const origin   = self.registration.scope.replace(/\/$/, '').replace(/\/pdf-preview.*$/, '');
   const fullUrl  = `${origin}${urlPath}`;
 
+  // Store expiry as a header — SW can be killed at any time so setTimeout is
+  // unreliable; the TTL is checked on every fetch instead.
+  const expiresAt = Date.now() + 10 * 60 * 1000;
   const response = new Response(buffer, {
     status: 200,
     headers: {
       'Content-Type':        'application/pdf',
       'Content-Disposition': `inline; filename="${filename}"`,
       'Content-Length':      String(buffer.byteLength),
+      'X-Expires':           String(expiresAt),
     },
   });
 
   e.waitUntil(
     caches.open(PDF_CACHE).then((cache) =>
       cache.put(fullUrl, response).then(() => {
-        setTimeout(() => caches.open(PDF_CACHE).then((c) => c.delete(fullUrl)), 10 * 60 * 1000);
         if (port) port.postMessage({ url: urlPath });
       })
     )
@@ -90,20 +93,26 @@ self.addEventListener('fetch', (e) => {
         // Try canonical key first, then the raw request URL as fallback
         return cache.match(fullUrl)
           .then((cached) => cached ?? cache.match(e.request.url))
-          .then((cached) => {
+          .then(async (cached) => {
             if (cached) {
-              // Re-wrap with explicit headers so Chrome always sees application/pdf
-              // regardless of what was stored — this prevents Save-As-HTML bug
-              return cached.blob().then((blob) => new Response(blob, {
-                status: 200,
-                headers: {
-                  'Content-Type':        'application/pdf',
-                  'Content-Disposition': `inline; filename="${filename}"`,
-                  'Content-Length':      String(blob.size),
-                },
-              }));
+              const expires = Number(cached.headers.get('X-Expires'));
+              if (Date.now() <= expires) {
+                // Re-wrap with explicit headers so Chrome always sees application/pdf
+                // regardless of what was stored — this prevents Save-As-HTML bug
+                const blob = await cached.blob();
+                return new Response(blob, {
+                  status: 200,
+                  headers: {
+                    'Content-Type':        'application/pdf',
+                    'Content-Disposition': `inline; filename="${filename}"`,
+                    'Content-Length':      String(blob.size),
+                  },
+                });
+              }
+              // TTL expired — purge and fall through to the redirect page
+              cache.delete(fullUrl);
             }
-            // Cache miss (expired or shared URL) — serve a friendly redirect page
+            // Cache miss or TTL expired — serve a friendly redirect page
             const html = `<!doctype html>
 <html lang="th">
 <head>
@@ -111,27 +120,35 @@ self.addEventListener('fetch', (e) => {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ลิงก์ PDF หมดอายุ — PediCalc</title>
 <style>
+@font-face{font-family:'Sarabun';src:url('/fonts/Sarabun-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Sarabun';src:url('/fonts/Sarabun-SemiBold.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'Kanit';src:url('/fonts/Kanit-SemiBold.ttf') format('truetype');font-weight:600;font-display:swap}
 *{margin:0;box-sizing:border-box}
 body{min-height:100svh;display:flex;align-items:center;justify-content:center;
-  background:#f0f4f4;font-family:system-ui,sans-serif;padding:2rem;text-align:center}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:1.25rem;
+  background:#fff;font-family:'Sarabun',system-ui,sans-serif;padding:2rem;text-align:center;
+  -webkit-font-smoothing:antialiased}
+.card{background:#fff;border:1px solid #d4e9e9;border-radius:1.25rem;
   padding:2rem 2.5rem;max-width:340px;width:100%;
-  box-shadow:0 4px 24px rgba(13,110,110,0.08)}
-.icon{font-size:2.5rem;line-height:1;margin-bottom:1rem}
-h1{color:#0d6e6e;font-size:1.1rem;font-weight:700;margin-bottom:1.25rem}
-.countdown{color:#64748b;font-size:.875rem;margin-bottom:1.25rem}
-.countdown strong{color:#0d6e6e;font-size:1.25rem}
+  box-shadow:0 4px 24px rgba(13,110,110,0.08),0 1px 4px rgba(13,110,110,0.04)}
+.brand{font-family:'Kanit',system-ui,sans-serif;font-weight:600;font-size:.8rem;
+  color:#0d6e6e;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem;opacity:.7}
+.icon{font-size:2.25rem;line-height:1;margin-bottom:.875rem}
+h1{font-family:'Kanit',system-ui,sans-serif;font-weight:600;
+  color:#0d6e6e;font-size:1.1rem;margin-bottom:.625rem}
+.sub{color:#64748b;font-size:.875rem;line-height:1.6;margin-bottom:1.5rem}
+.sub strong{color:#0d6e6e;font-size:1.25rem;font-family:'Kanit',system-ui,sans-serif}
 .btn{display:inline-block;background:#0d6e6e;color:#fff;text-decoration:none;
   padding:.625rem 1.5rem;border-radius:.75rem;font-size:.875rem;font-weight:600;
-  border:none;cursor:pointer;transition:background .2s}
+  font-family:'Sarabun',system-ui,sans-serif;border:none;cursor:pointer;transition:background .2s}
 .btn:hover{background:#095555}
 </style>
 </head>
 <body>
 <div class="card">
+  <p class="brand">PediCalc</p>
   <div class="icon">📄</div>
   <h1>ลิงก์ PDF หมดอายุแล้ว</h1>
-  <div class="countdown">กลับหน้าหลักใน <strong id="s">3</strong> วินาที</div>
+  <p class="sub">กลับหน้าหลักใน <strong id="s">3</strong> วินาที</p>
   <a href="/" class="btn">กลับหน้าหลัก</a>
 </div>
 <script>
