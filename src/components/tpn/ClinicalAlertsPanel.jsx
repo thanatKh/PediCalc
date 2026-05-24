@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertCircle, ShieldCheck, MousePointerClick } from 'lucide-react';
+import { AlertCircle, AlertTriangle, AlertOctagon, XCircle, ShieldCheck, MousePointerClick } from 'lucide-react';
 import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSupport';
 
 const PARAM_LABELS = {
@@ -131,14 +131,16 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
             <span className="cds-badge-pop inline-flex items-center gap-1 px-2 py-0.5
                              rounded-full bg-rose-100 text-rose-700 text-xs font-bold
                              ring-1 ring-rose-200/60">
-              ⛔ {errors.length} Error{errors.length > 1 ? 's' : ''} — Export locked
+              <XCircle size={11} className="shrink-0" />
+              {errors.length} Error{errors.length > 1 ? 's' : ''} — Export locked
             </span>
           )}
           {critical > 0 && (
             <span className="cds-badge-pop inline-flex items-center gap-1 px-2 py-0.5
                              rounded-full bg-rose-100 text-rose-700 text-xs font-bold
                              ring-1 ring-rose-200/60">
-              🚨 {critical} Critical
+              <AlertOctagon size={11} className="shrink-0" />
+              {critical} Critical
             </span>
           )}
           {moderate > 0 && (
@@ -147,7 +149,8 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
                              ring-1 ring-amber-200/60"
               style={{ animationDelay: '60ms' }}
             >
-              ⚠️ {moderate} Caution
+              <AlertTriangle size={11} className="shrink-0" />
+              {moderate} Caution
             </span>
           )}
         </div>
@@ -159,7 +162,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
       <div className="cds-rows divide-y divide-slate-100/80 bg-white">
         {errors.map((msg, i) => (
           <div key={`err-${i}`} className="cds-row-enter flex items-start gap-2.5 px-3.5 py-2.5">
-            <span className="text-sm mt-px shrink-0">⛔</span>
+            <XCircle size={15} className="text-rose-600 shrink-0 mt-0.5" />
             <span className="text-sm font-semibold text-rose-700">{msg}</span>
           </div>
         ))}
@@ -174,7 +177,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
               className={`cds-row-enter flex items-start gap-2.5 px-3.5 py-2.5 transition-colors
                 ${clickable ? 'cursor-pointer hover:bg-rose-50 active:bg-rose-100 group' : ''}`}
             >
-              <span className="text-sm mt-px shrink-0">🚨</span>
+              <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <span className="text-sm font-bold text-rose-700">{PARAM_LABELS[key] ?? key}: </span>
                 <span className="text-sm text-rose-700">{v.message}</span>
@@ -197,7 +200,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
               className={`cds-row-enter flex items-start gap-2.5 px-3.5 py-2.5 transition-colors
                 ${clickable ? 'cursor-pointer hover:bg-amber-50 active:bg-amber-100 group' : ''}`}
             >
-              <span className="text-sm mt-px shrink-0">⚠️</span>
+              <AlertTriangle size={15} className="text-amber-500 shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <span className="text-sm font-bold text-amber-700">{PARAM_LABELS[key] ?? key}: </span>
                 <span className="text-sm text-amber-700">{v.message}</span>
@@ -212,7 +215,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
 
         {warnings.map((msg, i) => (
           <div key={`warn-${i}`} className="cds-row-enter flex items-start gap-2.5 px-3.5 py-2.5">
-            <span className="text-sm mt-px shrink-0">⚠️</span>
+            <AlertTriangle size={15} className="text-amber-500 shrink-0 mt-0.5" />
             <span className="text-sm text-amber-700">{msg}</span>
           </div>
         ))}

@@ -1,4 +1,4 @@
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, AlertOctagon, AlertTriangle } from 'lucide-react';
 import { fmt, NumberField, SectionCard } from './ui';
 import { PO4_PER_MEQ_NA_GLYCERO, PO4_PER_MEQ_K2HPO4 } from '@/utils/clinicalConstants';
 
@@ -88,8 +88,10 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
               : isMod ? 'bg-amber-50 ring-amber-300/60'
               : 'bg-white ring-slate-200/80'
             }`}>
-              <p className="text-xs font-bold text-slate-400 mb-1 tracking-wide">
-                {isCrit ? '🚨 ' : isMod ? '⚠️ ' : ''}{label}
+              <p className="flex items-center justify-center gap-1 text-xs font-bold text-slate-400 mb-1 tracking-wide">
+                {isCrit && <AlertOctagon size={10} className="shrink-0 text-rose-500" />}
+                {isMod  && <AlertTriangle size={10} className="shrink-0 text-amber-500" />}
+                {label}
               </p>
               <p className={`font-mitr font-semibold text-base tabular-nums leading-tight ${isCrit ? 'text-rose-700' : isMod ? 'text-amber-700' : 'text-slate-700'}`}>
                 {fmt(value, 2)}

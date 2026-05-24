@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Loader2, RotateCcw } from 'lucide-react';
+import { Download, Loader2, RotateCcw, AlertOctagon, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -35,8 +35,7 @@ function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
   if (count === 0) return null;
 
   const isCritical = hasErrors || critical > 0;
-  const bg   = isCritical ? '#e11d48' : '#f59e0b';
-  const icon = isCritical ? '🚨' : '⚠️';
+  const bg = isCritical ? '#e11d48' : '#f59e0b';
 
   function scrollToCds() {
     const el = document.getElementById('cds-alerts');
@@ -54,7 +53,10 @@ function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
         boxShadow: `0 4px 20px ${bg}99`,
       }}
     >
-      <span className="text-lg leading-none">{icon}</span>
+      {isCritical
+        ? <AlertOctagon size={20} className="text-white" />
+        : <AlertTriangle size={20} className="text-white" />
+      }
       <span className="text-white text-[11px] font-bold font-sans leading-none mt-0.5">{count}</span>
     </button>
   );
@@ -127,7 +129,7 @@ export default function TPNCalculator({ hospital }) {
                     .filter(([, v]) => v.tier === 'critical')
                     .map(([key, v]) => (
                       <div key={key} className="flex items-start gap-2.5 px-3 py-3">
-                        <span className="text-base shrink-0 mt-px">🚨</span>
+                        <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
                         <div className="min-w-0">
                           <span className="text-sm font-bold text-rose-700">
                             {PARAM_LABELS[key] ?? key}:{' '}

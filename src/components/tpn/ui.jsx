@@ -1,4 +1,4 @@
-import { Zap } from 'lucide-react';
+import { Zap, AlertOctagon, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NumberTicker } from '@/components/ui/number-ticker';
@@ -16,8 +16,8 @@ export const TONES = {
 
 // ── tier → style mapping for NumberField ────────────────────────────────────
 const TIER_STYLES = {
-  critical: { border: 'border-rose-400',  ring: 'ring-rose-300/60',  badge: 'bg-rose-50 text-rose-700 border-rose-200',   icon: '🚨' },
-  moderate: { border: 'border-amber-400', ring: 'ring-amber-300/60', badge: 'bg-amber-50 text-amber-700 border-amber-200', icon: '⚠️' },
+  critical: { border: 'border-rose-400',  ring: 'ring-rose-300/60',  badge: 'bg-rose-50 text-rose-700 border-rose-200',   Icon: AlertOctagon },
+  moderate: { border: 'border-amber-400', ring: 'ring-amber-300/60', badge: 'bg-amber-50 text-amber-700 border-amber-200', Icon: AlertTriangle },
 };
 
 // ── NumberField ──────────────────────────────────────────────────────────────
@@ -51,8 +51,9 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
         )}
       </div>
       {ts && tierMessage && (
-        <p className={cn('text-xs font-semibold font-sans leading-snug px-1.5 py-1 rounded-lg border', ts.badge)}>
-          {ts.icon} {tierMessage}
+        <p className={cn('flex items-start gap-1.5 text-xs font-semibold font-sans leading-snug px-1.5 py-1 rounded-lg border', ts.badge)}>
+          <ts.Icon size={12} className="shrink-0 mt-px" />
+          {tierMessage}
         </p>
       )}
       {hint && <p className="text-xs text-slate-400 font-sans leading-snug px-0.5 mt-0.5">{hint}</p>}

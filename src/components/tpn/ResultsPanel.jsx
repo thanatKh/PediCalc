@@ -1,6 +1,5 @@
-import { AlertCircle, Droplet, Zap } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, CheckCircle2, Droplet, Zap } from 'lucide-react';
 import { NumberTicker } from '@/components/ui/number-ticker';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { fmt, StatPill } from './ui';
@@ -31,13 +30,17 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
 
       {/* ── System-level alert: negative sterile water blocks export ── */}
       {waterNegative && (
-        <Alert className="alert-enter rounded-2xl border border-rose-400 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans shadow-sm shadow-rose-100/80">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-sm">Negative Sterile Water!</AlertTitle>
-          <AlertDescription className="text-rose-600 mt-0.5 text-sm">
-            Component volumes exceed Total Volume — reduce targets before ordering. Export is locked.
-          </AlertDescription>
-        </Alert>
+        <div className="glass-card animate-fade-up rounded-2xl border border-rose-400 overflow-hidden">
+          <div className="flex items-start gap-2.5 px-3.5 py-3 bg-rose-50">
+            <AlertOctagon size={15} className="text-rose-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold font-sans text-rose-700">Negative Sterile Water — Export locked</p>
+              <p className="text-xs font-sans text-rose-500 mt-0.5 leading-snug">
+                Component volumes exceed Total Volume — reduce targets before ordering.
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
@@ -72,8 +75,12 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
               }
             </p>
             {gir !== null && (
-              <p className={`text-xs mt-1 font-sans font-semibold ${girHigh || girLow ? 'text-amber-600' : 'text-teal-600'}`}>
-                GIR = {fmt(gir, 2)} mg/kg/min {girHigh ? '⚠ High' : girLow ? '⚠ Low' : '✓'}
+              <p className={`flex items-center gap-1 text-xs mt-1 font-sans font-semibold ${girHigh || girLow ? 'text-amber-600' : 'text-teal-600'}`}>
+                GIR = {fmt(gir, 2)} mg/kg/min
+                {girHigh || girLow
+                  ? <><AlertTriangle size={11} className="shrink-0" />{girHigh ? 'High' : 'Low'}</>
+                  : <CheckCircle2 size={11} className="shrink-0" />
+                }
               </p>
             )}
           </div>
@@ -84,8 +91,12 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
               {fmt(results?.lipidRate, 1)}
               <span className="text-sm font-sans font-normal text-slate-400 ml-1">ml/hr</span>
             </p>
-            <p className={`text-xs mt-1 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-slate-400'}`}>
-              Fat {fmt(results?.fatRateGKgHr, 3)} g/kg/hr {fatRateHigh ? `⚠ >0.17` : `✓ ≤${FAT_RATE_MAX_G_KG_HR}`}
+            <p className={`flex items-center gap-1 text-xs mt-1 font-sans font-semibold ${fatRateHigh ? 'text-rose-600' : 'text-slate-400'}`}>
+              Fat {fmt(results?.fatRateGKgHr, 3)} g/kg/hr
+              {fatRateHigh
+                ? <><AlertOctagon size={11} className="shrink-0" />&gt;0.17</>
+                : <><CheckCircle2 size={11} className="shrink-0" />≤{FAT_RATE_MAX_G_KG_HR}</>
+              }
             </p>
             {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
               <p className="text-xs text-slate-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
