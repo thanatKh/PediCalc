@@ -114,27 +114,27 @@ export default function TPNCalculator({ hospital }) {
       <AlertDialog open={cdsDialogOpen} onOpenChange={setCdsDialogOpen}>
         <AlertDialogContent className="font-sans max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-rose-700">
+            <AlertDialogTitle className="text-rose-700 text-base">
               Clinical Alerts
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-left">
-                <p className="text-[12px] text-slate-600">
+                <p className="text-sm text-slate-600">
                   The following alerts are active. Please review and acknowledge.
                 </p>
-                <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 max-h-56 overflow-y-auto">
+                <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 max-h-60 overflow-y-auto">
                   {Object.entries(cds)
                     .filter(([, v]) => v.tier === 'critical')
                     .map(([key, v]) => (
-                      <div key={key} className="flex items-start gap-2 px-3 py-2">
-                        <span className="text-[11px] shrink-0 mt-px">🚨</span>
+                      <div key={key} className="flex items-start gap-2.5 px-3 py-3">
+                        <span className="text-base shrink-0 mt-px">🚨</span>
                         <div className="min-w-0">
-                          <span className="text-[11px] font-bold text-rose-700">
+                          <span className="text-sm font-bold text-rose-700">
                             {PARAM_LABELS[key] ?? key}:{' '}
                           </span>
-                          <span className="text-[11px] text-rose-700">{v.message}</span>
+                          <span className="text-sm text-rose-700">{v.message}</span>
                           {v.risk && (
-                            <p className="text-[10px] mt-0.5 text-rose-400">{v.risk}</p>
+                            <p className="text-xs mt-1 text-rose-400">{v.risk}</p>
                           )}
                         </div>
                       </div>
