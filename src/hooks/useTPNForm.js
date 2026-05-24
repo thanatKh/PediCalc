@@ -1,6 +1,8 @@
-import { useCallback, useMemo, useState, useTransition } from 'react';
+import { useCallback, useMemo, useState, useTransition, createElement } from 'react';
 import { calculateTPN } from '@/utils/tpnCalculator';
 import { validateTPNInputs } from '@/utils/tpnValidation';
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 export const DEFAULTS = {
   name: '',
@@ -43,6 +45,25 @@ function buildFilename(inputs) {
   return `${base}.pdf`;
 }
 
+/* Stores a PDF blob in the SW cache and returns the /pdf-preview/{filename} path.
+   Returns null on timeout or if no SW controller is available. */
+async function storePdfInSW(blob, filename) {
+  const sw = navigator.serviceWorker?.controller;
+  if (!sw) return null;
+
+  const buffer  = await blob.arrayBuffer();
+  const channel = new MessageChannel();
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 10_000);
+    channel.port1.onmessage = (e) => {
+      clearTimeout(timer);
+      resolve(e.data?.url ?? null);
+    };
+    sw.postMessage({ type: 'REGISTER_PDF', filename, buffer }, [channel.port2, buffer]);
+  });
+}
+
 export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
@@ -69,6 +90,10 @@ export function useTPNForm(hospital) {
 
     const filename = buildFilename(inputs);
 
+    // Open the tab synchronously during the user gesture so iOS doesn't block it.
+    // For desktop this is null; we open the modal instead.
+    const tab = isMobile ? window.open('', '_blank') : null;
+
     startExportTransition(async () => {
       try {
         let logoUrl = null;
@@ -83,9 +108,33 @@ export function useTPNForm(hospital) {
           logoUrl = `data:image/png;base64,${btoa(b64)}`;
         } catch { /* logo optional */ }
 
-        setPdfModal({ filename, logoUrl, hospital });
+        if (isMobile) {
+          // Dynamic import keeps @react-pdf/renderer out of the main bundle
+          const [{ pdf }, { default: TPNPdfTemplate }] = await Promise.all([
+            import('@react-pdf/renderer'),
+            import('@/components/TPNPdfTemplate'),
+          ]);
+
+          const element = createElement(TPNPdfTemplate, { inputs, results, logoUrl, hospital });
+          const blob    = await pdf(element).toBlob();
+
+          // Try SW-backed URL (gives the correct filename in the URL path).
+          // Falls back to a blob URL if the SW isn't ready.
+          const swPath = await storePdfInSW(blob, filename);
+          const url    = swPath ?? URL.createObjectURL(blob);
+
+          if (tab && !tab.closed) {
+            tab.location.href = url;
+          } else {
+            // Popup was blocked — try again (user may need to allow popups)
+            window.open(url, '_blank');
+          }
+        } else {
+          setPdfModal({ filename, logoUrl, hospital });
+        }
       } catch (err) {
         console.error('Export PDF failed:', err);
+        if (tab && !tab.closed) tab.close();
         alert(`PDF export error: ${err?.message ?? err}`);
       }
     });
