@@ -1,7 +1,7 @@
 // Service Worker — PediCalc PWA
 // Handles: (1) PDF preview with correct filename, (2) app shell caching for offline
 
-const SW_VERSION   = 'v11';
+const SW_VERSION   = 'v12';
 const CACHE_NAME   = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE    = 'pedicale-pdf-store';
 
@@ -113,30 +113,29 @@ self.addEventListener('fetch', (e) => {
 <style>
 *{margin:0;box-sizing:border-box}
 body{min-height:100svh;display:flex;align-items:center;justify-content:center;
-  background:#0f172a;font-family:system-ui,sans-serif;padding:2rem;text-align:center}
-.card{background:#1e293b;border:1px solid #334155;border-radius:1.25rem;
-  padding:2rem 2.5rem;max-width:380px;width:100%}
-.icon{font-size:2.75rem;line-height:1;margin-bottom:1rem}
-h1{color:#f1f5f9;font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
-p{color:#94a3b8;font-size:.875rem;line-height:1.6;margin-bottom:1.5rem}
-.countdown{color:#5eead4;font-size:.8rem;margin-bottom:1.25rem}
+  background:#f0f4f4;font-family:system-ui,sans-serif;padding:2rem;text-align:center}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:1.25rem;
+  padding:2rem 2.5rem;max-width:340px;width:100%;
+  box-shadow:0 4px 24px rgba(13,110,110,0.08)}
+.icon{font-size:2.5rem;line-height:1;margin-bottom:1rem}
+h1{color:#0d6e6e;font-size:1.1rem;font-weight:700;margin-bottom:1.25rem}
+.countdown{color:#64748b;font-size:.875rem;margin-bottom:1.25rem}
+.countdown strong{color:#0d6e6e;font-size:1.25rem}
 .btn{display:inline-block;background:#0d6e6e;color:#fff;text-decoration:none;
   padding:.625rem 1.5rem;border-radius:.75rem;font-size:.875rem;font-weight:600;
   border:none;cursor:pointer;transition:background .2s}
-.btn:hover{background:#0f8080}
+.btn:hover{background:#095555}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="icon">📄</div>
   <h1>ลิงก์ PDF หมดอายุแล้ว</h1>
-  <p>ไฟล์ PDF ถูกเก็บไว้ชั่วคราวและหมดอายุแล้ว<br>
-     กรุณากลับไปสร้าง PDF ใหม่อีกครั้งจากหน้าเครื่องคำนวณ</p>
-  <div class="countdown" id="msg">กำลังกลับสู่หน้าหลักใน <strong id="s">5</strong> วินาที…</div>
+  <div class="countdown">กลับหน้าหลักใน <strong id="s">3</strong> วินาที</div>
   <a href="/" class="btn">กลับหน้าหลัก</a>
 </div>
 <script>
-  var n=5,el=document.getElementById('s');
+  var n=3,el=document.getElementById('s');
   var t=setInterval(function(){n--;el.textContent=n;if(n<=0){clearInterval(t);location.replace('/');}},1000);
 </script>
 </body>

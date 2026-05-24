@@ -95,14 +95,20 @@
 @layer base {
   * { border-color: var(--color-border); }
 
-  html, body, #root {
+  html {
+    height: 100vh;    /* fallback for legacy browsers */
+    height: 100dvh;   /* dynamic viewport — eliminates white gap from 100lvh vs 100dvh mismatch */
+    /* no overflow:hidden on html — interferes with Safari viewport calculation */
+  }
+
+  body, #root {
     height: 100%;
-    overflow: hidden; /* prevent body-level scroll; App.jsx shell owns scrolling */
+    overflow: hidden;
   }
 
   body {
     margin: 0;
-    background-color: #ffffff;
+    background-color: #f0f4f4; /* matches app bg-dot-grid — safety net if any gap remains */
     color: var(--color-foreground);
     font-family: 'Sarabun', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
