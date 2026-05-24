@@ -132,7 +132,13 @@ Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `
 
 ### Service Worker
 
-`public/sw.js` (SW v14, cache `pedicale-shell-v14`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. TTL is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts. The fetch handler reads this header and serves a friendly Thai-language redirect page on expiry or cache miss rather than a blank 404. Both the redirect page and the PDF generation error page use white-toned design with Sarabun + Kanit fonts loaded from `/fonts/`, matching the app's visual theme.
+`public/sw.js` (SW v17, cache `pedicale-shell-v17`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL.
+
+- **TTL** is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts.
+- **Range request support** (`handleRangeRequest`): iOS Safari sends byte-range requests for pinch-to-zoom. The SW handles `Range: bytes=N-M` headers and returns proper 206 responses. The cache entry is **never deleted after serving** — it must survive multiple Range requests within the TTL window. It is only purged when a new PDF is stored (REGISTER_PDF clears old entries first) or when the TTL check fails on a subsequent fetch.
+- **No blob re-wrapping**: The fetch handler streams `cached.body` directly into the new Response. Using `cached.blob()` then `new Response(blob, ...)` can silently corrupt the Content-Type in some Chrome builds, causing downloads instead of inline PDF rendering.
+- **Cache miss / expiry** serves a Thai-language recovery page (status 410) with a 4-second countdown auto-redirect to `/`.
+- Both the recovery page and the PDF generation error page (in `useTPNForm.js`) use white-toned design with Sarabun + Kanit fonts loaded from `/fonts/`.
 
 ### PWA / Safe area
 
