@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Baby, Activity, Pill, Stethoscope, PanelLeftClose, Menu, ChevronDown } from 'lucide-react';
-import { HOSPITALS } from '@/utils/hospitals';
+import { HOSPITALS, APP_LOGO, APP_COLOR } from '@/utils/hospitals';
 
 const MODULES = [
   { key: 'tpn-newborn',     icon: Baby,        label: 'TPN Calculator',      sublabel: 'Neonatal · ทารกแรกเกิด',  ready: true  },
@@ -58,7 +58,7 @@ function HospitalPickerExpanded({ hospital, setHospital }) {
       >
         <span
           className="shrink-0 w-6 h-6 rounded flex items-center justify-center overflow-hidden"
-          style={{ backgroundColor: hospital.sidebarBg }}
+          style={{ backgroundColor: hospital.themeColor }}
         >
           <img src={hospital.logoSidebar} alt={hospital.shortName} width={16} height={16} className="w-4 h-4 object-contain"
             onError={(e) => { e.currentTarget.style.display = 'none'; }} />
@@ -138,7 +138,7 @@ function HospitalPickerCollapsed({ hospital, setHospital }) {
         className={`w-8 h-8 rounded-md flex items-center justify-center overflow-hidden border-2 transition-all ${
           popOpen ? 'border-slate-400 shadow-md' : 'border-slate-300 shadow-sm hover:border-slate-400'
         }`}
-        style={{ backgroundColor: hospital.sidebarBg }}
+        style={{ backgroundColor: hospital.themeColor }}
         title="เปลี่ยนโรงพยาบาล"
       >
         <img src={hospital.logoSidebar} alt={hospital.shortName} width={20} height={20} className="w-5 h-5 object-contain"
@@ -236,8 +236,8 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
           transition-[transform,width] duration-300 ease-out
           border-r border-slate-200/80
           ${open
-            ? 'translate-x-0 w-[min(82vw,240px)] lg:w-[220px]'
-            : '-translate-x-full lg:translate-x-0 w-[min(82vw,240px)] lg:w-[52px]'
+            ? 'translate-x-0 w-[min(88vw,280px)] lg:w-[260px]'
+            : '-translate-x-full lg:translate-x-0 w-[min(88vw,280px)] lg:w-[52px]'
           }
         `}
         style={{ background: 'hsl(0 0% 99%)', boxShadow: '1px 0 0 0 hsl(210 18% 90%)' }}
@@ -246,20 +246,28 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
         {/* ── Top bar: brand name + collapse button ── */}
         <div
           className={`flex items-center border-b border-slate-100 ${open ? 'px-3 gap-2' : 'justify-center px-0'}`}
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', minHeight: 'calc(env(safe-area-inset-top) + 3.5rem)' }}
         >
           {open ? (
             <>
-              <div className="flex-1 min-w-0">
-                <p className="font-mitr text-[15px] font-bold text-slate-800 leading-tight">PediCalc</p>
-                <p className="text-[9px] text-slate-400 font-sans tracking-wide">Pediatric Drug Calculator</p>
+              <div className="flex-1 min-w-0 flex items-center gap-2">
+                <img
+                  src={APP_LOGO}
+                  alt="PediCalc"
+                  className="h-10 w-auto object-contain shrink-0"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+                <div className="min-w-0">
+                  <p className="font-mitr text-lg font-bold text-teal-600 leading-tight">PediCalc</p>
+                  <p className="text-xs text-slate-400 font-sans tracking-wide">Pediatric Drug Calculator</p>
+                </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
                 title="ปิด sidebar"
-                className="shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="shrink-0 w-8 h-8 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
-                <PanelLeftClose size={15} />
+                <PanelLeftClose size={16} />
               </button>
             </>
           ) : (
@@ -313,7 +321,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
                       ? 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer'
                       : 'text-slate-300 cursor-not-allowed'}
                 `}
-                style={active ? { backgroundColor: `${hospital.themeColor}12` } : {}}
+                style={active ? { backgroundColor: `${APP_COLOR}12` } : {}}
               >
                 <span
                   className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
@@ -323,7 +331,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
                         ? 'text-slate-400 group-hover:text-slate-600 group-hover:bg-slate-200/60'
                         : 'text-slate-300'
                   }`}
-                  style={active ? { backgroundColor: hospital.themeColor } : {}}
+                  style={active ? { backgroundColor: APP_COLOR } : {}}
                 >
                   <Icon size={15} />
                 </span>

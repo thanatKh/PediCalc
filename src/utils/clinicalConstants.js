@@ -141,3 +141,19 @@ export const MG_CDS_CRITICAL_HIGH    = 1.0;   // mEq/kg/day
 
 // ── Osmolarity peripheral warning — PediNAT p.21, p.51 ──────────────────────
 export const OSMO_MODERATE_HIGH      = 800;   // mOsm/L — approaching peripheral limit
+
+// ── Ca×PO₄ moderate warning (approaching precipitation) ─────────────────────
+export const CA_PO4_PRODUCT_MODERATE = 55;    // mmol²/L²  — ~80% of critical threshold
+export const CA_PO4_SUM_MODERATE     = 35;    // mmol/L    — ~80% of critical threshold
+
+// ── Total Energy (kcal/kg/day) — ASPEN/ESPGHAN neonatal ─────────────────────
+export const ENERGY_CRITICAL_LOW     = 40;    // kcal/kg/day — severe underfeeding
+export const ENERGY_MODERATE_LOW     = 60;    // kcal/kg/day — below minimum for growth
+export const ENERGY_MODERATE_HIGH    = 110;   // kcal/kg/day — overfeeding caution
+export const ENERGY_CRITICAL_HIGH    = 130;   // kcal/kg/day — hepatic steatosis / CO₂ risk
+
+// ── NPC:N Ratio (kcal non-protein : g nitrogen) — ASPEN/ESPGHAN ─────────────
+export const NPC_N_CRITICAL_LOW      = 100;   // kcal/g N — protein used as energy
+export const NPC_N_MODERATE_LOW      = 150;   // kcal/g N — suboptimal protein utilization
+export const NPC_N_MODERATE_HIGH     = 200;   // kcal/g N — excess calories vs protein
+export const NPC_N_CRITICAL_HIGH     = 250;   // kcal/g N — overfeeding risk

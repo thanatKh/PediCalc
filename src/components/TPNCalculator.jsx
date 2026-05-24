@@ -297,7 +297,7 @@ export default function TPNCalculator({ hospital }) {
       {/* ── Sticky header ── */}
       <header className="sticky top-0 z-10 glass-card border-b border-white/60" style={{ borderRadius: 0 }}>
         <div className="max-w-screen-2xl mx-auto pl-14 pr-3 sm:pr-4 lg:pl-6 lg:pr-6 flex items-center justify-between gap-3"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', minHeight: 'calc(env(safe-area-inset-top) + 3.5rem)' }}
         >
           <div className="min-w-0">
             <h1 className="font-mitr text-lg sm:text-xl font-bold leading-tight truncate text-teal-600">

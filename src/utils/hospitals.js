@@ -1,3 +1,8 @@
+// App-level constants — fixed regardless of which hospital is selected
+// logoForPdf / themeColor on each hospital entry are used only in the PDF
+export const APP_LOGO  = '/logo-pedicale.PNG';
+export const APP_COLOR = '#0d6e6e'; // brand teal — always used for web UI chrome
+
 export const HOSPITALS = {
   kabinburi: {
     id:          'kabinburi',

@@ -18,6 +18,9 @@ import {
   MG_CDS_SAFE_MIN, MG_CDS_SAFE_MAX, MG_CDS_MODERATE_HIGH, MG_CDS_CRITICAL_HIGH,
   OSMO_MODERATE_HIGH,
   CA_PO4_PRODUCT_THRESHOLD, CA_PO4_SUM_THRESHOLD,
+  CA_PO4_PRODUCT_MODERATE, CA_PO4_SUM_MODERATE,
+  ENERGY_CRITICAL_LOW, ENERGY_MODERATE_LOW, ENERGY_MODERATE_HIGH, ENERGY_CRITICAL_HIGH,
+  NPC_N_CRITICAL_LOW, NPC_N_MODERATE_LOW, NPC_N_MODERATE_HIGH, NPC_N_CRITICAL_HIGH,
   MAX_SOLUVIT_ML, MAX_VITALIPID_ML, MAX_PEDIATRACE_ML,
   SOLUVIT_MODERATE_HIGH, VITALIPID_MODERATE_HIGH, PEDIATRACE_MODERATE_HIGH,
 } from './clinicalConstants';
@@ -231,17 +234,82 @@ export function evaluateClinicalTiers(inputs, results) {
   const caxP    = results.caxP    ?? 0;
   const caConc  = results.caConc  ?? 0;
   const po4Conc = results.po4Conc ?? 0;
+  const caxpSum = caConc + po4Conc;
   const hasCaOrPO4 = n(inputs.caTarget) > 0 || n(inputs.naGlyceroTarget) > 0 || n(inputs.k2hpo4Target) > 0;
   if (hasCaOrPO4 && (caConc > 0 || po4Conc > 0)) {
     if (results.caxPHigh)
       checks.caxp = mk('critical', caxP,
-        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² (> ${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO₄ = ${fmt(caConc + po4Conc, 1)} mmol/L (> ${CA_PO4_SUM_THRESHOLD})`,
+        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² (> ${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO₄ = ${fmt(caxpSum, 1)} mmol/L (> ${CA_PO4_SUM_THRESHOLD})`,
         'Precipitation risk — crystals can occlude IV lines. Reduce Ca or PO₄, or administer via separate line.');
+    else if (caxP > CA_PO4_PRODUCT_MODERATE || caxpSum > CA_PO4_SUM_MODERATE)
+      checks.caxp = mk('moderate', caxP,
+        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² or Ca+PO₄ = ${fmt(caxpSum, 1)} mmol/L — approaching precipitation threshold`,
+        'Monitor Ca and PO₄ levels. Consider reducing doses or spacing administration.');
     else
       checks.caxp = mk('safe', caxP);
   }
 
-  // ── 11. Osmolarity — PediNAT p.21, p.51 (peripheral line only) ──────────
+  // ── 10b. Ca without PO₄ / PO₄ without Ca ────────────────────────────────
+  const hasCa  = n(inputs.caTarget) > 0;
+  const hasPO4 = n(inputs.naGlyceroTarget) > 0 || n(inputs.k2hpo4Target) > 0;
+  if (hasCa && !hasPO4)
+    checks.capo4balance = mk('moderate', null,
+      'Calcium prescribed without Phosphate',
+      'Ca and PO₄ should be given together for bone mineralization. Risk of metabolic bone disease in preterm neonates.');
+  else if (hasPO4 && !hasCa)
+    checks.capo4balance = mk('moderate', null,
+      'Phosphate prescribed without Calcium',
+      'Ca and PO₄ should be given together for bone mineralization. Risk of hypocalcemia and metabolic bone disease.');
+
+  // ── 11. Total Energy (kcal/kg/day) — ASPEN/ESPGHAN neonatal ────────────
+  const kcalPerKg = results.kcalPerKg ?? 0;
+  const bwForEnergy = n(inputs.bw);
+  if (kcalPerKg > 0 && bwForEnergy > 0) {
+    if (kcalPerKg < ENERGY_CRITICAL_LOW)
+      checks.energy = mk('critical', kcalPerKg,
+        `Total energy ${fmt(kcalPerKg, 1)} kcal/kg/day critically low (< ${ENERGY_CRITICAL_LOW})`,
+        'Severe underfeeding — catabolism, poor wound healing, growth failure risk. Increase macronutrients.');
+    else if (kcalPerKg < ENERGY_MODERATE_LOW)
+      checks.energy = mk('moderate', kcalPerKg,
+        `Total energy ${fmt(kcalPerKg, 1)} kcal/kg/day below minimum for growth (${ENERGY_MODERATE_LOW}–${ENERGY_MODERATE_HIGH})`,
+        'Insufficient for anabolism. Consider increasing dextrose, protein, or lipid.');
+    else if (kcalPerKg > ENERGY_CRITICAL_HIGH)
+      checks.energy = mk('critical', kcalPerKg,
+        `Total energy ${fmt(kcalPerKg, 1)} kcal/kg/day exceeds safe limit (> ${ENERGY_CRITICAL_HIGH})`,
+        'Overfeeding risk — hepatic steatosis, excess CO₂ production, hyperglycemia. Reduce macronutrients.');
+    else if (kcalPerKg > ENERGY_MODERATE_HIGH)
+      checks.energy = mk('moderate', kcalPerKg,
+        `Total energy ${fmt(kcalPerKg, 1)} kcal/kg/day above typical target (${ENERGY_MODERATE_LOW}–${ENERGY_MODERATE_HIGH})`,
+        'Monitor for overfeeding. Verify macronutrient targets are appropriate for clinical status.');
+    else
+      checks.energy = mk('safe', kcalPerKg);
+  }
+
+  // ── 12. NPC:N Ratio (kcal non-protein : g nitrogen) — ASPEN/ESPGHAN ────
+  const npcN = results.npcN ?? 0;
+  const hasProtein = n(inputs.proteinTarget) > 0;
+  if (hasProtein && npcN > 0) {
+    if (npcN < NPC_N_CRITICAL_LOW)
+      checks.npcn = mk('critical', npcN,
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N critically low (< ${NPC_N_CRITICAL_LOW})`,
+        'Protein being oxidised as energy instead of for anabolism. Increase dextrose/lipid or reduce protein.');
+    else if (npcN < NPC_N_MODERATE_LOW)
+      checks.npcn = mk('moderate', npcN,
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N below target range (${NPC_N_MODERATE_LOW}–${NPC_N_MODERATE_HIGH})`,
+        'Suboptimal protein utilisation. Consider increasing non-protein calories.');
+    else if (npcN > NPC_N_CRITICAL_HIGH)
+      checks.npcn = mk('critical', npcN,
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N critically high (> ${NPC_N_CRITICAL_HIGH})`,
+        'Severe caloric excess relative to protein — overfeeding risk. Reduce dextrose or lipid.');
+    else if (npcN > NPC_N_MODERATE_HIGH)
+      checks.npcn = mk('moderate', npcN,
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N above target range (${NPC_N_MODERATE_LOW}–${NPC_N_MODERATE_HIGH})`,
+        'Excess non-protein calories relative to protein. Consider reducing dextrose or lipid.');
+    else
+      checks.npcn = mk('safe', npcN);
+  }
+
+  // ── 13. Osmolarity — PediNAT p.21, p.51 (peripheral line only) ──────────
   const osmo = results.estOsmolarity ?? 0;
   if (osmo > 0 && isPeripheral) {
     if (osmo > OSMOLARITY_PERIPHERAL_MAX)
@@ -256,7 +324,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.osmolarity = mk('safe', osmo);
   }
 
-  // ── 12. Vitamins & Trace — only evaluated when manually overridden ──────────
+  // ── 14. Vitamins & Trace — only evaluated when manually overridden ──────────
   const soluvitVal    = results.soluvitMl    ?? 0;
   const vitalipidVal  = results.vitalipidMl  ?? 0;
   const pediatraceVal = results.pediatraceMl ?? 0;
@@ -303,7 +371,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.pediatrace = mk('safe', pediatraceVal);
   }
 
-  // ── 13. Dextrose % — PediNAT p.21 (peripheral line only) ────────────────
+  // ── 15. Dextrose % — PediNAT p.21 (peripheral line only) ────────────────
   const dexPct = n(inputs.dextrosePct);
   if (dexPct > 0 && isPeripheral) {
     if (dexPct > DEXTROSE_PERIPHERAL_LIMIT)
