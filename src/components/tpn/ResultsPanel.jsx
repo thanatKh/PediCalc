@@ -41,7 +41,9 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
       )}
 
       {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
-      <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} onNavigate={onNavigate} />
+      <div id="cds-alerts">
+        <ClinicalAlertsPanel inputs={inputs} results={results} validation={validation} onNavigate={onNavigate} />
+      </div>
 
       {/* ── Key stat pills ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
@@ -142,7 +144,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
       </div>
 
       {/* ── Sterile water hero ── */}
-      <div className="animate-fade-up rounded-2xl p-4 flex items-center gap-3 sm:gap-4 min-w-0"
+      <div className="animate-fade-up rounded-2xl p-4 flex items-center gap-3 min-w-0"
         style={waterNegative
           ? { background: '#fff1f2', border: '1px solid #fecdd3' }
           : { background: 'linear-gradient(135deg, #f0fafa 0%, #ccf0f0 100%)', border: '1px solid #99e0e0' }
@@ -153,7 +155,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs uppercase tracking-[0.12em] font-bold text-slate-400 truncate">Sterile Water for Injection</p>
-          <p className="font-mitr text-xl sm:text-2xl font-semibold tabular-nums leading-tight truncate"
+          <p className="font-mitr text-xl font-semibold tabular-nums leading-tight truncate"
             style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }}>
             {sterileWater !== null
               ? <NumberTicker value={sterileWater} decimalPlaces={2} className="font-mitr font-semibold" style={{ color: waterNegative ? '#e11d48' : '#0d6e6e' }} />

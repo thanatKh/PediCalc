@@ -162,6 +162,36 @@ const PARAM_LABELS = {
   mg: 'Magnesium', osmolarity: 'Osmolarity', dextrose: 'Dextrose %',
 };
 
+function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
+  const count = errorCount + critical + moderate;
+  if (count === 0) return null;
+
+  const isCritical = hasErrors || critical > 0;
+  const bg   = isCritical ? '#e11d48' : '#f59e0b';
+  const icon = isCritical ? '🚨' : '⚠️';
+
+  function scrollToCds() {
+    const el = document.getElementById('cds-alerts');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  return (
+    <button
+      onClick={scrollToCds}
+      aria-label={`${count} clinical alert${count !== 1 ? 's' : ''} — tap to view`}
+      className="fixed right-4 z-40 lg:hidden flex flex-col items-center justify-center size-14 rounded-full active:scale-95 transition-transform"
+      style={{
+        bottom: 'calc(env(safe-area-inset-bottom) + 1rem)',
+        background: bg,
+        boxShadow: `0 4px 20px ${bg}99`,
+      }}
+    >
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="text-white text-[11px] font-bold font-sans leading-none mt-0.5">{count}</span>
+    </button>
+  );
+}
+
 export default function TPNCalculator({ hospital }) {
   const { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal } = useTPNForm(hospital);
   const [cdsDialogOpen, setCdsDialogOpen] = useState(false);
@@ -328,16 +358,15 @@ export default function TPNCalculator({ hospital }) {
                 </Tooltip>
               )}
             </div>
-            {/* Disabled reason hint — mobile only (tooltip not shown on touch) */}
-            {!canExport && exportDisabledReason && isMobile && (
-              <p className="text-[10px] text-slate-400 font-sans text-right pr-0.5">{exportDisabledReason}</p>
-            )}
           </div>
         </div>
       </header>
 
       {/* ── Main content ── */}
-      <main className="max-w-screen-2xl mx-auto px-3 sm:px-6 xl:px-10 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <main
+        className="max-w-screen-2xl mx-auto px-3 sm:px-6 xl:px-10 pt-4 sm:pt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+      >
 
         {/* LEFT: input sections */}
         <section className="lg:col-span-7 xl:col-span-8 space-y-4">
@@ -359,6 +388,14 @@ export default function TPNCalculator({ hospital }) {
           </div>
         </aside>
       </main>
+
+      {/* ── Mobile CDS floating badge ── */}
+      <CdsFloatingBadge
+        hasErrors={hasErrors}
+        errorCount={validation.errors.length}
+        critical={critical}
+        moderate={moderate}
+      />
     </div>
   );
 }

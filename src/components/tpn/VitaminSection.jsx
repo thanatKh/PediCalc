@@ -10,7 +10,7 @@ const VITAMIN_META = [
 export default function VitaminSection({ results }) {
   return (
     <SectionCard title="วิตามินและสารอาหารรอง · Vitamins / Trace" icon={Pill}>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {VITAMIN_META.map((item) => (
           <div key={item.label} className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
