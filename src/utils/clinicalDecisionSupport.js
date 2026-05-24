@@ -17,12 +17,11 @@ import {
   PO4_TARGET_MIN, PO4_MODERATE_LOW, PO4_SAFE_MAX, PO4_CRITICAL_HIGH,
   MG_CDS_SAFE_MIN, MG_CDS_SAFE_MAX, MG_CDS_MODERATE_HIGH, MG_CDS_CRITICAL_HIGH,
   OSMO_MODERATE_HIGH,
-  CA_PO4_PRODUCT_THRESHOLD, CA_PO4_SUM_THRESHOLD,
-  CA_PO4_PRODUCT_MODERATE, CA_PO4_SUM_MODERATE,
+  CA_INORGANIC_PO4_MODERATE, CA_INORGANIC_PO4_CRITICAL,
+  CA_ORGANIC_PO4_MODERATE, CA_ORGANIC_PO4_CRITICAL,
   ENERGY_CRITICAL_LOW, ENERGY_MODERATE_LOW, ENERGY_MODERATE_HIGH, ENERGY_CRITICAL_HIGH,
   NPC_N_CRITICAL_LOW, NPC_N_MODERATE_LOW, NPC_N_MODERATE_HIGH, NPC_N_CRITICAL_HIGH,
   MAX_SOLUVIT_ML, MAX_VITALIPID_ML, MAX_PEDIATRACE_ML,
-  SOLUVIT_MODERATE_HIGH, VITALIPID_MODERATE_HIGH, PEDIATRACE_MODERATE_HIGH,
 } from './clinicalConstants';
 
 function mk(tier, value, message, risk) {
@@ -230,23 +229,42 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.mg = mk('safe', mg);
   }
 
-  // ── 10. Ca×PO₄ Precipitation Risk ──────────────────────────────────────
-  const caxP    = results.caxP    ?? 0;
-  const caConc  = results.caConc  ?? 0;
-  const po4Conc = results.po4Conc ?? 0;
-  const caxpSum = caConc + po4Conc;
+  // ── 10. Ca×PO₄ Precipitation Risk — two-source model (ESPGHAN/ESPEN 2018) ──────────────────
+  // Organic (Na-glycerophosphate): ESPGHAN 2018 validated stability range up to ~225 mmol²/L²
+  // Inorganic (K₂HPO₄): Mikrut model — precipitation risk at low product values
+  const caxOrganic       = results.caxOrganic       ?? 0;
+  const caxInorganic     = results.caxInorganic      ?? 0;
+  const po4OrganicConc   = results.po4OrganicConc    ?? 0;
+  const po4InorganicConc = results.po4InorganicConc  ?? 0;
   const hasCaOrPO4 = n(inputs.caTarget) > 0 || n(inputs.naGlyceroTarget) > 0 || n(inputs.k2hpo4Target) > 0;
-  if (hasCaOrPO4 && (caConc > 0 || po4Conc > 0)) {
-    if (results.caxPHigh)
-      checks.caxp = mk('critical', caxP,
-        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² (> ${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO₄ = ${fmt(caxpSum, 1)} mmol/L (> ${CA_PO4_SUM_THRESHOLD})`,
-        'Precipitation risk — crystals can occlude IV lines. Reduce Ca or PO₄, or administer via separate line.');
-    else if (caxP > CA_PO4_PRODUCT_MODERATE || caxpSum > CA_PO4_SUM_MODERATE)
-      checks.caxp = mk('moderate', caxP,
-        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² or Ca+PO₄ = ${fmt(caxpSum, 1)} mmol/L — approaching precipitation threshold`,
-        'Monitor Ca and PO₄ levels. Consider reducing doses or spacing administration.');
-    else
-      checks.caxp = mk('safe', caxP);
+  const hasCalcium  = (results.caConc ?? 0) > 0;
+  if (hasCaOrPO4 && hasCalcium) {
+    const inorganicCritical = po4InorganicConc > 0 && caxInorganic > CA_INORGANIC_PO4_CRITICAL;
+    const organicCritical   = po4OrganicConc   > 0 && caxOrganic   > CA_ORGANIC_PO4_CRITICAL;
+    const inorganicModerate = po4InorganicConc > 0 && caxInorganic > CA_INORGANIC_PO4_MODERATE;
+    const organicModerate   = po4OrganicConc   > 0 && caxOrganic   > CA_ORGANIC_PO4_MODERATE;
+
+    if (inorganicCritical || organicCritical) {
+      const parts = [];
+      if (inorganicCritical) parts.push(`Ca×K₂HPO₄ = ${fmt(caxInorganic, 1)} mmol²/L² (> ${CA_INORGANIC_PO4_CRITICAL})`);
+      if (organicCritical)   parts.push(`Ca×Na-glycerophosphate = ${fmt(caxOrganic, 1)} mmol²/L² (> ${CA_ORGANIC_PO4_CRITICAL})`);
+      checks.caxp = mk('critical', inorganicCritical ? caxInorganic : caxOrganic,
+        `Ca×PO₄ precipitation risk — ${parts.join(' · ')}`,
+        inorganicCritical
+          ? 'Inorganic phosphate (K₂HPO₄) + Ca at these concentrations risks crystal formation. Consider replacing K₂HPO₄ with Na-glycerophosphate (ESPGHAN 2018) or administering via separate line.'
+          : 'Ca×Na-glycerophosphate product exceeds validated stability range. Verify formulation is standardized (ESPGHAN 2018). Reduce Ca or PO₄, or administer via separate line.');
+    } else if (inorganicModerate || organicModerate) {
+      const parts = [];
+      if (inorganicModerate) parts.push(`Ca×K₂HPO₄ = ${fmt(caxInorganic, 1)} mmol²/L² (> ${CA_INORGANIC_PO4_MODERATE})`);
+      if (organicModerate)   parts.push(`Ca×Na-glycerophosphate = ${fmt(caxOrganic, 1)} mmol²/L² (> ${CA_ORGANIC_PO4_MODERATE})`);
+      checks.caxp = mk('moderate', inorganicModerate ? caxInorganic : caxOrganic,
+        `Ca×PO₄ approaching precipitation threshold — ${parts.join(' · ')}`,
+        inorganicModerate
+          ? 'Inorganic K₂HPO₄ with Ca has limited compatibility. Prefer Na-glycerophosphate as phosphate source (ESPGHAN 2018).'
+          : 'Ca×Na-glycerophosphate product approaching upper validated stability range. Ensure formulation is prepared per standardized protocol.');
+    } else {
+      checks.caxp = mk('safe', caxOrganic + caxInorganic);
+    }
   }
 
   // ── 10b. Ca without PO₄ / PO₄ without Ca ────────────────────────────────
@@ -337,10 +355,6 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.soluvit = mk('critical', soluvitVal,
         `Soluvit-N ${fmt(soluvitVal, 2)} ml/day exceeds maximum (${MAX_SOLUVIT_ML} ml/day)`,
         'Water-soluble vitamin toxicity risk. Reduce to ≤ 10 ml/day.');
-    else if (soluvitVal > SOLUVIT_MODERATE_HIGH)
-      checks.soluvit = mk('moderate', soluvitVal,
-        `Soluvit-N ${fmt(soluvitVal, 2)} ml/day approaching maximum (${MAX_SOLUVIT_ML} ml/day)`,
-        'Verify manual dose — auto-calc is 1 ml/kg/day, max 10 ml/day.');
     else
       checks.soluvit = mk('safe', soluvitVal);
   }
@@ -350,10 +364,6 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.vitalipid = mk('critical', vitalipidVal,
         `Vitalipid N Infant ${fmt(vitalipidVal, 2)} ml/day exceeds maximum (${MAX_VITALIPID_ML} ml/day)`,
         'Fat-soluble vitamin toxicity risk (vitamins A, D, E, K). Reduce to ≤ 10 ml/day.');
-    else if (vitalipidVal > VITALIPID_MODERATE_HIGH)
-      checks.vitalipid = mk('moderate', vitalipidVal,
-        `Vitalipid N Infant ${fmt(vitalipidVal, 2)} ml/day approaching maximum (${MAX_VITALIPID_ML} ml/day)`,
-        'Verify manual dose — auto-calc is 4 ml/kg/day, max 10 ml/day.');
     else
       checks.vitalipid = mk('safe', vitalipidVal);
   }
@@ -363,10 +373,6 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.pediatrace = mk('critical', pediatraceVal,
         `Pediatrace ${fmt(pediatraceVal, 2)} ml/day exceeds maximum (${MAX_PEDIATRACE_ML} ml/day)`,
         'Trace element toxicity risk (Zn, Cu, Mn, Se, F). Reduce to ≤ 10 ml/day.');
-    else if (pediatraceVal > PEDIATRACE_MODERATE_HIGH)
-      checks.pediatrace = mk('moderate', pediatraceVal,
-        `Pediatrace ${fmt(pediatraceVal, 2)} ml/day approaching maximum (${MAX_PEDIATRACE_ML} ml/day)`,
-        'Verify manual dose — auto-calc is 1 ml/kg/day, max 10 ml/day.');
     else
       checks.pediatrace = mk('safe', pediatraceVal);
   }
@@ -393,4 +399,18 @@ export function countTiers(checks) {
     moderate: vals.filter(v => v.tier === 'moderate').length,
     safe:     vals.filter(v => v.tier === 'safe').length,
   };
+}
+
+// ── PDF critical-only filter ──────────────────────────────────────────────────
+// Single source of truth for PDF alert banners. Runs the full CDS engine and
+// returns only critical-tier checks so the PDF never diverges from web logic.
+// Usage: import { getPdfCriticalAlerts } from './clinicalDecisionSupport';
+//        const criticals = getPdfCriticalAlerts(inputs, results);
+//        → Array of { key, message, risk } for each critical check.
+export function getPdfCriticalAlerts(inputs, results) {
+  const checks = evaluateClinicalTiers(inputs, results);
+  if (!checks) return [];
+  return Object.entries(checks)
+    .filter(([, v]) => v.tier === 'critical')
+    .map(([key, v]) => ({ key, message: v.message, risk: v.risk }));
 }

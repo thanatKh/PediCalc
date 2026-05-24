@@ -148,19 +148,23 @@ describe('calculateTPN', () => {
     });
   });
 
-  describe('Ca×PO4 precipitation check', () => {
-    it('caxPHigh when Ca and PO4 are both elevated', () => {
-      const r = calculateTPN({
-        ...BASE,
-        caTarget: '2',
-        naGlyceroTarget: '3',
-      });
-      expect(r.caxPHigh).toBe(true);
+  describe('Ca×PO4 precipitation check — two-source model', () => {
+    it('caxInorganic exceeds critical threshold with K₂HPO₄ + elevated Ca', () => {
+      // K₂HPO₄ (inorganic): critical threshold = 30 mmol²/L²
+      const r = calculateTPN({ ...BASE, caTarget: '2', k2hpo4Target: '3' });
+      expect(r.caxInorganic).toBeGreaterThan(30);
     });
 
-    it('caxPHigh is false at safe levels', () => {
-      const r = calculateTPN(BASE);
-      expect(r.caxPHigh).toBe(false);
+    it('caxOrganic exceeds critical threshold at high Na-glycerophosphate + Ca', () => {
+      // Na-glycerophosphate (organic): critical threshold = 300 mmol²/L²
+      const r = calculateTPN({ ...BASE, caTarget: '2', naGlyceroTarget: '4' });
+      expect(r.caxOrganic).toBeGreaterThan(300);
+    });
+
+    it('caxOrganic and caxInorganic are zero when no phosphate sources prescribed', () => {
+      const r = calculateTPN(BASE); // BASE has k2hpo4Target='0', naGlyceroTarget='0'
+      expect(r.caxOrganic).toBe(0);
+      expect(r.caxInorganic).toBe(0);
     });
   });
 

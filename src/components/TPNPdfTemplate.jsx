@@ -1,15 +1,13 @@
 import { Document, Page, Text, View, Image, Font, StyleSheet } from '@react-pdf/renderer';
 import {
-  GIR_MAX_SAFE, GIR_MIN_SAFE,
   OSMOLARITY_PERIPHERAL_MAX,
   FAT_RATE_MAX_G_KG_HR,
-  CA_PO4_PRODUCT_THRESHOLD,
-  CA_PO4_SUM_THRESHOLD,
   NPC_N_TARGET_MIN, NPC_N_TARGET_MAX,
   HOURS_PER_DAY,
   LIPID_RATE_WARN_THRESHOLD,
 } from '@/utils/clinicalConstants';
 import { fmt } from '@/utils/fmt';
+import { getPdfCriticalAlerts } from '@/utils/clinicalDecisionSupport';
 
 const BASE = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -259,13 +257,18 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   const isCentral = inputs.lineType === 'central';
   const isNewborn = inputs.patientType === 'newborn';
 
-  // Safety flags
-  const osmHigh       = (results.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX;
-  const girHigh       = !!results.girHigh;
-  const girLow        = !!results.girLow;
-  const fatRateHigh   = !!results.fatRateHigh;
-  const caxPHigh      = !!results.caxPHigh;
-  const peripheralRisk= !!results.peripheralRisk;
+  // Safety flags — for StatCard display only (read from calculator results, not re-derived)
+  const osmHigh        = (results.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX;
+  const girHigh        = !!results.girHigh;
+  const girLow         = !!results.girLow;
+  const fatRateHigh    = !!results.fatRateHigh;
+  const peripheralRisk = !!results.peripheralRisk;
+
+  // CDS-driven alert banners — single source of truth with the web CDS engine.
+  // getPdfCriticalAlerts runs evaluateClinicalTiers and returns only critical-tier checks.
+  // To add/change/remove an alert: edit clinicalDecisionSupport.js only.
+  const pdfAlerts = getPdfCriticalAlerts(inputs, results);
+  const caxPHigh  = pdfAlerts.some(a => a.key === 'caxp');
 
   // Source inputs
   const na3Pct    = parseFloat(inputs.na3PctTarget)    || 0;
@@ -298,7 +301,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
     { name: '8.71% K2HPO4',
       targetVal: `K ${fmt(k2hpo4, 2)}`,         targetUnit: 'mEq/kg',    ml: results.k2hpo4Ml,      note: 'K + PO4 · 1 mEq K/0.5 mmol PO4/ml' },
     { name: '10% Calcium Gluconate',
-      targetVal: inputs.caTarget,               targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.25 mmol/ml' },
+      targetVal: inputs.caTarget,               targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.225 mmol/ml (MW 448.4)' },
     { name: '50% MgSO4',
       targetVal: inputs.mgTarget,               targetUnit: 'mEq/kg',    ml: results.mgso4Ml,       note: '4 mEq/ml' },
     { name: 'Soluvit-N',
@@ -443,24 +446,17 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
         </View>
 
         {/* ══════════════════════════════════════════════════════════════════
-            CLINICAL ALERT BANNERS
+            CLINICAL ALERT BANNERS — critical tier only, driven by CDS engine
+            Source: clinicalDecisionSupport.js → getPdfCriticalAlerts()
+            To change alert logic or thresholds: edit clinicalDecisionSupport.js
         ══════════════════════════════════════════════════════════════════ */}
-        {fatRateHigh && (
-          <WarnBanner level="red"
-            text={`CRITICAL ALERT — Fat Infusion Rate: ${fmt(results.fatRateGKgHr, 3)} g/kg/hr exceeds safe limit of 0.17 g/kg/hr — Risk of Fat Overload Syndrome — Reduce Lipid target immediately`} />
-        )}
-        {(girHigh || girLow) && (
-          <WarnBanner level="amber"
-            text={`GIR ${girHigh ? 'ABOVE' : 'BELOW'} TARGET — ${fmt(results.gir, 2)} mg/kg/min (target range: ${GIR_MIN_SAFE}–${GIR_MAX_SAFE} mg/kg/min) — Adjust prescribed TPN Rate or Dextrose concentration`} />
-        )}
-        {peripheralRisk && (
-          <WarnBanner level="amber"
-            text={`PERIPHERAL LINE RISK — Dextrose ${inputs.dextrosePct}% · Estimated Osmolarity ${fmt(results.estOsmolarity, 0)} mOsm/L exceeds peripheral limit (${OSMOLARITY_PERIPHERAL_MAX} mOsm/L) — Consider Central venous access`} />
-        )}
-        {caxPHigh && (
-          <WarnBanner level="yellow"
-            text={`PRECIPITATION RISK — Ca×PO4 = ${fmt(results.caxP, 1)} mmol²/L² (threshold: >${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO4 total >${CA_PO4_SUM_THRESHOLD} mmol — Reduce Calcium or Phosphate, or administer via separate line`} />
-        )}
+        {pdfAlerts.map(alert => (
+          <WarnBanner
+            key={alert.key}
+            level="red"
+            text={`CRITICAL — ${alert.message}${alert.risk ? ` — ${alert.risk}` : ''}`}
+          />
+        ))}
         {lipidRateWarn && (
           <WarnBanner level="amber"
             text={`LIPID RATE MISMATCH — Prescribed: ${fmt(manualLipidRate, 1)} ml/hr · Calculated: ${fmt(results.lipidRate, 1)} ml/hr · Deviation: ${fmt(lipidRateDeviation, 1)} ml/hr — Please verify prescribed lipid rate before dispensing`} />

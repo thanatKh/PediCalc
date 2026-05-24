@@ -32,8 +32,6 @@ import {
   OSMO_FACTOR_AA_G_PER_L,
   OSMO_AMINOVEN_10PCT_G_PER_ML,
   OSMO_FACTOR_ELECTROLYTE,
-  CA_PO4_PRODUCT_THRESHOLD,
-  CA_PO4_SUM_THRESHOLD,
   ML_TO_L,
   PROTEIN_TO_NITROGEN,
   DEXTROSE_PERIPHERAL_LIMIT,
@@ -117,15 +115,19 @@ export const calculateTPN = (inputs) => {
     ? (manualTPNRate * dexPct) / (GIR_REVERSE_DIVISOR * bw)
     : null; // null = no rate entered yet, show placeholder
 
-  // 8. Safety checks
-  const caMmolInBag  = caGluconateMl * CONC_CA_GLUCONATE_10PCT;
-  const po4MmolInBag = naGlyceroml * PO4_PER_ML_NA_GLYCERO + k2hpo4Ml * PO4_PER_ML_K2HPO4;
-  const bagVolL      = tpnVolume / ML_TO_L;
-  const caConc       = bagVolL > 0 ? caMmolInBag  / bagVolL : 0;
-  const po4Conc      = bagVolL > 0 ? po4MmolInBag / bagVolL : 0;
-  const caxP         = caConc * po4Conc;
-  // Alert if product ([Ca]×[PO4]) > 75 mmol²/L² OR if total Ca+PO4 > 45 mmol
-  const caxPHigh     = caxP > CA_PO4_PRODUCT_THRESHOLD || (caConc + po4Conc) > CA_PO4_SUM_THRESHOLD;
+  // 8. Safety checks — Ca × PO₄ two-source model (ESPGHAN/ESPEN 2018)
+  const caMmolInBag      = caGluconateMl * CONC_CA_GLUCONATE_10PCT;
+  const po4OrganicMmol   = naGlyceroml * PO4_PER_ML_NA_GLYCERO;   // Na-glycerophosphate (organic)
+  const po4InorganicMmol = k2hpo4Ml    * PO4_PER_ML_K2HPO4;       // K₂HPO₄ (inorganic)
+  const po4MmolInBag     = po4OrganicMmol + po4InorganicMmol;
+  const bagVolL          = tpnVolume / ML_TO_L;
+  const caConc           = bagVolL > 0 ? caMmolInBag      / bagVolL : 0;
+  const po4OrganicConc   = bagVolL > 0 ? po4OrganicMmol   / bagVolL : 0;
+  const po4InorganicConc = bagVolL > 0 ? po4InorganicMmol / bagVolL : 0;
+  const po4Conc          = po4OrganicConc + po4InorganicConc;
+  const caxP             = caConc * po4Conc;          // total product — kept for PDF display
+  const caxOrganic       = caConc * po4OrganicConc;   // [Ca]×[organic PO₄]
+  const caxInorganic     = caConc * po4InorganicConc; // [Ca]×[inorganic PO₄]
 
   const aaGPerL = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
   const totalNaMeq = totalNaActual * bw;
@@ -173,7 +175,9 @@ export const calculateTPN = (inputs) => {
     sterileWaterMl,
     heparinUnits, heparinMl, heparinUnitPerMl,
     gir, girHigh, girLow,
-    estOsmolarity, caConc, po4Conc, caxP, caxPHigh, peripheralRisk,
+    estOsmolarity, caConc, po4Conc, caxP,
+    po4OrganicConc, po4InorganicConc, caxOrganic, caxInorganic,
+    peripheralRisk,
     fatRateGKgHr, fatRateHigh,
     cho_kcal, protein_kcal, fat_kcal, totalEnergy, kcalPerKg,
     npcKcal, npcN, choPct, fatPct, proteinPct,

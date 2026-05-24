@@ -15,7 +15,7 @@ export const CONC_NA_GLYCERO           = 2;     // mEq Na / ml  (Na Glycerophosp
 export const CONC_NACL_3PCT            = 0.5;   // mEq Na / ml  (3% NaCl)
 export const CONC_KCL_15PCT            = 2;     // mEq K  / ml  (15% KCl)
 export const CONC_K2HPO4              = 1;     // mEq K  / ml  (8.71% K2HPO4)
-export const CONC_CA_GLUCONATE_10PCT   = 0.25;  // mmol Ca / ml (10% Calcium gluconate)
+export const CONC_CA_GLUCONATE_10PCT   = 0.225; // mmol Ca / ml (10% Calcium gluconate monohydrate — MW 448.4 g/mol)
 export const CONC_MGSO4_50PCT          = 4;     // mEq Mg / ml  (50% MgSO4)
 export const CONC_HEPARIN_STOCK        = 100;   // IU / ml      (heparin vial 100 IU/ml)
 export const HEPARIN_DEFAULT_CONC      = 0.5;   // IU / ml      (default bag concentration)
@@ -38,11 +38,6 @@ export const MAX_SOLUVIT_ML            = 10;    // ml/day cap
 export const MAX_VITALIPID_ML          = 10;    // ml/day cap
 export const MAX_PEDIATRACE_ML         = 10;    // ml/day cap
 
-// CDS thresholds for manual vitamin overrides
-export const SOLUVIT_MODERATE_HIGH     = 9;     // ml/day — approaching max
-export const VITALIPID_MODERATE_HIGH   = 9;     // ml/day — approaching max
-export const PEDIATRACE_MODERATE_HIGH  = 9;     // ml/day — approaching max
-
 // ── Energy factors ─────────────────────────────────────────────────────────
 export const KCAL_PER_G_DEXTROSE       = 3.4;   // kcal/g
 export const KCAL_PER_G_PROTEIN        = 4;     // kcal/g
@@ -63,9 +58,14 @@ export const OSMO_FACTOR_AA_G_PER_L    = 10;    // mOsm/L per g/L of amino acid 
 export const OSMO_AMINOVEN_10PCT_G_PER_ML = 0.1; // g/ml → Aminoven 10% concentration
 export const OSMO_FACTOR_ELECTROLYTE   = 1;     // mOsm/L per mEq/L (Na or K, clinical shorthand)
 
-// ── Ca × PO4 precipitation thresholds ────────────────────────────────────
-export const CA_PO4_PRODUCT_THRESHOLD  = 75;    // mmol²/L²  — [Ca]×[PO4] precipitate risk
-export const CA_PO4_SUM_THRESHOLD      = 45;    // mmol/L    — [Ca] + [PO4] concentration in bag
+// ── Ca × PO₄ precipitation thresholds — two-source model (ESPGHAN/ESPEN 2018) ──────────────
+// Reference: Mihatsch et al. Clin Nutr 2018;37:2360-5 · Pertkiewicz et al. e-SPEN 2009;4:e117
+// Inorganic phosphate (K₂HPO₄): Mikrut model applies — precipitation at low [Ca]×[PO₄]
+// Organic phosphate (Na-glycerophosphate): ester bond stable at low pH → far higher compatibility
+export const CA_INORGANIC_PO4_MODERATE = 20;    // mmol²/L² — [Ca]×[K₂HPO₄ PO₄] approaching risk
+export const CA_INORGANIC_PO4_CRITICAL = 30;    // mmol²/L² — [Ca]×[K₂HPO₄ PO₄] precipitation risk (Mikrut-based + amino acid buffering)
+export const CA_ORGANIC_PO4_MODERATE   = 225;   // mmol²/L² — [Ca]×[Na-glycerophosphate PO₄] at upper validated stability limit
+export const CA_ORGANIC_PO4_CRITICAL   = 300;   // mmol²/L² — [Ca]×[Na-glycerophosphate PO₄] exceeds validated stability range
 export const ML_TO_L                   = 1000;  // divisor to convert ml → L for concentration
 
 // ── NPC:N ratio ────────────────────────────────────────────────────────────
@@ -142,9 +142,7 @@ export const MG_CDS_CRITICAL_HIGH    = 1.0;   // mEq/kg/day
 // ── Osmolarity peripheral warning — PediNAT p.21, p.51 ──────────────────────
 export const OSMO_MODERATE_HIGH      = 800;   // mOsm/L — approaching peripheral limit
 
-// ── Ca×PO₄ moderate warning (approaching precipitation) ─────────────────────
-export const CA_PO4_PRODUCT_MODERATE = 55;    // mmol²/L²  — ~80% of critical threshold
-export const CA_PO4_SUM_MODERATE     = 35;    // mmol/L    — ~80% of critical threshold
+// (Ca×PO₄ moderate/critical thresholds moved to the two-source block above)
 
 // ── Total Energy (kcal/kg/day) — ASPEN/ESPGHAN neonatal ─────────────────────
 export const ENERGY_CRITICAL_LOW     = 40;    // kcal/kg/day — severe underfeeding
