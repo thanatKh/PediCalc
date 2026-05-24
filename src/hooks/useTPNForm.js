@@ -2,8 +2,6 @@ import { useCallback, useMemo, useState, useTransition, createElement } from 're
 import { calculateTPN } from '@/utils/tpnCalculator';
 import { validateTPNInputs } from '@/utils/tpnValidation';
 
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
 export const DEFAULTS = {
   name: '',
   hn: '',
@@ -46,7 +44,7 @@ function buildFilename(inputs) {
 }
 
 /* Stores a PDF blob in the SW cache and returns the /pdf-preview/{filename} path.
-   Returns null on timeout or if no SW controller is available. */
+   Returns null on timeout or if no SW controller is available (first load / post-update). */
 async function storePdfInSW(blob, filename) {
   const sw = navigator.serviceWorker?.controller;
   if (!sw) return null;
@@ -67,7 +65,6 @@ async function storePdfInSW(blob, filename) {
 export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
-  const [pdfModal, setPdfModal] = useState(null); // { filename, logoUrl } | null
 
   const update = useCallback(
     (key) => (evOrVal) => {
@@ -82,17 +79,14 @@ export function useTPNForm(hospital) {
   const results    = useMemo(() => calculateTPN(inputs), [inputs]);
   const validation = useMemo(() => validateTPNInputs(inputs), [inputs]);
 
-  const closePdfModal = useCallback(() => setPdfModal(null), []);
-
   const handleExportPDF = useCallback(() => {
     if (!results || results.isWaterNegative || isExporting) return;
     if (validation.errors.length > 0) return;
 
     const filename = buildFilename(inputs);
 
-    // Open the tab synchronously during the user gesture so iOS doesn't block it.
-    // For desktop this is null; we open the modal instead.
-    const tab = isMobile ? window.open('', '_blank') : null;
+    // Open synchronously during the user gesture — beats popup blockers on all platforms.
+    const tab = window.open('', '_blank');
 
     startExportTransition(async () => {
       try {
@@ -108,37 +102,57 @@ export function useTPNForm(hospital) {
           logoUrl = `data:image/png;base64,${btoa(b64)}`;
         } catch { /* logo optional */ }
 
-        if (isMobile) {
-          // Dynamic import keeps @react-pdf/renderer out of the main bundle
-          const [{ pdf }, { default: TPNPdfTemplate }] = await Promise.all([
-            import('@react-pdf/renderer'),
-            import('@/components/TPNPdfTemplate'),
-          ]);
+        // Dynamic import keeps @react-pdf/renderer out of the main bundle.
+        const [{ pdf }, { default: TPNPdfTemplate }] = await Promise.all([
+          import('@react-pdf/renderer'),
+          import('@/components/TPNPdfTemplate'),
+        ]);
 
-          const element = createElement(TPNPdfTemplate, { inputs, results, logoUrl, hospital });
-          const blob    = await pdf(element).toBlob();
+        const element = createElement(TPNPdfTemplate, { inputs, results, logoUrl, hospital });
+        const blob    = await pdf(element).toBlob();
 
-          // Try SW-backed URL (gives the correct filename in the URL path).
-          // Falls back to a blob URL if the SW isn't ready.
-          const swPath = await storePdfInSW(blob, filename);
-          const url    = swPath ?? URL.createObjectURL(blob);
+        // SW-backed URL carries the correct filename in the path.
+        // Falls back to a blob URL when the SW hasn't activated yet.
+        const swPath = await storePdfInSW(blob, filename);
+        const url    = swPath ?? URL.createObjectURL(blob);
 
-          if (tab && !tab.closed) {
-            tab.location.href = url;
-          } else {
-            // Popup was blocked — try again (user may need to allow popups)
-            window.open(url, '_blank');
-          }
+        if (tab && !tab.closed) {
+          tab.location.href = url;
         } else {
-          setPdfModal({ filename, logoUrl, hospital });
+          // Popup was blocked — retry (user may need to allow popups once).
+          window.open(url, '_blank');
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
-        if (tab && !tab.closed) tab.close();
-        alert(`PDF export error: ${err?.message ?? err}`);
+        // Write a Thai error page into the blank tab (still same-origin at this point).
+        // If the tab already navigated away, close it and fall back to alert().
+        let wroteToTab = false;
+        try {
+          if (tab && !tab.closed) {
+            tab.document.open();
+            tab.document.write(
+              '<!doctype html><meta charset=utf-8>' +
+              '<meta name=viewport content="width=device-width,initial-scale=1">' +
+              '<style>*{margin:0;box-sizing:border-box}' +
+              'body{min-height:100svh;display:flex;align-items:center;justify-content:center;' +
+              'background:#0f172a;font-family:system-ui,sans-serif;padding:2rem;text-align:center}</style>' +
+              '<div>' +
+              '<p style="font-size:2.5rem">⚠️</p>' +
+              '<p style="color:#f1f5f9;font-size:1.1rem;margin:.75rem 0 .5rem">เกิดข้อผิดพลาดในการสร้าง PDF</p>' +
+              '<p style="color:#94a3b8;font-size:.875rem">กรุณาปิดหน้านี้และลองใหม่อีกครั้ง</p>' +
+              '</div>'
+            );
+            tab.document.close();
+            wroteToTab = true;
+          }
+        } catch { /* tab navigated away — can't write cross-origin */ }
+        if (!wroteToTab) {
+          tab?.close();
+          alert('เกิดข้อผิดพลาดในการสร้าง PDF\nกรุณาลองใหม่อีกครั้ง');
+        }
       }
     });
   }, [inputs, results, isExporting, hospital]);
 
-  return { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal };
+  return { inputs, update, reset, results, validation, isExporting, handleExportPDF };
 }

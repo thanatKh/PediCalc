@@ -1,12 +1,10 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { Download, Loader2, RotateCcw, X, FileText, Printer, Share2 } from 'lucide-react';
+import { useState } from 'react';
+import { Download, Loader2, RotateCcw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { ShimmerButton } from '@/components/ui/shimmer-button';
 import { useTPNForm } from '@/hooks/useTPNForm';
 
@@ -20,150 +18,11 @@ import ResultsPanel        from './tpn/ResultsPanel';
 import IngredientsTable    from './tpn/IngredientsTable';
 import { evaluateClinicalTiers, countTiers } from '@/utils/clinicalDecisionSupport';
 
-const PdfModalContent = lazy(() => import('@/components/PdfModalContent'));
-
 const DISCLAIMER = (
   <p className="text-xs text-slate-400 font-sans px-1">
     * PediCalc ใช้สนับสนุนการตัดสินใจทางคลินิกเท่านั้น — แพทย์ผู้สั่งยาควรทบทวนก่อนใช้กับผู้ป่วยจริงทุกครั้ง
   </p>
 );
-
-function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
-  const [blobUrl, setBlobUrl] = useState(null);
-
-  useEffect(() => {
-    if (!pdfModal) { setBlobUrl(null); return; }
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [pdfModal, onClose]);
-
-  if (!pdfModal) return null;
-  const { filename, logoUrl, hospital } = pdfModal;
-  const headerBg = hospital?.themeColor ?? '#0d6e6e';
-  const loading = !blobUrl;
-
-  async function handleShare() {
-    if (!blobUrl) return;
-    const res  = await fetch(blobUrl);
-    const blob = await res.blob();
-    const file = new File([blob], filename, { type: 'application/pdf' });
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: filename });
-    }
-  }
-
-  return (
-    /* Backdrop — clicking outside closes the modal on desktop */
-    <div
-      className="fixed z-50 flex items-end sm:items-center justify-center sm:p-6"
-      style={{
-        inset: 0,
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        background: 'rgba(15,23,42,0.75)',
-        backdropFilter: 'blur(4px)',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      {/* Modal panel — full-height on mobile (safe-area aware), tall card on desktop */}
-      <div
-        className="flex flex-col w-full h-full sm:h-[90vh] sm:max-w-4xl sm:rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: '#0f172a' }}
-      >
-        {/* Compact header bar */}
-        <div
-          className="flex items-center gap-3 px-4 shrink-0"
-          style={{ height: '48px', background: headerBg }}
-        >
-          <FileText size={15} className="text-white/60 shrink-0" aria-hidden="true" />
-          <span className="text-white font-mitr font-medium text-sm truncate flex-1 min-w-0">
-            {filename}
-          </span>
-
-          {isMobile ? (
-            /* Mobile: Share button — opens OS share sheet with correct filename */
-            <button
-              onClick={handleShare}
-              disabled={loading}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
-                loading
-                  ? 'bg-white/10 text-white/40 cursor-wait'
-                  : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
-              }`}
-            >
-              {loading
-                ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-                : <><Share2 size={13} /> แชร์</>
-              }
-            </button>
-          ) : (
-            /* Desktop: Print + Download */
-            <>
-              <button
-                onClick={() => { if (blobUrl) window.open(blobUrl, '_blank'); }}
-                disabled={loading}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors ${
-                  loading
-                    ? 'bg-white/10 text-white/40 cursor-wait'
-                    : 'bg-white/20 text-white hover:bg-white/30 cursor-pointer'
-                }`}
-              >
-                {loading
-                  ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-                  : <><Printer size={13} /> พิมพ์</>
-                }
-              </button>
-              <a
-                href={blobUrl ?? '#'}
-                download={filename}
-                onClick={(e) => { if (!blobUrl) e.preventDefault(); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mitr font-semibold transition-colors no-underline ${
-                  loading
-                    ? 'bg-white/10 text-white/40 pointer-events-none'
-                    : 'bg-white text-slate-700 hover:bg-white/90 cursor-pointer'
-                }`}
-              >
-                {loading
-                  ? <><Loader2 size={13} className="animate-spin" /> กำลังเตรียม…</>
-                  : <><Download size={13} /> ดาวน์โหลด PDF</>
-                }
-              </a>
-            </>
-          )}
-
-          <button
-            onClick={onClose}
-            aria-label="Close preview"
-            className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/20 transition-colors shrink-0"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* PDF viewer */}
-        <div className="flex-1 min-h-0">
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-full gap-3 text-slate-400 font-sans text-sm">
-              <Loader2 size={20} className="animate-spin text-teal-400" /> กำลังโหลด PDF…
-            </div>
-          }>
-            <PdfModalContent
-              inputs={inputs}
-              results={results}
-              logoUrl={logoUrl}
-              hospital={hospital}
-              onBlobReady={setBlobUrl}
-              isMobile={isMobile}
-              filename={filename}
-              onShare={handleShare}
-            />
-          </Suspense>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const PARAM_LABELS = {
   fluid: 'Fluid Volume', gir: 'GIR', protein: 'Amino Acids', lipid: 'Lipid',
@@ -202,7 +61,7 @@ function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
 }
 
 export default function TPNCalculator({ hospital }) {
-  const { inputs, update, reset, results, validation, isExporting, handleExportPDF, pdfModal, closePdfModal } = useTPNForm(hospital);
+  const { inputs, update, reset, results, validation, isExporting, handleExportPDF } = useTPNForm(hospital);
   const [cdsDialogOpen, setCdsDialogOpen] = useState(false);
 
   const waterNegative  = !!results?.isWaterNegative;
@@ -211,6 +70,7 @@ export default function TPNCalculator({ hospital }) {
   const canExport      = !waterNegative && !!results && !isExporting && !hasErrors;
   const cds            = evaluateClinicalTiers(inputs, results) ?? {};
   const { critical, moderate } = countTiers(cds);
+
   function handleExportClick() {
     if (critical > 0) {
       setCdsDialogOpen(true);
@@ -295,14 +155,6 @@ export default function TPNCalculator({ hospital }) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── PDF Preview Modal (desktop) ── */}
-      <PdfPreviewModal
-        inputs={inputs}
-        results={results}
-        pdfModal={pdfModal}
-        onClose={closePdfModal}
-      />
-
       {/* ── Sticky header ── */}
       <header className="sticky top-0 z-10 glass-card border-b border-white/60" style={{ borderRadius: 0 }}>
         <div className="max-w-screen-2xl mx-auto pl-14 pr-3 sm:pr-4 lg:pl-6 lg:pr-6 flex items-center justify-between gap-3"
@@ -350,7 +202,7 @@ export default function TPNCalculator({ hospital }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
-                      onClick={exportDisabledReason && !isMobile ? undefined : exportDisabledReason ? () => alert(exportDisabledReason) : undefined}
+                      onClick={exportDisabledReason ? () => alert(exportDisabledReason) : undefined}
                       disabled={isExporting}
                       className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-mitr font-medium text-white opacity-40 cursor-not-allowed"
                       style={{ background: '#94a3b8' }}
