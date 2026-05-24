@@ -1,7 +1,7 @@
 // Service Worker — PediCalc PWA
 // Handles: (1) PDF preview with correct filename, (2) app shell caching for offline
 
-const SW_VERSION   = 'v15';
+const SW_VERSION   = 'v16';
 const CACHE_NAME   = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE    = 'pedicale-pdf-store';
 
@@ -92,21 +92,18 @@ self.addEventListener('fetch', (e) => {
         // Try canonical key first, then the raw request URL as fallback
         return cache.match(fullUrl)
           .then((cached) => cached ?? cache.match(e.request.url))
-          .then(async (cached) => {
+          .then((cached) => {
             if (cached) {
               const expires = Number(cached.headers.get('X-Expires'));
               if (Date.now() <= expires) {
-                // Re-wrap with explicit headers so Chrome always sees application/pdf
-                // regardless of what was stored — this prevents Save-As-HTML bug
-                const blob = await cached.blob();
-                return new Response(blob, {
-                  status: 200,
-                  headers: {
-                    'Content-Type':        'application/pdf',
-                    'Content-Disposition': `inline; filename="${filename}"`,
-                    'Content-Length':      String(blob.size),
-                  },
-                });
+                // Stream cached body directly — blob re-wrapping can corrupt Content-Type
+                // in some Chrome versions, causing a download instead of inline PDF view.
+                const headers = new Headers();
+                headers.set('Content-Type', 'application/pdf');
+                headers.set('Content-Disposition', `inline; filename="${filename}"`);
+                const cl = cached.headers.get('Content-Length');
+                if (cl) headers.set('Content-Length', cl);
+                return new Response(cached.body, { status: 200, headers });
               }
               // TTL expired — purge and fall through to the redirect page
               cache.delete(fullUrl);
