@@ -14,7 +14,7 @@ export default function App() {
     <TooltipProvider delayDuration={300}>
       <div className="flex bg-dot-grid overflow-hidden" style={{ height: '100dvh' }}>
         <Sidebar activeKey={activeKey} onSelect={setActiveKey} hospital={hospital} setHospital={setHospital} />
-        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden bg-dot-grid">
           {activeKey === 'tpn-newborn' && <MemoTPNCalculator hospital={hospital} />}
         </div>
       </div>
