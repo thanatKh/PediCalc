@@ -6,7 +6,7 @@ import { NumberField, SectionCard } from './ui';
 
 export default function PatientInfoSection({ inputs, update, cds = {} }) {
   return (
-    <SectionCard title="ข้อมูลผู้ป่วย · Patient Info" icon={User}>
+    <SectionCard title="Patient Info · ข้อมูลผู้ป่วย" icon={User}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Name */}
         <div className="col-span-2">
@@ -19,7 +19,7 @@ export default function PatientInfoSection({ inputs, update, cds = {} }) {
             autoComplete="off"
             value={inputs.name}
             onChange={update('name')}
-            placeholder="เช่น ด.ช. สมชาย ใจดี"
+            placeholder="เช่น ด.ช. เดวิด ตัวอ้วน"
             className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 font-sans text-base shadow-sm"
           />
         </div>
@@ -67,7 +67,7 @@ export default function PatientInfoSection({ inputs, update, cds = {} }) {
 
         <NumberField id="height"       label="ส่วนสูง"      suffix="cm"    value={inputs.height}      onChange={update('height')}      step="0.5" />
         <NumberField id="ageMonth"     label="อายุ (เดือน)" suffix="mo"    value={inputs.ageMonth}    onChange={update('ageMonth')}    step="1" />
-        <NumberField id="ageDay"       label="อายุ (วัน)"   suffix="d"     value={inputs.ageDay}      onChange={update('ageDay')}      step="1" />
+        <NumberField id="ageDay"       label="อายุ (วัน)"   suffix="D"     value={inputs.ageDay}      onChange={update('ageDay')}      step="1" />
         <NumberField id="bw"           label="น้ำหนัก (BW)" suffix="kg"    value={inputs.bw}          onChange={update('bw')}          step="0.01" required />
         <NumberField id="volumeTarget" label="Fluid Volume"  suffix="ml/kg" value={inputs.volumeTarget} onChange={update('volumeTarget')} step="1" required tier={cds.fluid?.tier} tierMessage={cds.fluid?.message} />
 

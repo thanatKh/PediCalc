@@ -38,6 +38,11 @@ export const MAX_SOLUVIT_ML            = 10;    // ml/day cap
 export const MAX_VITALIPID_ML          = 10;    // ml/day cap
 export const MAX_PEDIATRACE_ML         = 10;    // ml/day cap
 
+// CDS thresholds for manual vitamin overrides
+export const SOLUVIT_MODERATE_HIGH     = 9;     // ml/day — approaching max
+export const VITALIPID_MODERATE_HIGH   = 9;     // ml/day — approaching max
+export const PEDIATRACE_MODERATE_HIGH  = 9;     // ml/day — approaching max
+
 // ── Energy factors ─────────────────────────────────────────────────────────
 export const KCAL_PER_G_DEXTROSE       = 3.4;   // kcal/g
 export const KCAL_PER_G_PROTEIN        = 4;     // kcal/g
@@ -60,7 +65,7 @@ export const OSMO_FACTOR_ELECTROLYTE   = 1;     // mOsm/L per mEq/L (Na or K, cl
 
 // ── Ca × PO4 precipitation thresholds ────────────────────────────────────
 export const CA_PO4_PRODUCT_THRESHOLD  = 75;    // mmol²/L²  — [Ca]×[PO4] precipitate risk
-export const CA_PO4_SUM_THRESHOLD      = 45;    // mmol      — total Ca mmol + total PO4 mmol
+export const CA_PO4_SUM_THRESHOLD      = 45;    // mmol/L    — [Ca] + [PO4] concentration in bag
 export const ML_TO_L                   = 1000;  // divisor to convert ml → L for concentration
 
 // ── NPC:N ratio ────────────────────────────────────────────────────────────
@@ -84,9 +89,9 @@ export const LIPID_RATE_WARN_THRESHOLD = 0.5;   // ml/hr
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Fluid (ml/kg/day) — PediNAT p.21 ────────────────────────────────────────
-export const FLUID_CRITICAL_LOW      = 60;    // ml/kg/day
-export const FLUID_MODERATE_LOW      = 80;    // ml/kg/day
-export const FLUID_MODERATE_HIGH     = 150;   // ml/kg/day
+export const FLUID_CRITICAL_LOW      = 40;    // ml/kg/day
+export const FLUID_MODERATE_LOW      = 60;    // ml/kg/day
+export const FLUID_MODERATE_HIGH     = 170;   // ml/kg/day
 export const FLUID_CRITICAL_HIGH     = 180;   // ml/kg/day
 
 // ── GIR intermediate threshold — PediNAT neonatal metabolic section ──────────

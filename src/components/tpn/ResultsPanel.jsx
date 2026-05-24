@@ -31,7 +31,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
 
       {/* ── System-level alert: negative sterile water blocks export ── */}
       {waterNegative && (
-        <Alert className="alert-enter rounded-2xl border-l-4 border-rose-500 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans">
+        <Alert className="alert-enter rounded-2xl border border-rose-400 bg-rose-50 text-rose-700 [&>svg]:text-rose-500 font-sans shadow-sm shadow-rose-100/80">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle className="font-bold text-sm">Negative Sterile Water!</AlertTitle>
           <AlertDescription className="text-rose-600 mt-0.5 text-sm">
@@ -59,7 +59,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
           <Droplet size={16} className="text-teal-500" />
-          <span className="font-mitr text-base font-semibold text-teal-600">อัตราหยด · Infusion Rates</span>
+          <span className="font-mitr text-base font-semibold text-teal-600">Infusion Rates · อัตราหยด</span>
         </div>
         <div className="px-4 sm:px-5 py-4 grid grid-cols-2 gap-3">
           {/* TPN Rate — physician prescribed */}
@@ -98,7 +98,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate }
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up">
         <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
           <Zap size={16} className="text-teal-500" />
-          <span className="font-mitr text-base font-semibold text-teal-600">พลังงาน · Energy</span>
+          <span className="font-mitr text-base font-semibold text-teal-600">Energy · พลังงาน</span>
         </div>
         <div className="px-4 sm:px-5 py-4 space-y-2.5">
           <div className="flex justify-between items-center">

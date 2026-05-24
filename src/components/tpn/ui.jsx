@@ -37,6 +37,8 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           min={min}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onWheel={(e) => e.currentTarget.blur()}
+          onKeyDown={(e) => { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault(); }}
           className={cn(
             'bg-white rounded-xl pr-16 h-11 text-base font-sans text-slate-800 shadow-sm transition-[border-color,box-shadow] duration-150',
             ts ? `${ts.border} ${ts.ring} border` : 'border-slate-200',

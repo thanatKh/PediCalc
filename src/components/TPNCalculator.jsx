@@ -364,7 +364,7 @@ export default function TPNCalculator({ hospital }) {
 
       {/* ── Main content ── */}
       <main
-        className="max-w-screen-2xl mx-auto px-3 sm:px-6 xl:px-10 pt-4 sm:pt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
+        className="max-w-screen-2xl mx-auto pl-3 pr-3 sm:pl-6 sm:pr-4 lg:pl-6 lg:pr-6 pt-4 sm:pt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
       >
 
@@ -374,7 +374,7 @@ export default function TPNCalculator({ hospital }) {
           <PatientInfoSection  inputs={inputs} update={update} cds={cds} />
           <MacroSection        inputs={inputs} update={update} cds={cds} />
           <ElectrolyteSection  inputs={inputs} update={update} cds={cds} />
-          <VitaminSection      results={results} />
+          <VitaminSection      results={results} inputs={inputs} update={update} />
           <HeparinSection      inputs={inputs} update={update} results={results} />
           <RateSection         inputs={inputs} update={update} results={results} />
         </section>

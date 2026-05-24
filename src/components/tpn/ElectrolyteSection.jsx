@@ -13,7 +13,7 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
   const totalPO4 = naGlycero * PO4_PER_MEQ_NA_GLYCERO + k2hpo4 * PO4_PER_MEQ_K2HPO4;
 
   return (
-    <SectionCard title="เกลือแร่ · Electrolytes" icon={FlaskConical}>
+    <SectionCard title="Electrolytes · เกลือแร่" icon={FlaskConical}>
 
       {/* Sodium sources */}
       <div className="mb-4">
@@ -66,7 +66,7 @@ export default function ElectrolyteSection({ inputs, update, cds = {} }) {
             suffix="mEq/kg"
             value={inputs.k2hpo4Target}
             onChange={update('k2hpo4Target')}
-            hint="K + PO₄ (0.67 mmol PO₄ ต่อ 1 mEq K); ระวัง Ca×PO₄"
+            hint="K + PO₄ (0.5 mmol PO₄ ต่อ 1 mEq K); ระวัง Ca×PO₄"
             tier={cds.k?.tier}
             tierMessage={cds.k?.message}
           />

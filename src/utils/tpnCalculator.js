@@ -86,10 +86,13 @@ export const calculateTPN = (inputs) => {
   const mgTarget = parseFloat(inputs.mgTarget) || 0;
   const mgso4Ml  = (mgTarget * bw) / CONC_MGSO4_50PCT * dsf;
 
-  // 4. Vitamins & Trace — strictly BW-based, NO DSF, capped at max dose
-  const soluvitMl    = Math.min(bw * DOSE_SOLUVIT_ML_PER_KG,    MAX_SOLUVIT_ML);
-  const vitalipidMl  = Math.min(bw * DOSE_VITALIPID_ML_PER_KG,  MAX_VITALIPID_ML);
-  const pediatraceMl = Math.min(bw * DOSE_PEDIATRACE_ML_PER_KG, MAX_PEDIATRACE_ML);
+  // 4. Vitamins & Trace — auto-calc capped at max dose; override if manually entered
+  const soluvitAuto    = Math.min(bw * DOSE_SOLUVIT_ML_PER_KG,    MAX_SOLUVIT_ML);
+  const vitalipidAuto  = Math.min(bw * DOSE_VITALIPID_ML_PER_KG,  MAX_VITALIPID_ML);
+  const pediatraceAuto = Math.min(bw * DOSE_PEDIATRACE_ML_PER_KG, MAX_PEDIATRACE_ML);
+  const soluvitMl    = inputs.soluvitOverride    !== '' && inputs.soluvitOverride    != null ? parseFloat(inputs.soluvitOverride)    : soluvitAuto;
+  const vitalipidMl  = inputs.vitalipidOverride  !== '' && inputs.vitalipidOverride  != null ? parseFloat(inputs.vitalipidOverride)  : vitalipidAuto;
+  const pediatraceMl = inputs.pediatraceOverride !== '' && inputs.pediatraceOverride != null ? parseFloat(inputs.pediatraceOverride) : pediatraceAuto;
 
   // 5. Heparin (added to TPN bag)
   const heparinUnitPerMl = parseFloat(inputs.heparinConc) || HEPARIN_DEFAULT_CONC;
@@ -122,7 +125,7 @@ export const calculateTPN = (inputs) => {
   const po4Conc      = bagVolL > 0 ? po4MmolInBag / bagVolL : 0;
   const caxP         = caConc * po4Conc;
   // Alert if product ([Ca]×[PO4]) > 75 mmol²/L² OR if total Ca+PO4 > 45 mmol
-  const caxPHigh     = caxP > CA_PO4_PRODUCT_THRESHOLD || (caMmolInBag + po4MmolInBag) > CA_PO4_SUM_THRESHOLD;
+  const caxPHigh     = caxP > CA_PO4_PRODUCT_THRESHOLD || (caConc + po4Conc) > CA_PO4_SUM_THRESHOLD;
 
   const aaGPerL = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
   const totalNaMeq = totalNaActual * bw;
@@ -166,6 +169,7 @@ export const calculateTPN = (inputs) => {
     k15PctMl, k2hpo4Ml, totalKActual, totalPO4,
     caGluconateMl, mgso4Ml,
     soluvitMl, vitalipidMl, pediatraceMl,
+    soluvitAuto, vitalipidAuto, pediatraceAuto,
     sterileWaterMl,
     heparinUnits, heparinMl, heparinUnitPerMl,
     gir, girHigh, girLow,

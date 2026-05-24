@@ -4,7 +4,7 @@ import { fmt, NumberField, SectionCard } from './ui';
 
 export default function HeparinSection({ inputs, update, results }) {
   return (
-    <SectionCard title="เฮปาริน · Heparin" icon={Syringe}>
+    <SectionCard title="Heparin · เฮปาริน" icon={Syringe}>
       <div className="grid grid-cols-2 gap-3">
         <NumberField
           id="heparinConc"

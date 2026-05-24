@@ -12,7 +12,7 @@ export default function RateSection({ inputs, update, results }) {
   const hasRate         = inputs.manualTPNRate !== '' && parseFloat(inputs.manualTPNRate) > 0;
 
   return (
-    <SectionCard title="อัตราหยดที่สั่ง · Prescribed Rates" icon={Gauge}>
+    <SectionCard title="Prescribed Rates · อัตราหยดที่สั่ง" icon={Gauge}>
       <div className="grid grid-cols-2 gap-3">
 
         {/* TPN Rate — physician input, drives reverse GIR */}

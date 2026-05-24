@@ -2,6 +2,7 @@
 // All thresholds reference: Thai Neonatal Nutrition Guideline (PediNAT) B.E. 2565
 // English messages only. Critical tier does NOT block export — physician decides.
 
+import { fmt } from './fmt';
 import {
   GIR_MAX_SAFE, GIR_MIN_SAFE,
   DEXTROSE_PERIPHERAL_LIMIT, OSMOLARITY_PERIPHERAL_MAX,
@@ -16,6 +17,9 @@ import {
   PO4_TARGET_MIN, PO4_MODERATE_LOW, PO4_SAFE_MAX, PO4_CRITICAL_HIGH,
   MG_CDS_SAFE_MIN, MG_CDS_SAFE_MAX, MG_CDS_MODERATE_HIGH, MG_CDS_CRITICAL_HIGH,
   OSMO_MODERATE_HIGH,
+  CA_PO4_PRODUCT_THRESHOLD, CA_PO4_SUM_THRESHOLD,
+  MAX_SOLUVIT_ML, MAX_VITALIPID_ML, MAX_PEDIATRACE_ML,
+  SOLUVIT_MODERATE_HIGH, VITALIPID_MODERATE_HIGH, PEDIATRACE_MODERATE_HIGH,
 } from './clinicalConstants';
 
 function mk(tier, value, message, risk) {
@@ -223,7 +227,21 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.mg = mk('safe', mg);
   }
 
-  // ── 10. Osmolarity — PediNAT p.21, p.51 (peripheral line only) ──────────
+  // ── 10. Ca×PO₄ Precipitation Risk ──────────────────────────────────────
+  const caxP    = results.caxP    ?? 0;
+  const caConc  = results.caConc  ?? 0;
+  const po4Conc = results.po4Conc ?? 0;
+  const hasCaOrPO4 = n(inputs.caTarget) > 0 || n(inputs.naGlyceroTarget) > 0 || n(inputs.k2hpo4Target) > 0;
+  if (hasCaOrPO4 && (caConc > 0 || po4Conc > 0)) {
+    if (results.caxPHigh)
+      checks.caxp = mk('critical', caxP,
+        `Ca×PO₄ product = ${fmt(caxP, 1)} mmol²/L² (> ${CA_PO4_PRODUCT_THRESHOLD}) or Ca+PO₄ = ${fmt(caConc + po4Conc, 1)} mmol/L (> ${CA_PO4_SUM_THRESHOLD})`,
+        'Precipitation risk — crystals can occlude IV lines. Reduce Ca or PO₄, or administer via separate line.');
+    else
+      checks.caxp = mk('safe', caxP);
+  }
+
+  // ── 11. Osmolarity — PediNAT p.21, p.51 (peripheral line only) ──────────
   const osmo = results.estOsmolarity ?? 0;
   if (osmo > 0 && isPeripheral) {
     if (osmo > OSMOLARITY_PERIPHERAL_MAX)
@@ -238,7 +256,54 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.osmolarity = mk('safe', osmo);
   }
 
-  // ── 11. Dextrose % — PediNAT p.21 (peripheral line only) ────────────────
+  // ── 12. Vitamins & Trace — only evaluated when manually overridden ──────────
+  const soluvitVal    = results.soluvitMl    ?? 0;
+  const vitalipidVal  = results.vitalipidMl  ?? 0;
+  const pediatraceVal = results.pediatraceMl ?? 0;
+  const soluvitManual    = inputs.soluvitOverride    !== '' && inputs.soluvitOverride    != null;
+  const vitalipidManual  = inputs.vitalipidOverride  !== '' && inputs.vitalipidOverride  != null;
+  const pediatraceManual = inputs.pediatraceOverride !== '' && inputs.pediatraceOverride != null;
+
+  if (soluvitManual) {
+    if (soluvitVal > MAX_SOLUVIT_ML)
+      checks.soluvit = mk('critical', soluvitVal,
+        `Soluvit-N ${fmt(soluvitVal, 2)} ml/day exceeds maximum (${MAX_SOLUVIT_ML} ml/day)`,
+        'Water-soluble vitamin toxicity risk. Reduce to ≤ 10 ml/day.');
+    else if (soluvitVal > SOLUVIT_MODERATE_HIGH)
+      checks.soluvit = mk('moderate', soluvitVal,
+        `Soluvit-N ${fmt(soluvitVal, 2)} ml/day approaching maximum (${MAX_SOLUVIT_ML} ml/day)`,
+        'Verify manual dose — auto-calc is 1 ml/kg/day, max 10 ml/day.');
+    else
+      checks.soluvit = mk('safe', soluvitVal);
+  }
+
+  if (vitalipidManual) {
+    if (vitalipidVal > MAX_VITALIPID_ML)
+      checks.vitalipid = mk('critical', vitalipidVal,
+        `Vitalipid N Infant ${fmt(vitalipidVal, 2)} ml/day exceeds maximum (${MAX_VITALIPID_ML} ml/day)`,
+        'Fat-soluble vitamin toxicity risk (vitamins A, D, E, K). Reduce to ≤ 10 ml/day.');
+    else if (vitalipidVal > VITALIPID_MODERATE_HIGH)
+      checks.vitalipid = mk('moderate', vitalipidVal,
+        `Vitalipid N Infant ${fmt(vitalipidVal, 2)} ml/day approaching maximum (${MAX_VITALIPID_ML} ml/day)`,
+        'Verify manual dose — auto-calc is 4 ml/kg/day, max 10 ml/day.');
+    else
+      checks.vitalipid = mk('safe', vitalipidVal);
+  }
+
+  if (pediatraceManual) {
+    if (pediatraceVal > MAX_PEDIATRACE_ML)
+      checks.pediatrace = mk('critical', pediatraceVal,
+        `Pediatrace ${fmt(pediatraceVal, 2)} ml/day exceeds maximum (${MAX_PEDIATRACE_ML} ml/day)`,
+        'Trace element toxicity risk (Zn, Cu, Mn, Se, F). Reduce to ≤ 10 ml/day.');
+    else if (pediatraceVal > PEDIATRACE_MODERATE_HIGH)
+      checks.pediatrace = mk('moderate', pediatraceVal,
+        `Pediatrace ${fmt(pediatraceVal, 2)} ml/day approaching maximum (${MAX_PEDIATRACE_ML} ml/day)`,
+        'Verify manual dose — auto-calc is 1 ml/kg/day, max 10 ml/day.');
+    else
+      checks.pediatrace = mk('safe', pediatraceVal);
+  }
+
+  // ── 13. Dextrose % — PediNAT p.21 (peripheral line only) ────────────────
   const dexPct = n(inputs.dextrosePct);
   if (dexPct > 0 && isPeripheral) {
     if (dexPct > DEXTROSE_PERIPHERAL_LIMIT)

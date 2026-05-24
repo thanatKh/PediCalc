@@ -14,6 +14,10 @@ const PARAM_LABELS = {
   mg:         'Magnesium',
   osmolarity: 'Osmolarity',
   dextrose:   'Dextrose %',
+  caxp:       'Ca×PO₄ Precipitation',
+  soluvit:    'Soluvit-N',
+  vitalipid:  'Vitalipid N Infant',
+  pediatrace: 'Pediatrace',
 };
 
 const FIELD_MAP = {
@@ -28,6 +32,10 @@ const FIELD_MAP = {
   mg:         ['mgTarget'],
   osmolarity: ['dextrosePct'],
   dextrose:   ['dextrosePct'],
+  caxp:       ['caTarget', 'naGlyceroTarget', 'k2hpo4Target'],
+  soluvit:    ['soluvitOverride'],
+  vitalipid:  ['vitalipidOverride'],
+  pediatrace: ['pediatraceOverride'],
 };
 
 /* Derives a stable string key from the current alert state so we can
@@ -139,7 +147,7 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
           )}
         </div>
 
-        <span className="text-[10px] text-slate-400 font-sans">PediNAT 2565</span>
+        <span className="text-xs text-slate-500 font-sans font-semibold">PediNAT 2565</span>
       </div>
 
       {/* ── Alert rows ── */}

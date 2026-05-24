@@ -25,6 +25,9 @@ export const DEFAULTS = {
   caTarget: '0.5',
   mgTarget: '0.25',
   heparinConc: '0.5',
+  soluvitOverride:    '',   // empty = use auto calc; non-empty = manual ml/day
+  vitalipidOverride:  '',
+  pediatraceOverride: '',
   manualTPNRate: '',
   manualLipidRate: '',
   urineOutput: false,

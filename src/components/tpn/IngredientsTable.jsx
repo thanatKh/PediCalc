@@ -60,7 +60,7 @@ export default function IngredientsTable({ results, dexPct }) {
     <div className="glass-card rounded-2xl overflow-hidden">
       <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
         <FileText size={16} className="text-teal-500" />
-        <span className="font-mitr text-base font-semibold text-teal-600">รายการส่วนประกอบ · Ingredients</span>
+        <span className="font-mitr text-base font-semibold text-teal-600">Ingredients · รายการส่วนประกอบ</span>
       </div>
 
       <div className="overflow-x-auto">
