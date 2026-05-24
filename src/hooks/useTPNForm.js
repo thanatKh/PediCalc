@@ -112,15 +112,27 @@ export function useTPNForm(hospital) {
         const blob    = await pdf(element).toBlob();
 
         // SW-backed URL carries the correct filename in the path.
-        // Falls back to a blob URL when the SW hasn't activated yet.
         const swPath = await storePdfInSW(blob, filename);
-        const url    = swPath ?? URL.createObjectURL(blob);
 
-        if (tab && !tab.closed) {
-          tab.location.href = url;
+        if (swPath) {
+          // SW active — navigate the pre-opened tab to the named PDF URL.
+          if (tab && !tab.closed) {
+            tab.location.href = swPath;
+          } else {
+            window.open(swPath, '_blank');
+          }
         } else {
-          // Popup was blocked — retry (user may need to allow popups once).
-          window.open(url, '_blank');
+          // SW not yet active (dev mode / very first load) — trigger a named
+          // download directly so the file is saved as TPN-xxxx.pdf, not a UUID.
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+          if (tab && !tab.closed) tab.close();
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
