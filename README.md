@@ -27,10 +27,10 @@ PediCalc is a multi-module, multi-hospital Progressive Web App (PWA) for pediatr
 - **Real-time calculation** — all results update instantly as inputs change
 - **Clinical Decision Support (CDS)** — 15-parameter tiered alerts (critical / caution) based on PediNAT 2565: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio
 - **Hard input validation** — blocks PDF export when values are outside safe clinical ranges; amber warnings for out-of-range but permissible values
-- **PDF export** — single-page A4 TPN prescription sheet with hospital logo, Thai fonts (Sarabun + Kanit), full CDS alert summary
+- **PDF export** — opens in a new browser tab as a native PDF (A4, hospital logo, Thai fonts Sarabun + Kanit, full CDS alert summary); on iOS/Android users share directly from the browser's native share sheet with the correct filename
 - **Multi-hospital** — hospital identity (logo, color) scoped to the PDF header and hospital picker; app chrome stays consistently teal
 - **PWA** — installable on iOS and Android, works offline, iPhone Dynamic Island / notch safe-area aware
-- **Mobile-first** — Web Share API for PDF sharing on mobile, responsive collapsible sidebar
+- **Mobile-first** — unified PDF flow across desktop and mobile (Service Worker intercept), responsive collapsible sidebar
 
 ---
 
@@ -90,7 +90,6 @@ src/
 │   ├── Sidebar.jsx                # Collapsible nav — PediCalc brand + hospital picker
 │   ├── TPNCalculator.jsx          # TPN module shell — composes section components
 │   ├── TPNPdfTemplate.jsx         # react-pdf A4 document, Thai fonts
-│   ├── PdfModalContent.jsx        # PDF preview modal + blob for print/share
 │   └── tpn/
 │       ├── ui.jsx                 # SectionCard, NumberField, StatPill, AutoBadge
 │       ├── PatientInfoSection.jsx
@@ -103,7 +102,7 @@ src/
 │       ├── IngredientsTable.jsx
 │       └── ClinicalAlertsPanel.jsx
 public/
-├── sw.js                          # Service Worker v2 — app shell + cache
+├── sw.js                          # Service Worker v11 — app shell, PDF preview intercept, stale-URL redirect
 ├── manifest.webmanifest           # PWA manifest (standalone, teal, Thai)
 ├── logo-pedicale.PNG              # PediCalc app logo (web UI, PWA icons source)
 ├── logo-kabinburi.PNG             # Kabinburi hospital logo (PDF)

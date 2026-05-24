@@ -74,7 +74,7 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 ### Custom hook
 
-`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `isExporting`, and `handleExportPDF`. The export handler pre-fetches `hospital.logoForPdf` as a base64 data URL, then opens the PDF preview modal. Uses `createElement` from React — **not JSX** — since the file is `.js`.
+`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `isExporting`, and `handleExportPDF`. The export handler opens a blank tab synchronously (beats popup blockers), then generates the PDF blob, stores it in the SW cache via `REGISTER_PDF`, and navigates the tab to `/pdf-preview/{filename}`. Uses `createElement` from React — **not JSX** — since the file is `.js`.
 
 Export is blocked when: `results` is null, `isWaterNegative`, currently exporting, or `validation.errors.length > 0`.
 
@@ -111,16 +111,22 @@ All in `src/components/tpn/`:
 
 PDF header uses `hospital.logoForPdf` (hospital-specific). Do not use `APP_LOGO` in the PDF.
 
-`src/components/PdfModalContent.jsx` — lazy-loaded. Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption).
+**Unified export flow (desktop + mobile, same code path):**
+1. `window.open('', '_blank')` fires synchronously on click — beats iOS popup blocker.
+2. Async: logo fetch → dynamic import `@react-pdf/renderer` + `TPNPdfTemplate` → blob generation.
+3. `storePdfInSW(blob, filename)` sends `REGISTER_PDF` to SW → SW caches at `/pdf-preview/{filename}` (10-min TTL) → returns path.
+4. Tab navigates to `/pdf-preview/TPN-xxxx.pdf` → SW serves as `application/pdf` → native browser PDF viewer. On iOS/Android the user can share from the browser's native share sheet with the correct filename.
 
-### PDF preview modal
+**Fallback (SW not yet active — first load / dev mode):**
+- `storePdfInSW` returns `null`; blank tab closes; `<a download=filename>` triggers a named download directly.
 
-- **Desktop**: Print + Download buttons
-- **Mobile**: Web Share API — `navigator.share({ files: [new File([blob], filename)] })`
+**Stale URL handling:** If someone opens an expired or shared `/pdf-preview/` URL (cache miss), the SW serves a Thai-language redirect page that counts down 5 seconds then redirects to `/`.
+
+Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `PdfModalContent.jsx` has been deleted — there is no modal.
 
 ### Service Worker
 
-`public/sw.js` (SW v2, cache `pedicale-shell-v2`). Cache-first for static assets, network-first with app-shell fallback for navigation.
+`public/sw.js` (SW v11, cache `pedicale-shell-v11`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. Cache-miss on `/pdf-preview/*` serves a friendly HTML redirect page rather than a blank 404.
 
 ### PWA / Safe area
 
