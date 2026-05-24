@@ -42,6 +42,7 @@ export const MAX_PEDIATRACE_ML         = 10;    // ml/day cap
 export const KCAL_PER_G_DEXTROSE       = 3.4;   // kcal/g
 export const KCAL_PER_G_PROTEIN        = 4;     // kcal/g
 export const KCAL_PER_ML_LIPID_20PCT   = 2;     // kcal/ml  (20% SMOFlipid)
+export const SMOFLIPID_20PCT_G_PER_ML  = 0.2;   // g/ml     (20% SMOFlipid fat concentration)
 
 // ── GIR (Glucose Infusion Rate) formula ────────────────────────────────────
 // Reverse GIR: GIR (mg/kg/min) = (TPN Rate ml/hr × Dextrose%) / (6 × BW kg)

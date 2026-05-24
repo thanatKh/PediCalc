@@ -26,6 +26,7 @@ import {
   KCAL_PER_G_DEXTROSE,
   KCAL_PER_G_PROTEIN,
   KCAL_PER_ML_LIPID_20PCT,
+  SMOFLIPID_20PCT_G_PER_ML,
   GIR_REVERSE_DIVISOR,
   HOURS_PER_DAY,
   OSMO_FACTOR_DEXTROSE,
@@ -44,25 +45,37 @@ export const calculateTPN = (inputs) => {
   if (bw <= 0) return null;
 
   // 1. TPN Volume = BW × fluid target + 25 ml (institution-wide line reserve)
-  const volTarget   = parseFloat(inputs.volumeTarget) || 0;
-  const totalVolume = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
+  const volTarget      = parseFloat(inputs.volumeTarget) || 0;
+  const totalVolume    = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
 
   // DSF (Dead Space Factor) — scales nutrients so patient receives intended dose
   // despite 25 ml of line dead-space that delivers no nutrients
   const nutrientVolume = totalVolume - NEWBORN_LINE_RESERVE_ML;
-  const dsf = nutrientVolume > 0 ? totalVolume / nutrientVolume : 1;
+  const dsf            = nutrientVolume > 0 ? totalVolume / nutrientVolume : 1;
 
-  // 2. Macronutrients
-  const dexPct     = parseFloat(inputs.dextrosePct) || 0;
-  const dextroseMl = (dexPct / 100) * totalVolume * CONC_DEXTROSE_50PCT;
+  // 2. Lipid & Vitalipid — must be computed before dextrose to derive tpnVolume
+  const lipidTarget  = parseFloat(inputs.lipidTarget) || 0;
+  const lipidMl      = lipidTarget * bw * CONC_SMOFLIPID_20PCT;
+
+  const vitalipidAuto = Math.min(bw * DOSE_VITALIPID_ML_PER_KG, MAX_VITALIPID_ML);
+  const vitalipidMl   = inputs.vitalipidOverride !== '' && inputs.vitalipidOverride != null
+    ? parseFloat(inputs.vitalipidOverride)
+    : vitalipidAuto;
+
+  // Vitalipid goes in the lipid bag (Y-site with SMOFlipid)
+  const lipidBagVol = lipidMl + vitalipidMl;
+  const tpnVolume   = totalVolume - lipidBagVol;   // "TPN Volume" (2-in-1 bag)
+
+  // 3. Dextrose & Protein
+  // dexPct is the target concentration of the TPN bag; dextroseMl uses tpnVolume
+  // so the compounded bag is exactly at the ordered concentration
+  const dexPct      = parseFloat(inputs.dextrosePct) || 0;
+  const dextroseMl  = (dexPct / 100) * tpnVolume * CONC_DEXTROSE_50PCT;
 
   const proteinTarget = parseFloat(inputs.proteinTarget) || 0;
   const aminovenMl    = proteinTarget * bw * CONC_AMINOVEN_10PCT * dsf;
 
-  const lipidTarget = parseFloat(inputs.lipidTarget) || 0;
-  const lipidMl     = lipidTarget * bw * CONC_SMOFLIPID_20PCT;
-
-  // 3. Electrolytes — direct source inputs (mEq/kg from each source), scaled by DSF
+  // 4. Electrolytes — direct source inputs (mEq/kg from each source), scaled by DSF
   const na3PctTarget    = parseFloat(inputs.na3PctTarget)    || 0;
   const naGlyceroTarget = parseFloat(inputs.naGlyceroTarget) || 0;
   const k15PctTarget    = parseFloat(inputs.k15PctTarget)    || 0;
@@ -84,22 +97,16 @@ export const calculateTPN = (inputs) => {
   const mgTarget = parseFloat(inputs.mgTarget) || 0;
   const mgso4Ml  = (mgTarget * bw) / CONC_MGSO4_50PCT * dsf;
 
-  // 4. Vitamins & Trace — auto-calc capped at max dose; override if manually entered
+  // 5. Vitamins & Trace — Soluvit and Pediatrace (Vitalipid computed in step 2)
   const soluvitAuto    = Math.min(bw * DOSE_SOLUVIT_ML_PER_KG,    MAX_SOLUVIT_ML);
-  const vitalipidAuto  = Math.min(bw * DOSE_VITALIPID_ML_PER_KG,  MAX_VITALIPID_ML);
   const pediatraceAuto = Math.min(bw * DOSE_PEDIATRACE_ML_PER_KG, MAX_PEDIATRACE_ML);
   const soluvitMl    = inputs.soluvitOverride    !== '' && inputs.soluvitOverride    != null ? parseFloat(inputs.soluvitOverride)    : soluvitAuto;
-  const vitalipidMl  = inputs.vitalipidOverride  !== '' && inputs.vitalipidOverride  != null ? parseFloat(inputs.vitalipidOverride)  : vitalipidAuto;
   const pediatraceMl = inputs.pediatraceOverride !== '' && inputs.pediatraceOverride != null ? parseFloat(inputs.pediatraceOverride) : pediatraceAuto;
 
-  // 5. Heparin (added to TPN bag)
+  // 6. Heparin (added to TPN bag only — not lipid bag)
   const heparinUnitPerMl = parseFloat(inputs.heparinConc) || HEPARIN_DEFAULT_CONC;
-  const heparinUnits     = totalVolume * heparinUnitPerMl;
+  const heparinUnits     = tpnVolume * heparinUnitPerMl;
   const heparinMl        = heparinUnits / CONC_HEPARIN_STOCK;
-
-  // 6. Volumes — Vitalipid goes in the lipid bag (Y-site with SMOFlipid)
-  const lipidBagVol = lipidMl + vitalipidMl;
-  const tpnVolume   = totalVolume - lipidBagVol;   // "TPN Volume" (2-in-1 bag)
 
   const activeSum =
     dextroseMl + aminovenMl +
@@ -129,9 +136,10 @@ export const calculateTPN = (inputs) => {
   const caxOrganic       = caConc * po4OrganicConc;   // [Ca]×[organic PO₄]
   const caxInorganic     = caConc * po4InorganicConc; // [Ca]×[inorganic PO₄]
 
-  const aaGPerL = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
-  const totalNaMeq = totalNaActual * bw;
-  const totalKMeq  = totalKActual  * bw;
+  // DSF applied to Na/K mEq: actual mEq in the bag = target × bw × dsf
+  const aaGPerL    = bagVolL > 0 ? (aminovenMl * OSMO_AMINOVEN_10PCT_G_PER_ML) / bagVolL : 0;
+  const totalNaMeq = totalNaActual * bw * dsf;
+  const totalKMeq  = totalKActual  * bw * dsf;
   const estOsmolarity = bagVolL > 0
     ? (dexPct * OSMO_FACTOR_DEXTROSE)
       + (aaGPerL * OSMO_FACTOR_AA_G_PER_L)
@@ -142,7 +150,7 @@ export const calculateTPN = (inputs) => {
     inputs.lineType === 'peripheral' &&
     (dexPct > DEXTROSE_PERIPHERAL_LIMIT || estOsmolarity > OSMOLARITY_PERIPHERAL_MAX);
 
-  const fatRateGKgHr = bw > 0 ? (lipidMl * 0.20) / HOURS_PER_DAY / bw : 0;
+  const fatRateGKgHr = bw > 0 ? (lipidMl * SMOFLIPID_20PCT_G_PER_ML) / HOURS_PER_DAY / bw : 0;
   const fatRateHigh  = fatRateGKgHr > FAT_RATE_MAX_G_KG_HR;
 
   // GIR alert flags only meaningful when a rate is entered
@@ -150,7 +158,7 @@ export const calculateTPN = (inputs) => {
   const girLow  = gir !== null && gir < GIR_MIN_SAFE;
 
   // 9. Energy distribution
-  const cho_kcal     = (dexPct / 100) * totalVolume * CONC_DEXTROSE_50PCT * KCAL_PER_G_DEXTROSE;
+  const cho_kcal     = (dexPct / 100) * nutrientVolume * KCAL_PER_G_DEXTROSE;
   const protein_kcal = proteinTarget * bw * KCAL_PER_G_PROTEIN;
   const fat_kcal     = lipidMl * KCAL_PER_ML_LIPID_20PCT;
   const totalEnergy  = cho_kcal + protein_kcal + fat_kcal;

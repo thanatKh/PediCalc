@@ -70,9 +70,9 @@ describe('calculateTPN', () => {
       expect(r.girLow).toBe(false);
     });
 
-    it('heparin units = totalVolume × heparinConc', () => {
-      // 145 ml × 0.5 IU/ml = 72.5 IU
-      expect(r.heparinUnits).toBeCloseTo(145 * 0.5, 2);
+    it('heparin units = tpnVolume × heparinConc', () => {
+      // tpnVolume = totalVolume − lipidBagVol; 0.5 IU/ml
+      expect(r.heparinUnits).toBeCloseTo(r.tpnVolume * 0.5, 2);
     });
 
     it('bag2in1Vol aliased correctly', () => {
