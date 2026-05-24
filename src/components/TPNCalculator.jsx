@@ -56,11 +56,17 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
   return (
     /* Backdrop — clicking outside closes the modal on desktop */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6"
-      style={{ background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(4px)' }}
+      className="fixed z-50 flex items-end sm:items-center justify-center sm:p-6"
+      style={{
+        inset: 0,
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        background: 'rgba(15,23,42,0.75)',
+        backdropFilter: 'blur(4px)',
+      }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* Modal panel — full-height on mobile, tall card on desktop */}
+      {/* Modal panel — full-height on mobile (safe-area aware), tall card on desktop */}
       <div
         className="flex flex-col w-full h-full sm:h-[90vh] sm:max-w-4xl sm:rounded-2xl overflow-hidden shadow-2xl"
         style={{ background: '#0f172a' }}
@@ -68,7 +74,7 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
         {/* Compact header bar */}
         <div
           className="flex items-center gap-3 px-4 shrink-0"
-          style={{ height: '48px', background: headerBg, borderRadius: undefined }}
+          style={{ height: '48px', background: headerBg }}
         >
           <FileText size={15} className="text-white/60 shrink-0" aria-hidden="true" />
           <span className="text-white font-mitr font-medium text-sm truncate flex-1 min-w-0">
@@ -148,6 +154,9 @@ function PdfPreviewModal({ inputs, results, pdfModal, onClose }) {
               logoUrl={logoUrl}
               hospital={hospital}
               onBlobReady={setBlobUrl}
+              isMobile={isMobile}
+              filename={filename}
+              onShare={handleShare}
             />
           </Suspense>
         </div>

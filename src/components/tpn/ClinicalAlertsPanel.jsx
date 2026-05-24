@@ -85,10 +85,9 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
     return (
       <div
         key={transitionKey}
-        className="cds-safe-enter cds-safe-pulse cds-safe-shimmer
+        className="glass-card cds-safe-enter cds-safe-pulse cds-safe-shimmer
                    flex items-center gap-3 px-4 py-3.5 rounded-2xl
-                   ring-1 ring-emerald-200/80 text-emerald-700
-                   shadow-sm shadow-emerald-100"
+                   ring-1 ring-emerald-200/80 text-emerald-700"
       >
         <span className="shrink-0 flex items-center justify-center size-7 rounded-full bg-emerald-100 ring-1 ring-emerald-200/60">
           <ShieldCheck size={15} className="text-emerald-600" />
@@ -117,8 +116,8 @@ export default function ClinicalAlertsPanel({ inputs, results, validation, onNav
   return (
     <div
       key={transitionKey}
-      className={`cds-alert-enter rounded-2xl border font-sans
-                  overflow-hidden shadow-sm ${borderColor} ${shadowColor}`}
+      className={`glass-card cds-alert-enter rounded-2xl border font-sans
+                  overflow-hidden ${borderColor} ${shadowColor}`}
     >
       {/* ── Header bar ── */}
       <div className={`flex items-center gap-2.5 px-3.5 py-2.5 flex-wrap ${headerBg}`}>
