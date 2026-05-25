@@ -24,17 +24,17 @@ const DISCLAIMER = (
   </p>
 );
 
+function scrollToCds() {
+  const el = document.getElementById('cds-alerts');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function CdsFloatingBadge({ hasErrors, errorCount, critical, moderate }) {
   const count = errorCount + critical + moderate;
   if (count === 0) return null;
 
   const isCritical = hasErrors || critical > 0;
   const bg = isCritical ? '#e11d48' : '#f59e0b';
-
-  function scrollToCds() {
-    const el = document.getElementById('cds-alerts');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
 
   return (
     <button

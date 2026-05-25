@@ -33,6 +33,7 @@ export function NumberField({ id, label, suffix, value, onChange, step = '0.1', 
           id={id}
           type="number"
           inputMode="decimal"
+          enterKeyHint="next"
           step={step}
           min={min}
           value={value}

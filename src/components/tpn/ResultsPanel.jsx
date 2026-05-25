@@ -44,7 +44,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
       )}
 
       {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
-      <div id="cds-alerts">
+      <div id="cds-alerts" aria-live="polite" aria-atomic="false">
         <ClinicalAlertsPanel cds={cds} validation={validation} onNavigate={onNavigate} />
       </div>
 
