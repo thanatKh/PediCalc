@@ -158,7 +158,7 @@ export const calculateTPN = (inputs) => {
   const girLow  = gir !== null && gir < GIR_MIN_SAFE;
 
   // 9. Energy distribution
-  const cho_kcal     = (dexPct / 100) * nutrientVolume * KCAL_PER_G_DEXTROSE;
+  const cho_kcal     = (dexPct / 100) * (tpnVolume - NEWBORN_LINE_RESERVE_ML) * KCAL_PER_G_DEXTROSE;
   const protein_kcal = proteinTarget * bw * KCAL_PER_G_PROTEIN;
   const fat_kcal     = lipidMl * KCAL_PER_ML_LIPID_20PCT;
   const totalEnergy  = cho_kcal + protein_kcal + fat_kcal;
