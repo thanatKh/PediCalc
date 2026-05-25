@@ -262,19 +262,11 @@ export function useTPNForm(hospital) {
             writeNoSWErrorPage(tab);
           }
         } else {
+          // File object (not plain Blob) lets Chrome track the filename so its own
+          // save/download button uses TPN-xxxx.pdf instead of the blob UUID.
           const blobUrl = URL.createObjectURL(new File([blob], filename, { type: 'application/pdf' }));
-          if (tab && !tab.closed) {
-            try {
-              tab.document.open();
-              tab.document.write(buildViewerHtml(blobUrl, filename));
-              tab.document.close();
-            } catch {
-              // tab navigated away — fall back to direct blob navigation
-              tab.location.href = blobUrl;
-            }
-          } else {
-            window.open(blobUrl, '_blank');
-          }
+          if (tab && !tab.closed) tab.location.href = blobUrl;
+          else window.open(blobUrl, '_blank');
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
