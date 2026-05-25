@@ -76,7 +76,7 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 ### Custom hook
 
-`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `cds`, `isExporting`, and `handleExportPDF`. `cds` is a `useMemo`-wrapped result of `evaluateClinicalTiers(inputs, results)` — computed once here and threaded as a prop to avoid duplicate evaluation. The export handler opens a blank tab synchronously (beats popup blockers), then generates the PDF blob, stores it in the SW cache via `REGISTER_PDF`, and navigates the tab to `/pdf-preview/{filename}`. Uses `createElement` from React — **not JSX** — since the file is `.js`.
+`src/hooks/useTPNForm.js` — encapsulates all form state, `results`, `validation`, `cds`, `isExporting`, and `handleExportPDF`. `cds` is a `useMemo`-wrapped result of `evaluateClinicalTiers(inputs, results)` — computed once here and threaded as a prop to avoid duplicate evaluation. The export handler opens a blank tab synchronously (beats popup blockers), generates the PDF blob asynchronously, then routes to the platform-specific path (see PDF export section). Uses `createElement` from React — **not JSX** — since the file is `.js`.
 
 Export is blocked when: `results` is null, `isWaterNegative`, currently exporting, or `validation.errors.length > 0`.
 
@@ -117,22 +117,54 @@ All six input section components (`PatientInfoSection`, `MacroSection`, `Electro
 
 PDF header uses `hospital.logoForPdf` (hospital-specific). Do not use `APP_LOGO` in the PDF.
 
-**Unified export flow (desktop + mobile, same code path):**
-1. `window.open('', '_blank')` fires synchronously on click — beats iOS popup blocker.
-2. Async: logo fetch → dynamic import `@react-pdf/renderer` + `TPNPdfTemplate` → blob generation.
-3. `storePdfInSW(blob, filename)` sends `REGISTER_PDF` to SW → SW caches at `/pdf-preview/{filename}` (10-min TTL) → returns path.
-4. Tab navigates to `/pdf-preview/TPN-xxxx.pdf` → SW serves as `application/pdf` → native browser PDF viewer. On iOS/Android the user can share from the browser's native share sheet with the correct filename.
+**THIS IS A FINALIZED HYBRID ARCHITECTURE. DO NOT UNIFY THE PATHS OR REFACTOR WITHOUT UNDERSTANDING THE CONSTRAINTS BELOW.**
 
-**Fallback (SW not yet active — first load / dev mode):**
-- `storePdfInSW` returns `null`; blank tab closes; `<a download=filename>` triggers a named download directly.
+All paths share the same opening sequence:
+1. `window.open('', '_blank')` fires synchronously on click — beats popup blockers on all platforms.
+2. `writeLoadingSplash(tab)` paints a Thai spinner into the blank tab immediately.
+3. Async: logo fetch → dynamic import `@react-pdf/renderer` + `TPNPdfTemplate` → blob generation.
 
-**Stale URL handling:** If someone opens an expired or shared `/pdf-preview/` URL (cache miss), the SW serves a Thai-language redirect page that counts down 3 seconds then redirects to `/`.
+After blob is ready, the path splits by platform:
 
-Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `PdfModalContent.jsx` has been deleted — there is no modal.
+**Path A — Desktop & Android (blob URL)**
+```
+blob → new File([blob], filename, {type:'application/pdf'})
+     → URL.createObjectURL(file)
+     → tab.location.href = blobUrl
+     → Chrome opens inline PDF viewer
+```
+- Save button works (no server request needed — blob is local memory).
+- Filename in Save As is a browser-generated UUID — this is a **browser API constraint**, not a bug. There is no JS API to set a custom blob URL path.
+- Blob URL is revoked after 5 minutes via `setTimeout` to prevent memory accumulation.
+- **Why not SW path on desktop:** Chrome's PDF viewer save button makes requests from `chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai` — an extension context that bypasses the Service Worker entirely. If the SW path is used on desktop, the save button hits the Render server (which has no `/pdf-preview/` route) and returns a 404 "file wasn't available on site" error. **Do not change desktop to use the SW path.**
+
+**Path B — iOS (iPhone / iPad) (SW-backed URL)**
+```
+blob → storePdfInSW(blob, filename)
+     → SW caches at /pdf-preview/TPN-xxxx.pdf (10-min TTL)
+     → tab.location.href = /pdf-preview/TPN-xxxx.pdf
+     → SW fetch intercept serves bytes with Content-Disposition headers
+     → iOS native PDF viewer opens
+     → Share sheet / Save to Files uses correct filename TPN-xxxx.pdf
+```
+- Correct clinical filename in iOS share sheet and LINE sharing.
+- SW serves `Content-Disposition: inline; filename="TPN-xxxx.pdf"; filename*=UTF-8''...` (RFC 5987).
+- Range requests (iOS Safari pinch-to-zoom) handled via HTTP 206 in `handleRangeRequest`.
+- **Why not blob URL on iOS:** blob URLs work for viewing, but iOS share sheet derives the filename from the URL path (UUID), not from response headers. SW path is the only way to get the correct filename.
+- Detected via `/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream`.
+
+**Path C — Global fallback (blob URL)**
+- Triggered when: SW is not yet active on first load, private browsing, SW registration failed, or `storePdfInSW` returns `null` after 15s timeout.
+- Degrades gracefully to Path A (blob URL) — viewing and saving always work, filename is UUID.
+- `openBlobFallback(blob, filename, tab)` is the shared helper used by both Path A and Path C.
+
+**Stale URL handling:** Expired or bookmarked `/pdf-preview/` URLs (SW cache miss) return a Thai-language 410 page with 4-second auto-redirect to `/`.
+
+Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `PdfModalContent.jsx` has been deleted — there is no modal. Do not reintroduce modals, HTML wrapper pages, floating download buttons, or a unified single-path approach.
 
 ### Service Worker
 
-`public/sw.js` (SW v17, cache `pedicale-shell-v17`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL.
+`public/sw.js` (SW v20, cache `pedicale-shell-v20`). Cache-first for static assets, network-first with app-shell fallback for navigation. Handles `REGISTER_PDF` message and `/pdf-preview/*` fetch intercept with 10-min TTL. **Only used by the iOS export path** — desktop/Android navigate to blob URLs which never touch the SW.
 
 - **TTL** is stored as an `X-Expires` header (epoch ms) in the cached Response — **not** via `setTimeout`, because the browser can terminate the SW between uses and timers do not persist across SW restarts.
 - **Range request support** (`handleRangeRequest`): iOS Safari sends byte-range requests for pinch-to-zoom. The SW handles `Range: bytes=N-M` headers and returns proper 206 responses. The cache entry is **never deleted after serving** — it must survive multiple Range requests within the TTL window. It is only purged when a new PDF is stored (REGISTER_PDF clears old entries first) or when the TTL check fails on a subsequent fetch.
@@ -155,7 +187,7 @@ Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `
 
 ### shadcn/ui
 
-Style: `new-york`, base: `radix`, no TypeScript. Installed: alert, alert-dialog, badge, button, card, input, label, number-ticker, progress, separator, shimmer-button, slider, switch, tooltip.
+Style: `new-york`, base: `radix`, no TypeScript. Installed: alert-dialog, badge, button, card, input, label, number-ticker, progress, separator, shimmer-button, slider, switch, tooltip.
 
 ### Regression tests
 
