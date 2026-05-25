@@ -63,10 +63,9 @@ async function storePdfInSW(blob, filename) {
   });
 }
 
-/* Builds a minimal full-viewport HTML page embedding the PDF.
-   Used as the fallback when the SW is not yet active (dev / first load).
-   Chrome always renders HTML inline regardless of "Download PDFs" setting.
-   The native PDF viewer provides its own save/share/zoom controls. */
+/* Builds a full-viewport HTML viewer used when the SW is not yet active (dev / first load).
+   The <embed> renders the PDF inline. A small floating button lets the user save with the
+   correct clinical filename — the native viewer's own save would use the blob UUID. */
 function buildPreviewHtml(pdfBlobUrl, filename) {
   return `<!doctype html>
 <html lang="th">
@@ -74,10 +73,31 @@ function buildPreviewHtml(pdfBlobUrl, filename) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${filename}</title>
-<style>*{margin:0;padding:0}html,body,embed{width:100%;height:100%;display:block;overflow:hidden}</style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#525659}
+embed{position:fixed;inset:0;width:100%;height:100%;border:none}
+.save-btn{
+  position:fixed;bottom:1.25rem;right:1.25rem;z-index:10;
+  display:flex;align-items:center;gap:.4rem;
+  background:#0d6e6e;color:#fff;border:none;border-radius:.625rem;
+  padding:.5rem 1rem;font-size:.8rem;font-weight:600;font-family:system-ui,sans-serif;
+  text-decoration:none;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.3);
+  transition:background .15s;
+}
+.save-btn:hover{background:#095555}
+</style>
 </head>
 <body>
-<embed src="${pdfBlobUrl}" type="application/pdf" width="100%" height="100%">
+<embed src="${pdfBlobUrl}" type="application/pdf">
+<a class="save-btn" href="${pdfBlobUrl}" download="${filename}">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+  บันทึก ${filename}
+</a>
 </body>
 </html>`;
 }
@@ -144,23 +164,17 @@ export function useTPNForm(hospital) {
           }
         } else {
           // SW not yet active (dev mode / very first load).
-          // Open an HTML wrapper page in the blank tab so the PDF renders inline
-          // rather than force-downloading. The download button in the wrapper uses
-          // the blob URL with the correct filename via the Content-Disposition trick.
+          // Write the HTML viewer directly into the pre-opened blank tab so it stays
+          // at about:blank (no blob UUID in the address bar). The <embed> renders the
+          // PDF inline; the download link saves with the correct filename.
           const blobUrl = URL.createObjectURL(blob);
-          const html = buildPreviewHtml(blobUrl, filename);
-          const htmlBlob = new Blob([html], { type: 'text/html' });
-          const htmlUrl  = URL.createObjectURL(htmlBlob);
-          if (tab && !tab.closed) {
-            tab.location.href = htmlUrl;
-          } else {
-            window.open(htmlUrl, '_blank');
+          const targetTab = (tab && !tab.closed) ? tab : window.open('', '_blank');
+          if (targetTab) {
+            targetTab.document.open();
+            targetTab.document.write(buildPreviewHtml(blobUrl, filename));
+            targetTab.document.close();
           }
-          // Revoke both URLs after a generous delay — the tab holds references while open.
-          setTimeout(() => {
-            URL.revokeObjectURL(blobUrl);
-            URL.revokeObjectURL(htmlUrl);
-          }, 10 * 60 * 1000);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10 * 60 * 1000);
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
