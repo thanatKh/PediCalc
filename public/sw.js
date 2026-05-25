@@ -3,7 +3,7 @@
 //          (2) Range-request support for iOS Safari pinch-to-zoom,
 //          (3) app shell caching for offline
 
-const SW_VERSION = 'v19';
+const SW_VERSION = 'v20';
 const CACHE_NAME = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE  = 'pedicale-pdf-store';
 const PDF_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -68,13 +68,17 @@ self.addEventListener('message', (e) => {
       await Promise.all(old.map((k) => cache.delete(k)));
 
       // Store raw PDF bytes with TTL header and explicit Content-Length for Range-request support.
+      // X-Content-Type-Options: nosniff forces the browser to trust Content-Type over MIME-sniffing,
+      // preventing Dropbox/AV shell extensions from hijacking the Save As type filter.
+      // filename*=UTF-8'' is the RFC 5987 form Chrome prefers — guarantees the .pdf extension survives.
       await cache.put(fullUrl, new Response(buffer, {
         status: 200,
         headers: {
-          'Content-Type':        'application/pdf',
-          'Content-Disposition': `inline; filename="${filename}"`,
-          'Content-Length':      String(buffer.byteLength),
-          'X-Expires':           String(expiresAt),
+          'Content-Type':           'application/pdf',
+          'Content-Disposition':    `inline; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+          'Content-Length':         String(buffer.byteLength),
+          'X-Content-Type-Options': 'nosniff',
+          'X-Expires':              String(expiresAt),
         },
       }));
 
@@ -153,10 +157,13 @@ async function handlePdfFetch(request, pathname) {
       // sniffing on Blob bodies overrides the explicit Content-Type header,
       // producing the wrong MIME type and triggering a file download instead of
       // inline PDF rendering.
+      // nosniff + filename*= ensures Chrome's Save As preserves the .pdf type/extension
+      // even when third-party shell extensions (Dropbox, AV) try to hijack the dialog.
       const headers = new Headers({
-        'Content-Type':        'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Accept-Ranges':       'bytes',
+        'Content-Type':           'application/pdf',
+        'Content-Disposition':    `inline; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+        'Accept-Ranges':          'bytes',
+        'X-Content-Type-Options': 'nosniff',
       });
       const cl = cached.headers.get('Content-Length');
       if (cl) headers.set('Content-Length', cl);
@@ -195,10 +202,11 @@ async function handleRangeRequest(cached, rangeHeader) {
   return new Response(chunk, {
     status: 206,
     headers: {
-      'Content-Type':   'application/pdf',
-      'Content-Range':  `bytes ${start}-${end}/${total}`,
-      'Content-Length': String(chunk.byteLength),
-      'Accept-Ranges':  'bytes',
+      'Content-Type':           'application/pdf',
+      'Content-Range':          `bytes ${start}-${end}/${total}`,
+      'Content-Length':         String(chunk.byteLength),
+      'Accept-Ranges':          'bytes',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }
