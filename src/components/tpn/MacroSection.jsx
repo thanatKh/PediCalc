@@ -10,7 +10,7 @@ function MacroSection({
   lipidTier,    lipidMessage,
 }) {
   return (
-    <SectionCard title="Macronutrients · สารอาหารหลัก" icon={Beaker}>
+    <SectionCard title="Macronutrients · สารอาหารหลัก" icon={Beaker} aboveFold>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <NumberField
           id="dextrosePct"

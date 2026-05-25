@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code internals
 skills-lock.json
+
+# Codex temp directories
+.codex-push-tmp*

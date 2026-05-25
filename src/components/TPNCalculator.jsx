@@ -286,7 +286,7 @@ export default function TPNCalculator({ hospital }) {
         </section>
 
         {/* RIGHT: live results */}
-        <aside className="lg:col-span-5 xl:col-span-4">
+        <aside className="lg:col-span-5 xl:col-span-4" style={{ overscrollBehavior: 'contain' }}>
           <div className="lg:sticky lg:top-20 space-y-4">
             <ResultsPanel
               results={results}

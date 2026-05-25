@@ -81,9 +81,12 @@ export function StatPill({ label, value, suffix, tone = 'slate', decimals = 1 })
 }
 
 // ── SectionCard ──────────────────────────────────────────────────────────────
-export function SectionCard({ title, icon: Icon, children, className }) {
+export function SectionCard({ title, icon: Icon, children, className, aboveFold = false }) {
   return (
-    <div className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}>
+    <div
+      className={cn('glass-card rounded-2xl overflow-hidden animate-fade-up', className)}
+      style={aboveFold ? undefined : { contentVisibility: 'auto', containIntrinsicSize: 'auto 200px' }}
+    >
       <div className="px-4 sm:px-5 py-3.5 border-b border-slate-100/80 flex items-center gap-2.5">
         {Icon && <Icon size={16} className="text-teal-500" aria-hidden="true" />}
         <h2 className="font-mitr text-base font-semibold text-teal-600">{title}</h2>

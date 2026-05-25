@@ -12,7 +12,7 @@ function PatientInfoSection({
   fluidTier, fluidMessage,
 }) {
   return (
-    <SectionCard title="Patient Info · ข้อมูลผู้ป่วย" icon={User}>
+    <SectionCard title="Patient Info · ข้อมูลผู้ป่วย" icon={User} aboveFold>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Name */}
         <div className="col-span-2">
