@@ -3,10 +3,10 @@
 //          (2) Range-request support for iOS Safari pinch-to-zoom,
 //          (3) app shell caching for offline
 
-const SW_VERSION = 'v20';
+const SW_VERSION = 'v21';
 const CACHE_NAME = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE  = 'pedicale-pdf-store';
-const PDF_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const PDF_TTL_MS = 60 * 60 * 1000; // 60 minutes
 
 const SHELL_ASSETS = [
   '/',
@@ -63,9 +63,7 @@ self.addEventListener('message', (e) => {
 
   e.waitUntil(
     caches.open(PDF_CACHE).then(async (cache) => {
-      // Clear any previously cached PDFs to prevent accumulation across sessions.
-      const old = await cache.keys();
-      await Promise.all(old.map((k) => cache.delete(k)));
+      await purgeExpiredPdfs(cache);
 
       // Store raw PDF bytes with TTL header and explicit Content-Length for Range-request support.
       // X-Content-Type-Options: nosniff forces the browser to trust Content-Type over MIME-sniffing,
@@ -131,6 +129,18 @@ function isShellAsset(pathname) {
 }
 
 // ── PDF fetch handler ────────────────────────────────────────────────────────
+
+async function purgeExpiredPdfs(cache) {
+  const keys = await cache.keys();
+  const now = Date.now();
+  await Promise.all(keys.map(async (request) => {
+    const response = await cache.match(request);
+    const expiresAt = Number(response?.headers.get('X-Expires'));
+    if (!expiresAt || expiresAt <= now) {
+      await cache.delete(request);
+    }
+  }));
+}
 
 async function handlePdfFetch(request, pathname) {
   const filename = pathname.replace(/^\/pdf-preview\//, '') || 'TPN.pdf';

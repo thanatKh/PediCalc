@@ -39,8 +39,8 @@ function buildFilename(inputs) {
   const now  = new Date();
   const pad  = (n) => String(n).padStart(2, '0');
   const mmdd = `${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
-  const hhmm = `${pad(now.getHours())}${pad(now.getMinutes())}`;
-  const base = hn ? `TPN-${hn}-${mmdd}-${hhmm}` : `TPN-${mmdd}-${hhmm}`;
+  const hhmmss = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const base = hn ? `TPN-${hn}-${mmdd}-${hhmmss}` : `TPN-${mmdd}-${hhmmss}`;
   return `${base}.pdf`;
 }
 
@@ -88,12 +88,23 @@ async function storePdfInSW(blob, filename) {
   const channel = new MessageChannel();
 
   return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(null), 10_000);
-    channel.port1.onmessage = (e) => {
+    let resolved = false;
+    const done = (url) => {
+      if (resolved) return;
+      resolved = true;
       clearTimeout(timer);
-      resolve(e.data?.url ?? null);
+      channel.port1.close();
+      resolve(url);
     };
-    sw.postMessage({ type: 'REGISTER_PDF', filename, buffer }, [channel.port2, buffer]);
+    const timer = setTimeout(() => done(null), 10_000);
+    channel.port1.onmessage = (e) => {
+      done(e.data?.url ?? null);
+    };
+    try {
+      sw.postMessage({ type: 'REGISTER_PDF', filename, buffer }, [channel.port2, buffer]);
+    } catch {
+      done(null);
+    }
   });
 }
 
@@ -126,6 +137,7 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center;
 
 /* Shown in the tab when the SW failed to activate within the wait window.
    Rare: only triggers on first-ever load if user clicks Export instantly. */
+// eslint-disable-next-line no-unused-vars -- kept as a recovery page template for SW-only troubleshooting
 function writeNoSWErrorPage(tab) {
   if (!tab || tab.closed) return;
   try {
@@ -170,6 +182,7 @@ h1{font-family:'Kanit',sans-serif;font-weight:600;color:#0d6e6e;font-size:1.1rem
    plugin download button to show "file wasn't available on site". The blob URL
    is origin-scoped and stays valid as long as the PediCalc tab is open.
    <a download> bypasses Windows file-association lookup for the type label. */
+// eslint-disable-next-line no-unused-vars -- retained for manual fallback experiments; active flow uses native PDF URLs
 function buildViewerHtml(blobUrl, filename) {
   return `<!doctype html>
 <html lang="th"><head>
@@ -194,6 +207,21 @@ embed{flex:1;width:100%;display:block}
 </div>
 <embed src="${blobUrl}" type="application/pdf">
 </body></html>`;
+}
+
+function navigateExportTab(tab, url) {
+  if (tab && !tab.closed) {
+    tab.location.href = url;
+    return;
+  }
+  window.open(url, '_blank');
+}
+
+function openBlobFallback(blob, filename, tab) {
+  const file = new File([blob], filename, { type: 'application/pdf' });
+  const blobUrl = URL.createObjectURL(file);
+  navigateExportTab(tab, blobUrl);
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 5 * 60 * 1000);
 }
 
 export function useTPNForm(hospital) {
@@ -248,25 +276,13 @@ export function useTPNForm(hospital) {
         const blob    = await pdf(element).toBlob();
 
         // iOS: SW-backed URL → native PDF viewer + share sheet with correct filename.
-        // Desktop/Android: write viewer HTML directly to the tab using a local blob URL.
-        //   - blob URL is origin-scoped, no server request needed to save
-        //   - <a download> guarantees correct filename; "file wasn't available" impossible
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-        if (isIOS) {
-          const swPath = await storePdfInSW(blob, filename);
-          if (swPath) {
-            if (tab && !tab.closed) tab.location.href = swPath;
-            else window.open(swPath, '_blank');
-          } else {
-            writeNoSWErrorPage(tab);
-          }
+        // All platforms use the SW-backed URL first so the native PDF viewer gets
+        // filename headers, byte ranges, and inline rendering.
+        const swPath = await storePdfInSW(blob, filename);
+        if (swPath) {
+          navigateExportTab(tab, swPath);
         } else {
-          // File object (not plain Blob) lets Chrome track the filename so its own
-          // save/download button uses TPN-xxxx.pdf instead of the blob UUID.
-          const blobUrl = URL.createObjectURL(new File([blob], filename, { type: 'application/pdf' }));
-          if (tab && !tab.closed) tab.location.href = blobUrl;
-          else window.open(blobUrl, '_blank');
+          openBlobFallback(blob, filename, tab);
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
@@ -321,7 +337,7 @@ export function useTPNForm(hospital) {
         }
       }
     });
-  }, [inputs, results, isExporting, hospital]);
+  }, [inputs, results, isExporting, hospital, validation.errors.length]);
 
   return { inputs, update, reset, results, validation, cds, isExporting, handleExportPDF };
 }
