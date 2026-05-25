@@ -63,6 +63,25 @@ async function storePdfInSW(blob, filename) {
   });
 }
 
+/* Builds a minimal full-viewport HTML page embedding the PDF.
+   Used as the fallback when the SW is not yet active (dev / first load).
+   Chrome always renders HTML inline regardless of "Download PDFs" setting.
+   The native PDF viewer provides its own save/share/zoom controls. */
+function buildPreviewHtml(pdfBlobUrl, filename) {
+  return `<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${filename}</title>
+<style>*{margin:0;padding:0}html,body,embed{width:100%;height:100%;display:block;overflow:hidden}</style>
+</head>
+<body>
+<embed src="${pdfBlobUrl}" type="application/pdf" width="100%" height="100%">
+</body>
+</html>`;
+}
+
 export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
@@ -124,17 +143,24 @@ export function useTPNForm(hospital) {
             window.open(swPath, '_blank');
           }
         } else {
-          // SW not yet active (dev mode / very first load) — trigger a named
-          // download directly so the file is saved as TPN-xxxx.pdf, not a UUID.
+          // SW not yet active (dev mode / very first load).
+          // Open an HTML wrapper page in the blank tab so the PDF renders inline
+          // rather than force-downloading. The download button in the wrapper uses
+          // the blob URL with the correct filename via the Content-Disposition trick.
           const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-          if (tab && !tab.closed) tab.close();
+          const html = buildPreviewHtml(blobUrl, filename);
+          const htmlBlob = new Blob([html], { type: 'text/html' });
+          const htmlUrl  = URL.createObjectURL(htmlBlob);
+          if (tab && !tab.closed) {
+            tab.location.href = htmlUrl;
+          } else {
+            window.open(htmlUrl, '_blank');
+          }
+          // Revoke both URLs after a generous delay — the tab holds references while open.
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+            URL.revokeObjectURL(htmlUrl);
+          }, 10 * 60 * 1000);
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
