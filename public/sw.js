@@ -1,9 +1,9 @@
 // Service Worker — PediCalc PWA
-// Handles: (1) PDF preview with HTML wrapper (bypasses Chrome "Download PDFs" setting),
+// Handles: (1) PDF preview — raw PDF bytes at /pdf-preview/{filename},
 //          (2) Range-request support for iOS Safari pinch-to-zoom,
 //          (3) app shell caching for offline
 
-const SW_VERSION = 'v18';
+const SW_VERSION = 'v19';
 const CACHE_NAME = `pedicale-shell-${SW_VERSION}`;
 const PDF_CACHE  = 'pedicale-pdf-store';
 const PDF_TTL_MS = 10 * 60 * 1000; // 10 minutes
@@ -45,9 +45,10 @@ self.addEventListener('activate', (e) => {
 });
 
 // ── PDF registration ─────────────────────────────────────────────────────────
-// PDF bytes are stored under /pdf-data/{filename} (raw bytes).
-// /pdf-preview/{filename} is served as an HTML wrapper page that embeds /pdf-data/{filename}.
-// This bypasses Chrome's "Download PDFs" setting — Chrome never downloads HTML.
+// Raw PDF bytes stored at /pdf-preview/{filename}.
+// SW intercepts that URL and serves the bytes with Content-Type: application/pdf.
+// The browser sees a real PDF URL with the clinical filename → native viewer opens,
+// Ctrl+S / share sheet saves as TPN-xxxx.pdf with correct name and type.
 
 self.addEventListener('message', (e) => {
   if (e.data?.type !== 'REGISTER_PDF') return;
@@ -55,12 +56,10 @@ self.addEventListener('message', (e) => {
   const { filename = 'TPN.pdf', buffer } = e.data;
   const port = e.ports?.[0];
 
-  // The tab will navigate to /pdf-preview/{filename} (HTML page).
-  const previewPath = `/pdf-preview/${filename}`;
-  const dataPath    = `/pdf-data/${filename}`;
-  const scope       = self.registration.scope.replace(/\/$/, '');
-  const dataUrl     = `${scope}${dataPath}`;
-  const expiresAt   = Date.now() + PDF_TTL_MS;
+  const urlPath  = `/pdf-preview/${filename}`;
+  const scope    = self.registration.scope.replace(/\/$/, '');
+  const fullUrl  = `${scope}${urlPath}`;
+  const expiresAt = Date.now() + PDF_TTL_MS;
 
   e.waitUntil(
     caches.open(PDF_CACHE).then(async (cache) => {
@@ -68,20 +67,18 @@ self.addEventListener('message', (e) => {
       const old = await cache.keys();
       await Promise.all(old.map((k) => cache.delete(k)));
 
-      // Store raw PDF bytes under /pdf-data/ key with TTL header.
-      await cache.put(dataUrl, new Response(buffer, {
+      // Store raw PDF bytes with TTL header and explicit Content-Length for Range-request support.
+      await cache.put(fullUrl, new Response(buffer, {
         status: 200,
         headers: {
           'Content-Type':        'application/pdf',
           'Content-Disposition': `inline; filename="${filename}"`,
           'Content-Length':      String(buffer.byteLength),
           'X-Expires':           String(expiresAt),
-          'Accept-Ranges':       'bytes',
         },
       }));
 
-      // Reply with the HTML wrapper path — the tab navigates here.
-      port?.postMessage({ url: previewPath });
+      port?.postMessage({ url: urlPath });
     })
   );
 });
@@ -91,25 +88,19 @@ self.addEventListener('message', (e) => {
 self.addEventListener('fetch', (e) => {
   const { pathname } = new URL(e.request.url);
 
-  // 1. HTML wrapper — Chrome always opens HTML inline, bypassing "Download PDFs"
+  // 1. PDF — intercept ALL /pdf-preview/ requests including navigate + Range
   if (pathname.startsWith('/pdf-preview/')) {
-    e.respondWith(handlePdfPreview(pathname));
+    e.respondWith(handlePdfFetch(e.request, pathname));
     return;
   }
 
-  // 2. Raw PDF bytes — served to the <embed> inside the HTML wrapper, and for download
-  if (pathname.startsWith('/pdf-data/')) {
-    e.respondWith(handlePdfData(e.request, pathname));
-    return;
-  }
-
-  // 3. Navigation — network first, app-shell fallback
+  // 2. Navigation — network first, app-shell fallback
   if (e.request.mode === 'navigate') {
     e.respondWith(fetch(e.request).catch(() => caches.match('/')));
     return;
   }
 
-  // 4. Static assets — cache first
+  // 3. Static assets — cache first
   if (e.request.method === 'GET' && isShellAsset(pathname)) {
     e.respondWith(
       caches.match(e.request).then(
@@ -122,7 +113,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 5. Everything else — pass through to network
+  // 4. Everything else — pass through to network
 });
 
 function isShellAsset(pathname) {
@@ -135,47 +126,15 @@ function isShellAsset(pathname) {
   );
 }
 
-// ── HTML wrapper handler ─────────────────────────────────────────────────────
-// Serves a full-viewport HTML page embedding the PDF via <embed>.
-// Chrome always renders HTML inline — this bypasses the "Download PDFs" browser setting.
-// The page also provides a download button that links directly to /pdf-data/{filename}.
+// ── PDF fetch handler ────────────────────────────────────────────────────────
 
-async function handlePdfPreview(pathname) {
-  const filename  = pathname.replace(/^\/pdf-preview\//, '') || 'TPN.pdf';
-  const dataPath  = `/pdf-data/${filename}`;
-  const scope     = self.registration.scope.replace(/\/$/, '');
-  const dataUrl   = `${scope}${dataPath}`;
-
-  // Check that the underlying PDF data is actually cached and not expired.
-  const cache  = await caches.open(PDF_CACHE);
-  const cached = await cache.match(dataUrl);
-
-  if (cached) {
-    const expiresAt = Number(cached.headers.get('X-Expires'));
-    if (expiresAt && Date.now() <= expiresAt) {
-      return new Response(previewPageHtml(dataPath, filename), {
-        status: 200,
-        headers: { 'Content-Type': 'text/html;charset=utf-8' },
-      });
-    }
-    // TTL expired — purge and fall through to recovery page.
-    await cache.delete(dataUrl);
-  }
-
-  return new Response(expiredPageHtml(), {
-    status: 410,
-    headers: { 'Content-Type': 'text/html;charset=utf-8' },
-  });
-}
-
-// ── Raw PDF data handler ──────────────────────────────────────────────────────
-// Serves the actual PDF bytes to the <embed> element (and Range requests from iOS Safari).
-
-async function handlePdfData(request, pathname) {
+async function handlePdfFetch(request, pathname) {
+  const filename = pathname.replace(/^\/pdf-preview\//, '') || 'TPN.pdf';
   const scope    = self.registration.scope.replace(/\/$/, '');
   const fullUrl  = `${scope}${pathname}`;
 
   const cache  = await caches.open(PDF_CACHE);
+  // Canonical key first, raw request URL as fallback for edge-case origin mismatches.
   const cached = await cache.match(fullUrl) ?? await cache.match(request.url);
 
   if (cached) {
@@ -194,7 +153,6 @@ async function handlePdfData(request, pathname) {
       // sniffing on Blob bodies overrides the explicit Content-Type header,
       // producing the wrong MIME type and triggering a file download instead of
       // inline PDF rendering.
-      const filename = pathname.replace(/^\/pdf-data\//, '') || 'TPN.pdf';
       const headers = new Headers({
         'Content-Type':        'application/pdf',
         'Content-Disposition': `inline; filename="${filename}"`,
@@ -205,10 +163,11 @@ async function handlePdfData(request, pathname) {
       return new Response(cached.body, { status: 200, headers });
     }
 
-    // TTL expired — purge and serve recovery page.
+    // TTL expired — purge the stale entry then fall through to the recovery page.
     await cache.delete(fullUrl);
   }
 
+  // Cache miss or expired — serve a friendly Thai recovery page.
   return new Response(expiredPageHtml(), {
     status: 410,
     headers: { 'Content-Type': 'text/html;charset=utf-8' },
@@ -242,26 +201,6 @@ async function handleRangeRequest(cached, rangeHeader) {
       'Accept-Ranges':  'bytes',
     },
   });
-}
-
-// ── PDF preview HTML page ─────────────────────────────────────────────────────
-// Full-viewport embedded PDF viewer. Chrome always renders this as HTML (never downloads).
-// The download button links to /pdf-data/{filename} with the correct filename.
-
-// Minimal full-viewport HTML wrapper — native PDF viewer provides its own controls.
-function previewPageHtml(dataPath, filename) {
-  return `<!doctype html>
-<html lang="th">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${filename}</title>
-<style>*{margin:0;padding:0}html,body,embed{width:100%;height:100%;display:block;overflow:hidden}</style>
-</head>
-<body>
-<embed src="${dataPath}" type="application/pdf" width="100%" height="100%">
-</body>
-</html>`;
 }
 
 // ── Expired-link recovery page ───────────────────────────────────────────────

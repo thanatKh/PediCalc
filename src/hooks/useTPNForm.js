@@ -44,10 +44,29 @@ function buildFilename(inputs) {
   return `${base}.pdf`;
 }
 
+/* Returns navigator.serviceWorker.controller, waiting up to `ms` for it to appear
+   (covers the window between SW version bump + clients.claim() and next reload). */
+async function getController(ms = 3000) {
+  if (!('serviceWorker' in navigator)) return null;
+  if (navigator.serviceWorker.controller) return navigator.serviceWorker.controller;
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onchange);
+      resolve(null);
+    }, ms);
+    function onchange() {
+      clearTimeout(timer);
+      navigator.serviceWorker.removeEventListener('controllerchange', onchange);
+      resolve(navigator.serviceWorker.controller);
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', onchange);
+  });
+}
+
 /* Stores a PDF blob in the SW cache and returns the /pdf-preview/{filename} path.
-   Returns null on timeout or if no SW controller is available (dev mode / first load). */
+   Returns null on timeout or if no SW is available (dev mode). */
 async function storePdfInSW(blob, filename) {
-  const sw = navigator.serviceWorker?.controller;
+  const sw = await getController();
   if (!sw) return null;
 
   const buffer  = await blob.arrayBuffer();
