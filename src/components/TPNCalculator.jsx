@@ -158,7 +158,7 @@ export default function TPNCalculator({ hospital }) {
         >
           <div className="min-w-0">
             <h1 className="font-mitr text-lg sm:text-xl font-bold leading-tight truncate text-teal-600">
-              Neonatal TPN Calculator
+              Neonatal TPN Calculator (Version ทดสอบ)
             </h1>
             <p className="text-xs text-slate-400 font-sans hidden sm:block tracking-wide">
               สูตรสารอาหารทางหลอดเลือดดำ ทารกแรกเกิด
