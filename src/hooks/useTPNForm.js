@@ -38,9 +38,9 @@ function buildFilename(inputs) {
   const hn   = (inputs.hn || '').replace(/[^a-zA-Z0-9]/g, '');
   const now  = new Date();
   const pad  = (n) => String(n).padStart(2, '0');
-  const mmdd = `${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
-  const hhmmss = `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  const base = hn ? `TPN-${hn}-${mmdd}-${hhmmss}` : `TPN-${mmdd}-${hhmmss}`;
+  const yymmdd = `${String(now.getFullYear()).slice(-2)}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
+  const hhmm = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const base = hn ? `TPN-${hn}-${yymmdd}-${hhmm}` : `TPN-${yymmdd}-${hhmm}`;
   return `${base}.pdf`;
 }
 
