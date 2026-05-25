@@ -3,6 +3,21 @@ import { calculateTPN } from '@/utils/tpnCalculator';
 import { validateTPNInputs } from '@/utils/tpnValidation';
 import { evaluateClinicalTiers } from '@/utils/clinicalDecisionSupport';
 
+const NAME_PLACEHOLDERS = [
+  'ด.ช. เดวิด ตัวอ้วน',
+  'ด.ช. มู่ทู่ ตัวอ้วน',
+  'ด.ญ. เทาเทา ตัวอ้วน',
+  'ด.ช. เสี่ย ตัวอ้วน',
+  'ด.ช. ช้างช้าง ตัวอ้วน',
+  'ด.ช. เสืออ้วน ตัวอ้วน',
+  'ด.ช. กรรชัย ตัวอ้วน',
+  'ด.ญ. จีจี้ ตัวอ้วน',
+];
+
+function randomNamePlaceholder() {
+  return NAME_PLACEHOLDERS[Math.floor(Math.random() * NAME_PLACEHOLDERS.length)];
+}
+
 export const DEFAULTS = {
   name: '',
   hn: '',
@@ -154,6 +169,7 @@ function openBlobFallback(blob, filename, tab) {
 export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
+  const [namePlaceholder, setNamePlaceholder] = useState(randomNamePlaceholder);
 
   const update = useCallback(
     (key) => (evOrVal) => {
@@ -163,7 +179,10 @@ export function useTPNForm(hospital) {
     []
   );
 
-  const reset = useCallback(() => setInputs(DEFAULTS), []);
+  const reset = useCallback(() => {
+    setInputs(DEFAULTS);
+    setNamePlaceholder(randomNamePlaceholder());
+  }, []);
 
   const results    = useMemo(() => calculateTPN(inputs), [inputs]);
   const validation = useMemo(() => validateTPNInputs(inputs), [inputs]);
@@ -273,5 +292,5 @@ export function useTPNForm(hospital) {
     });
   }, [inputs, results, isExporting, hospital, validation.errors.length]);
 
-  return { inputs, update, reset, results, validation, cds, isExporting, handleExportPDF };
+  return { inputs, update, reset, namePlaceholder, results, validation, cds, isExporting, handleExportPDF };
 }

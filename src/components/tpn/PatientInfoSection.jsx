@@ -8,6 +8,7 @@ import { NumberField, SectionCard } from './ui';
 function PatientInfoSection({
   name, hn, ward, startDate, height, ageMonth, ageDay,
   bw, volumeTarget, patientType, lineType, urineOutput,
+  namePlaceholder,
   update,
   fluidTier, fluidMessage,
 }) {
@@ -25,7 +26,7 @@ function PatientInfoSection({
             autoComplete="off"
             value={name}
             onChange={update('name')}
-            placeholder="เช่น ด.ช. เดวิด ตัวอ้วน"
+            placeholder={`เช่น ${namePlaceholder}`}
             className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 font-sans text-base shadow-sm"
           />
         </div>
