@@ -11,6 +11,7 @@ const MODULES = [
 ];
 
 const isMobile = () => typeof window !== 'undefined' && window.innerWidth < 1024;
+const isWide   = () => typeof window !== 'undefined' && window.innerWidth >= 1280;
 
 /* ── Tooltip: portaled to document.body to escape the aside's transform stacking context ── */
 function Tooltip({ label, children }) {
@@ -215,6 +216,19 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
     mq.addEventListener?.('change', onChange);
     return () => mq.removeEventListener?.('change', onChange);
   }, []);
+
+  /* Auto-collapse when sidebar is open and user focuses any input (desktop only, narrow screens) */
+  useEffect(() => {
+    if (isMobile() || isWide() || !open) return;
+    const onFocusIn = (e) => {
+      if (e.target.matches('input, select, textarea')) {
+        setOpen(false);
+        document.removeEventListener('focusin', onFocusIn);
+      }
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => document.removeEventListener('focusin', onFocusIn);
+  }, [open]);
 
   return (
     <>

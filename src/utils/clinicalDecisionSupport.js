@@ -14,7 +14,7 @@ import {
   NA_DOL_RESTRICTION_DAYS, NA_RESTRICTION_MAX, NA_SAFE_MAX, NA_MODERATE_HIGH, NA_CRITICAL_HIGH,
   K_DOL_RESTRICTION_DAYS, K_SAFE_MAX, K_MODERATE_HIGH, K_CRITICAL_HIGH,
   CA_CDS_SAFE_MIN, CA_CDS_SAFE_MAX, CA_CDS_CRITICAL_HIGH,
-  PO4_TARGET_MIN, PO4_MODERATE_LOW, PO4_SAFE_MAX, PO4_CRITICAL_HIGH,
+  PO4_TARGET_MIN, PO4_MODERATE_LOW, PO4_SAFE_MAX, PO4_MODERATE_HIGH, PO4_CRITICAL_HIGH,
   MG_CDS_SAFE_MIN, MG_CDS_SAFE_MAX, MG_CDS_MODERATE_HIGH, MG_CDS_CRITICAL_HIGH,
   OSMO_MODERATE_HIGH,
   CA_INORGANIC_PO4_MODERATE, CA_INORGANIC_PO4_CRITICAL,
@@ -165,7 +165,7 @@ export function evaluateClinicalTiers(inputs, results) {
         'K supplementation before DOL 3: confirm adequate renal function. Monitor serum K closely.');
     else if (totalK > K_MODERATE_HIGH)
       checks.k = mk('moderate', totalK,
-        `Total K ${totalK.toFixed(1)} mEq/kg/day above typical range (1–${K_SAFE_MAX})`,
+        `Total K ${totalK.toFixed(1)} mEq/kg/day approaching limit (${K_MODERATE_HIGH}–${K_CRITICAL_HIGH})`,
         'Monitor serum potassium. Arrhythmia risk if levels rise.');
     else
       checks.k = mk('safe', totalK);
@@ -196,8 +196,12 @@ export function evaluateClinicalTiers(inputs, results) {
   if (hasPO4Input || po4 > 0) {
     if (po4 > PO4_CRITICAL_HIGH)
       checks.po4 = mk('critical', po4,
-        `Total PO₄ ${po4.toFixed(2)} mmol/kg/day exceeds ${PO4_SAFE_MAX}`,
+        `Total PO₄ ${po4.toFixed(2)} mmol/kg/day exceeds ${PO4_CRITICAL_HIGH}`,
         'Hyperphosphatemia reduces ionized calcium — tetany and seizure risk. Reduce phosphate.');
+    else if (po4 > PO4_MODERATE_HIGH)
+      checks.po4 = mk('moderate', po4,
+        `Total PO₄ ${po4.toFixed(2)} mmol/kg/day approaching limit (${PO4_MODERATE_HIGH}–${PO4_CRITICAL_HIGH})`,
+        'Monitor serum phosphate. Risk of hyperphosphatemia.');
     else if (po4 > 0 && po4 < PO4_MODERATE_LOW)
       checks.po4 = mk('moderate', po4,
         `Total PO₄ ${po4.toFixed(2)} mmol/kg/day critically below target (${PO4_TARGET_MIN}–1.5 for preterm)`,

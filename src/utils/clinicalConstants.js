@@ -120,7 +120,7 @@ export const NA_CRITICAL_HIGH        = 6;     // mEq/kg/day
 // ── Potassium (mEq/kg/day) — PediNAT p.21 — DOL + urine output aware ────────
 export const K_DOL_RESTRICTION_DAYS  = 3;     // DOL < this → K restriction phase
 export const K_SAFE_MAX              = 3;     // mEq/kg/day — maintenance target
-export const K_MODERATE_HIGH         = 3;     // mEq/kg/day — approaching limit
+export const K_MODERATE_HIGH         = 3.5;   // mEq/kg/day — approaching limit (3–3.5 caution band)
 export const K_CRITICAL_HIGH         = 4;     // mEq/kg/day — hyperkalemia risk
 
 // ── Calcium (mmol/kg/day) — PediNAT p.94 ────────────────────────────────────
@@ -131,8 +131,9 @@ export const CA_CDS_CRITICAL_HIGH    = 2.5;   // mmol/kg/day
 // ── Phosphate (mmol/kg/day) — PediNAT p.94, p.29 ────────────────────────────
 export const PO4_TARGET_MIN          = 1.0;   // mmol/kg/day — minimum for preterm
 export const PO4_MODERATE_LOW        = 0.5;   // mmol/kg/day — below target
-export const PO4_SAFE_MAX            = 2.0;   // mmol/kg/day
-export const PO4_CRITICAL_HIGH       = 2.0;   // mmol/kg/day — hyperphosphatemia risk
+export const PO4_SAFE_MAX            = 2.0;   // mmol/kg/day — upper safe limit
+export const PO4_MODERATE_HIGH       = 1.8;   // mmol/kg/day — approaching limit (caution band)
+export const PO4_CRITICAL_HIGH       = 2.5;   // mmol/kg/day — hyperphosphatemia risk
 
 // ── Magnesium (mEq/kg/day) — PediNAT p.94 ───────────────────────────────────
 export const MG_CDS_SAFE_MIN         = 0.3;   // mEq/kg/day

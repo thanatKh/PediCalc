@@ -127,7 +127,7 @@ function ElectrolyteSection({
           value={mgTarget}
           onChange={update('mgTarget')}
           step="0.05"
-          hint="ปกติ 0.25–0.5 mEq/kg/d"
+          hint="ปกติ 0.3–0.5 mEq/kg/d"
           tier={mgTier}
           tierMessage={mgMessage}
         />

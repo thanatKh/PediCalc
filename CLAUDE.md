@@ -36,6 +36,10 @@ npm test           # Vitest regression tests (28 cases)
 
 No react-router-dom. Navigation is a single `useState('tpn-newborn')` in `src/App.jsx`. The sidebar calls `onSelect(key)`; App renders the matching module.
 
+### Sidebar auto-collapse
+
+`src/components/Sidebar.jsx` auto-collapses to the 52px icon rail when the user first focuses any `input`, `select`, or `textarea` — but only on desktop at window widths **1024px–1279px**. At ≥ 1280px the sidebar and content both fit, so auto-collapse is skipped. At < 1024px the sidebar is a mobile overlay — auto-collapse does not apply. After an auto-collapse the user can manually reopen; the next input focus will auto-collapse again. Two module-scope helpers drive this: `isMobile()` (< 1024px) and `isWide()` (≥ 1280px).
+
 ### Multi-hospital support
 
 `src/utils/hospitals.js` — exports `APP_LOGO`, `APP_COLOR` (app-level, always teal), and `HOSPITALS` map keyed by hospital ID (`kabinburi`, `abhaibhubejhr`). Each hospital entry has `nameTh`, `nameEn`, `shortName`, `logo`, `logoSidebar`, `logoForPdf`, `themeColor`, `sidebarBg`.
@@ -61,6 +65,11 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 ### Clinical Decision Support
 
 `src/utils/clinicalDecisionSupport.js` — `evaluateClinicalTiers(inputs, results) → checks`. Evaluates 15 parameters against PediNAT B.E. 2565 thresholds: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio. Each check returns `{ tier, value, message, risk }` where `tier` is `'critical'` | `'moderate'` | `'safe'`.
+
+Key threshold notes (all in `clinicalConstants.js`):
+- **K:** safe ≤ 3, moderate 3–3.5 (`K_MODERATE_HIGH`), critical > 4 (`K_CRITICAL_HIGH`) — three distinct bands.
+- **PO₄:** moderate-high band added at 1.8 (`PO4_MODERATE_HIGH`); critical raised to 2.5 (`PO4_CRITICAL_HIGH`). `PO4_SAFE_MAX = 2.0` is the upper safe limit, distinct from the critical threshold.
+- **Mg default:** `mgTarget` default is `'0.3'` (= `MG_CDS_SAFE_MIN`) — do not lower it or the fresh-load state fires a CDS alert.
 
 **Critical tier does NOT block export** — advisory only. Only `tpnValidation.js` errors block export.
 

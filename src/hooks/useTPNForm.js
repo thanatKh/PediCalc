@@ -24,7 +24,7 @@ export const DEFAULTS = {
   k15PctTarget:    '2',   // K from 15% KCl
   k2hpo4Target:    '0',   // K from K2HPO4 (also provides PO4)
   caTarget: '0.5',
-  mgTarget: '0.25',
+  mgTarget: '0.3',
   heparinConc: '0.5',
   soluvitOverride:    '',   // empty = use auto calc; non-empty = manual ml/day
   vitalipidOverride:  '',
