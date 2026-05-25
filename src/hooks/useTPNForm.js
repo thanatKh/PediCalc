@@ -165,6 +165,37 @@ h1{font-family:'Kanit',sans-serif;font-weight:600;color:#0d6e6e;font-size:1.1rem
   } catch { /* tab unreachable */ }
 }
 
+/* Inline PDF viewer page written directly to a new tab using a local blob URL.
+   Used on desktop/Android — avoids the SW round-trip that causes Chrome's PDF
+   plugin download button to show "file wasn't available on site". The blob URL
+   is origin-scoped and stays valid as long as the PediCalc tab is open.
+   <a download> bypasses Windows file-association lookup for the type label. */
+function buildViewerHtml(blobUrl, filename) {
+  return `<!doctype html>
+<html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${filename}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;display:flex;flex-direction:column;overflow:hidden}
+#bar{height:44px;flex-shrink:0;display:flex;align-items:center;padding:0 14px;gap:10px;background:#0d6e6e}
+#bar-name{color:rgba(255,255,255,.8);font-family:system-ui,-apple-system,sans-serif;font-size:13px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#save-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:#fff;color:#0d6e6e;border-radius:6px;font-family:system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;text-decoration:none;flex-shrink:0}
+embed{flex:1;width:100%;display:block}
+</style>
+</head><body>
+<div id="bar">
+  <span id="bar-name">${filename}</span>
+  <a id="save-btn" download="${filename}" href="${blobUrl}">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Save PDF
+  </a>
+</div>
+<embed src="${blobUrl}" type="application/pdf">
+</body></html>`;
+}
+
 export function useTPNForm(hospital) {
   const [inputs, setInputs] = useState(DEFAULTS);
   const [isExporting, startExportTransition] = useTransition();
@@ -216,21 +247,34 @@ export function useTPNForm(hospital) {
         const element = createElement(TPNPdfTemplate, { inputs, results, logoUrl, hospital });
         const blob    = await pdf(element).toBlob();
 
-        // SW-backed URL carries the correct filename in the path.
-        // storePdfInSW waits up to 15s for the SW to become active before giving up.
-        const swPath = await storePdfInSW(blob, filename);
+        // iOS: SW-backed URL → native PDF viewer + share sheet with correct filename.
+        // Desktop/Android: write viewer HTML directly to the tab using a local blob URL.
+        //   - blob URL is origin-scoped, no server request needed to save
+        //   - <a download> guarantees correct filename; "file wasn't available" impossible
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-        if (swPath) {
-          if (tab && !tab.closed) {
-            tab.location.href = swPath;
+        if (isIOS) {
+          const swPath = await storePdfInSW(blob, filename);
+          if (swPath) {
+            if (tab && !tab.closed) tab.location.href = swPath;
+            else window.open(swPath, '_blank');
           } else {
-            window.open(swPath, '_blank');
+            writeNoSWErrorPage(tab);
           }
         } else {
-          // SW truly unavailable after the wait — show a friendly retry page.
-          // This should almost never happen on production; only on very first visit
-          // when user clicks Export before SW has finished installing.
-          writeNoSWErrorPage(tab);
+          const blobUrl = URL.createObjectURL(new File([blob], filename, { type: 'application/pdf' }));
+          if (tab && !tab.closed) {
+            try {
+              tab.document.open();
+              tab.document.write(buildViewerHtml(blobUrl, filename));
+              tab.document.close();
+            } catch {
+              // tab navigated away — fall back to direct blob navigation
+              tab.location.href = blobUrl;
+            }
+          } else {
+            window.open(blobUrl, '_blank');
+          }
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
