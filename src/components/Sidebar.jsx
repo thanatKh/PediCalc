@@ -243,7 +243,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
         style={{ background: 'hsl(0 0% 99%)', boxShadow: '1px 0 0 0 hsl(210 18% 90%)' }}
       >
 
-        {/* ── Top bar: brand name + collapse button ── */}
+        {/* ── Top bar: brand name (no collapse button) ── */}
         <div
           className={`flex items-center border-b border-slate-100 ${open ? 'px-3 gap-2' : 'justify-center px-0'}`}
           style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', paddingBottom: '0.75rem', minHeight: 'calc(env(safe-area-inset-top) + 3.5rem)' }}
@@ -260,6 +260,7 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
                 <div className="min-w-0">
                   <p className="font-mitr text-lg font-bold text-teal-600 leading-tight">PediCalc</p>
                   <p className="text-xs text-slate-400 font-sans tracking-wide">Pediatric Drug Calculator</p>
+                  <p className="text-[10px] font-sans font-semibold text-slate-500 leading-snug mt-0.5">จัดทำโดย พญ.สมิตา สมโภชน์</p>
                 </div>
               </div>
               <button
@@ -365,18 +366,13 @@ export default function Sidebar({ activeKey, onSelect, hospital, setHospital }) 
           })}
         </nav>
 
-        {/* ── Footer: version + author ── */}
+        {/* ── Footer: version ── */}
         <div
           className={`border-t border-slate-100 ${open ? 'px-3 pt-3' : 'px-1.5 pt-2'}`}
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
         >
           {open ? (
-            <div className="space-y-0.5">
-              <p className="text-[10px] font-sans font-semibold text-slate-500 leading-snug">
-                จัดทำโดย พญ.สมิตา สมโภชน์
-              </p>
-              <p className="text-[9px] text-slate-400 font-sans tracking-wider">v1.0.0 · PediCalc</p>
-            </div>
+            <p className="text-[9px] text-slate-400 font-sans tracking-wider">v1.0.0 · PediCalc</p>
           ) : (
             <div className="flex justify-center">
               <span className="w-1 h-1 rounded-full bg-slate-300" />
