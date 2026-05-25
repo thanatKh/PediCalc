@@ -44,29 +44,44 @@ function buildFilename(inputs) {
   return `${base}.pdf`;
 }
 
-/* Returns navigator.serviceWorker.controller, waiting up to `ms` for it to appear
-   (covers the window between SW version bump + clients.claim() and next reload). */
-async function getController(ms = 3000) {
+/* Robustly resolve an active SW that can receive REGISTER_PDF.
+   - If controller is set, use it (best case).
+   - Otherwise wait for navigator.serviceWorker.ready (resolves once SW for our scope is active).
+   - Or wait for controllerchange (covers the post-update reload window).
+   The navigation to /pdf-preview/... will be intercepted as long as a SW is active
+   for the scope, even before this page is controlled — so registration.active is fine. */
+async function getActiveSW(ms = 15000) {
   if (!('serviceWorker' in navigator)) return null;
   if (navigator.serviceWorker.controller) return navigator.serviceWorker.controller;
+
   return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      navigator.serviceWorker.removeEventListener('controllerchange', onchange);
-      resolve(null);
-    }, ms);
-    function onchange() {
+    let resolved = false;
+    const done = (sw) => {
+      if (resolved) return;
+      resolved = true;
+      navigator.serviceWorker.removeEventListener('controllerchange', onChange);
       clearTimeout(timer);
-      navigator.serviceWorker.removeEventListener('controllerchange', onchange);
-      resolve(navigator.serviceWorker.controller);
+      resolve(sw);
+    };
+    function onChange() {
+      if (navigator.serviceWorker.controller) done(navigator.serviceWorker.controller);
     }
-    navigator.serviceWorker.addEventListener('controllerchange', onchange);
+    navigator.serviceWorker.addEventListener('controllerchange', onChange);
+    const timer = setTimeout(() => done(null), ms);
+
+    navigator.serviceWorker.ready
+      .then((reg) => {
+        if (navigator.serviceWorker.controller) done(navigator.serviceWorker.controller);
+        else if (reg?.active) done(reg.active);
+      })
+      .catch(() => { /* fall through to timeout */ });
   });
 }
 
 /* Stores a PDF blob in the SW cache and returns the /pdf-preview/{filename} path.
-   Returns null on timeout or if no SW is available (dev mode). */
+   Returns null if no SW is available after the wait. */
 async function storePdfInSW(blob, filename) {
-  const sw = await getController();
+  const sw = await getActiveSW();
   if (!sw) return null;
 
   const buffer  = await blob.arrayBuffer();
@@ -82,43 +97,72 @@ async function storePdfInSW(blob, filename) {
   });
 }
 
-/* Builds a full-viewport HTML viewer used when the SW is not yet active (dev / first load).
-   The <embed> renders the PDF inline. A small floating button lets the user save with the
-   correct clinical filename — the native viewer's own save would use the blob UUID. */
-function buildPreviewHtml(pdfBlobUrl, filename) {
-  return `<!doctype html>
-<html lang="th">
-<head>
+/* Loading splash written into the freshly opened blank tab while we wait for
+   PDF generation + SW activation. Keeps the tab from looking broken. */
+function writeLoadingSplash(tab) {
+  if (!tab || tab.closed) return;
+  try {
+    tab.document.open();
+    tab.document.write(`<!doctype html>
+<html lang="th"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${filename}</title>
+<title>กำลังเตรียม PDF…</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:#525659}
-embed{position:fixed;inset:0;width:100%;height:100%;border:none}
-.save-btn{
-  position:fixed;bottom:1.25rem;right:1.25rem;z-index:10;
-  display:flex;align-items:center;gap:.4rem;
-  background:#0d6e6e;color:#fff;border:none;border-radius:.625rem;
-  padding:.5rem 1rem;font-size:.8rem;font-weight:600;font-family:system-ui,sans-serif;
-  text-decoration:none;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.3);
-  transition:background .15s;
+*{margin:0;box-sizing:border-box}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#fff;font-family:system-ui,sans-serif;color:#0d6e6e}
+.wrap{display:flex;align-items:center;gap:.875rem}
+.spinner{width:28px;height:28px;border:3px solid #d4e9e9;border-top-color:#0d6e6e;
+  border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.msg{font-size:.95rem;font-weight:600}
+</style></head><body>
+<div class="wrap"><div class="spinner"></div><span class="msg">กำลังเตรียม PDF…</span></div>
+</body></html>`);
+    tab.document.close();
+  } catch { /* tab unreachable — let later steps handle it */ }
 }
-.save-btn:hover{background:#095555}
-</style>
-</head>
-<body>
-<embed src="${pdfBlobUrl}" type="application/pdf">
-<a class="save-btn" href="${pdfBlobUrl}" download="${filename}">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-  บันทึก ${filename}
-</a>
-</body>
-</html>`;
+
+/* Shown in the tab when the SW failed to activate within the wait window.
+   Rare: only triggers on first-ever load if user clicks Export instantly. */
+function writeNoSWErrorPage(tab) {
+  if (!tab || tab.closed) return;
+  try {
+    tab.document.open();
+    tab.document.write(`<!doctype html>
+<html lang="th"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบยังไม่พร้อม — PediCalc</title>
+<style>
+@font-face{font-family:'Sarabun';src:url('/fonts/Sarabun-Regular.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Sarabun';src:url('/fonts/Sarabun-SemiBold.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:'Kanit';src:url('/fonts/Kanit-SemiBold.ttf') format('truetype');font-weight:600;font-display:swap}
+*{margin:0;box-sizing:border-box}
+body{min-height:100svh;display:flex;align-items:center;justify-content:center;
+  background:#fff;font-family:'Sarabun',system-ui,sans-serif;padding:2rem;text-align:center}
+.card{background:#fff;border:1px solid #d4e9e9;border-radius:1.25rem;
+  padding:2rem 2.5rem;max-width:340px;
+  box-shadow:0 4px 24px rgba(13,110,110,.08)}
+.brand{font-family:'Kanit',sans-serif;font-weight:600;font-size:.8rem;
+  color:#0d6e6e;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem;opacity:.7}
+.icon{font-size:2.25rem;margin-bottom:.875rem}
+h1{font-family:'Kanit',sans-serif;font-weight:600;color:#0d6e6e;font-size:1.1rem;margin-bottom:.625rem}
+.sub{color:#64748b;font-size:.875rem;line-height:1.6;margin-bottom:1.5rem}
+.btn{display:inline-block;background:#0d6e6e;color:#fff;text-decoration:none;
+  padding:.625rem 1.5rem;border-radius:.75rem;font-size:.875rem;font-weight:600;cursor:pointer}
+</style></head><body>
+<div class="card">
+  <p class="brand">PediCalc</p>
+  <div class="icon">⏳</div>
+  <h1>ระบบยังไม่พร้อม</h1>
+  <p class="sub">กรุณารีเฟรชหน้าหลักหนึ่งครั้ง<br>แล้วลองสร้าง PDF ใหม่อีกครั้ง</p>
+  <button class="btn" onclick="window.close()">ปิดหน้านี้</button>
+</div>
+</body></html>`);
+    tab.document.close();
+  } catch { /* tab unreachable */ }
 }
 
 export function useTPNForm(hospital) {
@@ -147,6 +191,7 @@ export function useTPNForm(hospital) {
 
     // Open synchronously during the user gesture — beats popup blockers on all platforms.
     const tab = window.open('', '_blank');
+    writeLoadingSplash(tab);
 
     startExportTransition(async () => {
       try {
@@ -172,33 +217,23 @@ export function useTPNForm(hospital) {
         const blob    = await pdf(element).toBlob();
 
         // SW-backed URL carries the correct filename in the path.
+        // storePdfInSW waits up to 15s for the SW to become active before giving up.
         const swPath = await storePdfInSW(blob, filename);
 
         if (swPath) {
-          // SW active — navigate the pre-opened tab to the named PDF URL.
           if (tab && !tab.closed) {
             tab.location.href = swPath;
           } else {
             window.open(swPath, '_blank');
           }
         } else {
-          // SW not yet active (dev mode / very first load).
-          // Write the HTML viewer directly into the pre-opened blank tab so it stays
-          // at about:blank (no blob UUID in the address bar). The <embed> renders the
-          // PDF inline; the download link saves with the correct filename.
-          const blobUrl = URL.createObjectURL(blob);
-          const targetTab = (tab && !tab.closed) ? tab : window.open('', '_blank');
-          if (targetTab) {
-            targetTab.document.open();
-            targetTab.document.write(buildPreviewHtml(blobUrl, filename));
-            targetTab.document.close();
-          }
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10 * 60 * 1000);
+          // SW truly unavailable after the wait — show a friendly retry page.
+          // This should almost never happen on production; only on very first visit
+          // when user clicks Export before SW has finished installing.
+          writeNoSWErrorPage(tab);
         }
       } catch (err) {
         console.error('Export PDF failed:', err);
-        // Write a Thai error page into the blank tab (still same-origin at this point).
-        // If the tab already navigated away, close it and fall back to alert().
         let wroteToTab = false;
         try {
           if (tab && !tab.closed) {
