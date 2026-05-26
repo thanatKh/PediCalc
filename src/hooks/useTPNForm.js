@@ -27,7 +27,6 @@ export const DEFAULTS = {
   ageDay: '',
   height: '',
   bw: '',
-  patientType: 'newborn',
   lineType: 'central',
   volumeTarget: '120',
   dextrosePct: '10',
@@ -45,7 +44,6 @@ export const DEFAULTS = {
   vitalipidOverride:  '',
   pediatraceOverride: '',
   manualTPNRate: '',
-  manualLipidRate: '',
   urineOutput: false,
 };
 

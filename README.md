@@ -2,7 +2,7 @@
 
 **Pediatric Clinical Calculator — เครื่องคำนวณทางคลินิกสำหรับเด็ก**
 
-PediCalc is a multi-module, multi-hospital Progressive Web App (PWA) for pediatric and neonatal clinical use in Thai hospitals. It provides real-time calculations with built-in Clinical Decision Support (CDS) based on Thai national guidelines (PediNAT B.E. 2565).
+PediCalc is a multi-module, multi-hospital Progressive Web App (PWA) for pediatric and neonatal clinical use in Thai hospitals. It provides real-time calculations with built-in Clinical Decision Support (CDS) based on Thai national guidelines (PedNAT B.E. 2565).
 
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
@@ -25,7 +25,7 @@ PediCalc is a multi-module, multi-hospital Progressive Web App (PWA) for pediatr
 ## Features
 
 - **Real-time calculation** — all results update instantly as inputs change
-- **Clinical Decision Support (CDS)** — 15-parameter tiered alerts (critical / caution) based on PediNAT 2565: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio
+- **Clinical Decision Support (CDS)** — 15-parameter tiered alerts (critical / caution) based on PedNAT 2565: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio
 - **Hard input validation** — blocks PDF export when values are outside safe clinical ranges; amber warnings for out-of-range but permissible values
 - **PDF export** — opens in a new browser tab as a native PDF (A4, hospital logo, Thai fonts Sarabun + Kanit, full CDS alert summary); on iOS/Android users share directly from the browser's native share sheet with the correct filename
 - **Multi-hospital** — hospital identity (logo, color) scoped to the PDF header and hospital picker; app chrome stays consistently teal
@@ -102,7 +102,7 @@ src/
 │       ├── IngredientsTable.jsx
 │       └── ClinicalAlertsPanel.jsx
 public/
-├── sw.js                          # Service Worker v11 — app shell, PDF preview intercept, stale-URL redirect
+├── sw.js                          # Service Worker v20 — app shell, PDF preview intercept, stale-URL redirect
 ├── manifest.webmanifest           # PWA manifest (standalone, teal, Thai)
 ├── logo-pedicale.PNG              # PediCalc app logo (web UI, PWA icons source)
 ├── logo-kabinburi.PNG             # Kabinburi hospital logo (PDF)
@@ -115,7 +115,7 @@ public/
 
 ## Clinical Reference
 
-- **PediNAT B.E. 2565** — Thai Neonatal Nutrition Guideline
+- **PedNAT B.E. 2565** — Pediatric Nutrition Association of Thailand Neonatal Nutrition Guideline
 - **ASPEN / ESPGHAN** neonatal nutrition guidelines (energy, NPC:N ratio)
 
 ---

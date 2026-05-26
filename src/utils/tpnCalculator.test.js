@@ -4,7 +4,6 @@ import { calculateTPN } from './tpnCalculator';
 // Shared baseline — typical 1 kg newborn on central TPN
 const BASE = {
   bw: '1',
-  patientType: 'newborn',
   lineType: 'central',
   volumeTarget: '120',
   dextrosePct: '10',

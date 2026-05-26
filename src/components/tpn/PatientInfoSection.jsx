@@ -7,7 +7,7 @@ import { NumberField, SectionCard } from './ui';
 
 function PatientInfoSection({
   name, hn, ward, startDate, height, ageMonth, ageDay,
-  bw, volumeTarget, patientType, lineType, urineOutput,
+  bw, volumeTarget, lineType, urineOutput,
   namePlaceholder,
   update,
   fluidTier, fluidMessage,
@@ -82,21 +82,6 @@ function PatientInfoSection({
 
         {/* Patient type + Line type + Urine output toggles */}
         <div className="col-span-2 md:col-span-4 mt-1 flex flex-wrap items-center gap-2 px-3 py-2.5 rounded-xl ring-1 ring-slate-200/80 bg-slate-50">
-
-          <label htmlFor="patientType" className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer hover:bg-white/80 transition-colors">
-            <Switch
-              id="patientType"
-              checked={patientType === 'newborn'}
-              onCheckedChange={(c) => update('patientType')(c ? 'newborn' : 'pediatric')}
-            />
-            <span className="text-sm font-sans leading-tight whitespace-nowrap">
-              {patientType === 'newborn'
-                ? <><span className="font-semibold text-teal-600">Newborn</span><span className="text-slate-400"> · 25 ml</span></>
-                : <><span className="font-semibold text-slate-600">เด็กโต</span><span className="text-slate-400"> · &gt;10 kg</span></>}
-            </span>
-          </label>
-
-          <div className="w-px h-6 bg-slate-200 shrink-0" />
 
           <label htmlFor="lineType" className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer hover:bg-white/80 transition-colors">
             <Switch

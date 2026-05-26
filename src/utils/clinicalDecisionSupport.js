@@ -1,5 +1,5 @@
 // Dynamic Medical Decision Support
-// All thresholds reference: Thai Neonatal Nutrition Guideline (PediNAT) B.E. 2565
+// All thresholds reference: Thai Neonatal Nutrition Guideline (PedNAT) B.E. 2565
 // English messages only. Critical tier does NOT block export — physician decides.
 
 import { fmt } from './fmt';
@@ -20,7 +20,7 @@ import {
   CA_INORGANIC_PO4_MODERATE, CA_INORGANIC_PO4_CRITICAL,
   CA_ORGANIC_PO4_MODERATE, CA_ORGANIC_PO4_CRITICAL,
   ENERGY_CRITICAL_LOW, ENERGY_MODERATE_LOW, ENERGY_MODERATE_HIGH, ENERGY_CRITICAL_HIGH,
-  NPC_N_CRITICAL_LOW, NPC_N_MODERATE_LOW, NPC_N_MODERATE_HIGH, NPC_N_CRITICAL_HIGH,
+  NPC_N_SAFE_MIN, NPC_N_SAFE_MAX,
   MAX_SOLUVIT_ML, MAX_VITALIPID_ML, MAX_PEDIATRACE_ML,
 } from './clinicalConstants';
 
@@ -38,7 +38,7 @@ export function evaluateClinicalTiers(inputs, results) {
   const isPeripheral = inputs.lineType === 'peripheral';
   const checks       = {};
 
-  // ── 1. Fluid Volume (ml/kg/day) — PediNAT p.21 ──────────────────────────
+  // ── 1. Fluid Volume (ml/kg/day) — PedNAT p.21 ──────────────────────────
   const fluid = n(inputs.volumeTarget);
   if (fluid > 0) {
     if (fluid < FLUID_CRITICAL_LOW)
@@ -61,7 +61,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.fluid = mk('safe', fluid);
   }
 
-  // ── 2. GIR (mg/kg/min) — PediNAT metabolic section ─────────────────────
+  // ── 2. GIR (mg/kg/min) — PedNAT metabolic section ─────────────────────
   const gir = results.gir;
   if (gir !== null) {
     if (gir > GIR_MAX_SAFE)
@@ -80,12 +80,12 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.gir = mk('safe', gir);
   }
 
-  // ── 3. Amino Acids / Protein (g/kg/day) — PediNAT p.94 ──────────────────
+  // ── 3. Amino Acids / Protein (g/kg/day) — PedNAT p.94 ──────────────────
   const aa = n(inputs.proteinTarget);
   if (aa > 0) {
     if (aa > AA_CRITICAL_HIGH)
       checks.protein = mk('critical', aa,
-        `Amino acids ${aa} g/kg/day exceeds PediNAT maximum (${AA_CRITICAL_HIGH})`,
+        `Amino acids ${aa} g/kg/day exceeds PedNAT maximum (${AA_CRITICAL_HIGH})`,
         'Azotemia and metabolic acidosis risk. Reduce amino acid dose.');
     else if (aa > AA_MODERATE_HIGH)
       checks.protein = mk('moderate', aa,
@@ -103,14 +103,14 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.protein = mk('safe', aa);
   }
 
-  // ── 4. Lipid (g/kg/day) + Fat Infusion Rate — PediNAT p.94 ─────────────
+  // ── 4. Lipid (g/kg/day) + Fat Infusion Rate — PedNAT p.94 ─────────────
   const lipid       = n(inputs.lipidTarget);
   const fatGKgHr    = results.fatRateGKgHr ?? 0;
   const fatRateHigh = results.fatRateHigh ?? false;
   if (lipid > 0) {
     if (lipid > LIPID_CRITICAL_HIGH || fatRateHigh)
       checks.lipid = mk('critical', lipid,
-        `Lipid ${lipid} g/kg/day exceeds PediNAT maximum (${LIPID_CRITICAL_HIGH}) · Fat rate: ${fatGKgHr.toFixed(3)} g/kg/hr`,
+        `Lipid ${lipid} g/kg/day exceeds PedNAT maximum (${LIPID_CRITICAL_HIGH}) · Fat rate: ${fatGKgHr.toFixed(3)} g/kg/hr`,
         'Fat Overload Syndrome risk. Reduce lipid dose immediately.');
     else if (fatGKgHr > FAT_RATE_MODERATE_HIGH)
       checks.lipid = mk('moderate', lipid,
@@ -128,7 +128,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.lipid = mk('safe', lipid);
   }
 
-  // ── 5. Sodium (mEq/kg/day) — PediNAT p.21, DOL-aware ───────────────────
+  // ── 5. Sodium (mEq/kg/day) — PedNAT p.21, DOL-aware ───────────────────
   const totalNa = results.totalNaActual ?? (n(inputs.na3PctTarget) + n(inputs.naGlyceroTarget));
   // Only evaluate if any Na is being given or there is a Na input
   if (n(inputs.na3PctTarget) > 0 || n(inputs.naGlyceroTarget) > 0 || totalNa > 0) {
@@ -148,7 +148,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.na = mk('safe', totalNa);
   }
 
-  // ── 6. Potassium (mEq/kg/day) — PediNAT p.21, DOL + urine output aware ──
+  // ── 6. Potassium (mEq/kg/day) — PedNAT p.21, DOL + urine output aware ──
   const totalK = results.totalKActual ?? (n(inputs.k15PctTarget) + n(inputs.k2hpo4Target));
   if (n(inputs.k15PctTarget) > 0 || n(inputs.k2hpo4Target) > 0 || totalK > 0) {
     if (totalK > K_CRITICAL_HIGH)
@@ -171,7 +171,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.k = mk('safe', totalK);
   }
 
-  // ── 7. Calcium (mmol/kg/day) — PediNAT p.94 ────────────────────────────
+  // ── 7. Calcium (mmol/kg/day) — PedNAT p.94 ────────────────────────────
   const ca = n(inputs.caTarget);
   if (ca > 0) {
     if (ca > CA_CDS_CRITICAL_HIGH)
@@ -190,7 +190,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.ca = mk('safe', ca);
   }
 
-  // ── 8. Phosphate (mmol/kg/day) — PediNAT p.94, p.29 ────────────────────
+  // ── 8. Phosphate (mmol/kg/day) — PedNAT p.94, p.29 ────────────────────
   const po4 = results.totalPO4 ?? 0;
   const hasPO4Input = n(inputs.naGlyceroTarget) > 0 || n(inputs.k2hpo4Target) > 0;
   if (hasPO4Input || po4 > 0) {
@@ -214,7 +214,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.po4 = mk('safe', po4);
   }
 
-  // ── 9. Magnesium (mEq/kg/day) — PediNAT p.94 ───────────────────────────
+  // ── 9. Magnesium (mEq/kg/day) — PedNAT p.94 ───────────────────────────
   const mg = n(inputs.mgTarget);
   if (mg > 0) {
     if (mg > MG_CDS_CRITICAL_HIGH)
@@ -307,31 +307,23 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.energy = mk('safe', kcalPerKg);
   }
 
-  // ── 12. NPC:N Ratio (kcal non-protein : g nitrogen) — ASPEN/ESPGHAN ────
+  // ── 12. NPC:N Ratio (kcal non-protein : g nitrogen) ────────────────────
   const npcN = results.npcN ?? 0;
   const hasProtein = n(inputs.proteinTarget) > 0;
   if (hasProtein && npcN > 0) {
-    if (npcN < NPC_N_CRITICAL_LOW)
+    if (npcN < NPC_N_SAFE_MIN)
       checks.npcn = mk('critical', npcN,
-        `NPC:N ratio ${Math.round(npcN)} kcal/g N critically low (< ${NPC_N_CRITICAL_LOW})`,
-        'Protein being oxidised as energy instead of for anabolism. Increase dextrose/lipid or reduce protein.');
-    else if (npcN < NPC_N_MODERATE_LOW)
-      checks.npcn = mk('moderate', npcN,
-        `NPC:N ratio ${Math.round(npcN)} kcal/g N below target range (${NPC_N_MODERATE_LOW}–${NPC_N_MODERATE_HIGH})`,
-        'Suboptimal protein utilisation. Consider increasing non-protein calories.');
-    else if (npcN > NPC_N_CRITICAL_HIGH)
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N below safe range (< ${NPC_N_SAFE_MIN})`,
+        'Protein may be oxidised as energy. Consider increasing dextrose or lipid, or reducing protein.');
+    else if (npcN > NPC_N_SAFE_MAX)
       checks.npcn = mk('critical', npcN,
-        `NPC:N ratio ${Math.round(npcN)} kcal/g N critically high (> ${NPC_N_CRITICAL_HIGH})`,
-        'Severe caloric excess relative to protein — overfeeding risk. Reduce dextrose or lipid.');
-    else if (npcN > NPC_N_MODERATE_HIGH)
-      checks.npcn = mk('moderate', npcN,
-        `NPC:N ratio ${Math.round(npcN)} kcal/g N above target range (${NPC_N_MODERATE_LOW}–${NPC_N_MODERATE_HIGH})`,
-        'Excess non-protein calories relative to protein. Consider reducing dextrose or lipid.');
+        `NPC:N ratio ${Math.round(npcN)} kcal/g N above safe range (> ${NPC_N_SAFE_MAX})`,
+        'Excess non-protein calories relative to protein — overfeeding risk. Consider reducing dextrose or lipid.');
     else
       checks.npcn = mk('safe', npcN);
   }
 
-  // ── 13. Osmolarity — PediNAT p.21, p.51 (peripheral line only) ──────────
+  // ── 13. Osmolarity — PedNAT p.21, p.51 (peripheral line only) ──────────
   const osmo = results.estOsmolarity ?? 0;
   if (osmo > 0 && isPeripheral) {
     if (osmo > OSMOLARITY_PERIPHERAL_MAX)
@@ -381,7 +373,7 @@ export function evaluateClinicalTiers(inputs, results) {
       checks.pediatrace = mk('safe', pediatraceVal);
   }
 
-  // ── 15. Dextrose % — PediNAT p.21 (peripheral line only) ────────────────
+  // ── 15. Dextrose % — PedNAT p.21 (peripheral line only) ────────────────
   const dexPct = n(inputs.dextrosePct);
   if (dexPct > 0 && isPeripheral) {
     if (dexPct > DEXTROSE_PERIPHERAL_LIMIT)

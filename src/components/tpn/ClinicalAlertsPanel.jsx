@@ -67,7 +67,7 @@ export default function ClinicalAlertsPanel({ cds = {}, validation, onNavigate }
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold font-sans leading-tight">All parameters within safe range</p>
-          <p className="text-xs font-sans text-emerald-500/80 mt-0.5 leading-none">PediNAT 2565 ✓</p>
+          <p className="text-xs font-sans text-emerald-500/80 mt-0.5 leading-none">PedNAT 2565 ✓</p>
         </div>
         <span className="shrink-0 text-[10px] font-sans font-semibold text-emerald-400/60 tracking-wide uppercase">
           CDS
@@ -126,7 +126,7 @@ export default function ClinicalAlertsPanel({ cds = {}, validation, onNavigate }
           )}
         </div>
 
-        <span className="text-xs text-slate-500 font-sans font-semibold">PediNAT 2565</span>
+        <span className="text-xs text-slate-500 font-sans font-semibold">PedNAT 2565</span>
       </div>
 
       {/* ── Alert rows ── */}

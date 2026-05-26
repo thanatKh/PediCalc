@@ -12,10 +12,10 @@ export function validateTPNInputs(inputs) {
   const bw          = parseFloat(inputs.bw);
   const heparinConc = parseFloat(inputs.heparinConc);
 
-  // ── Body weight — software sanity (not a PediNAT clinical limit) ────────
+  // ── Body weight — software sanity (not a PedNAT clinical limit) ────────
   if (!isNaN(bw)) {
     if (bw < 0.3)  errors.push(`BW ${bw} kg is below 0.3 kg — please verify the entered value.`);
-    if (bw > 20)   errors.push(`BW ${bw} kg exceeds 20 kg — this calculator is for neonatal/pediatric use only.`);
+    if (bw > 10)   errors.push(`BW ${bw} kg exceeds 10 kg — this calculator is for neonatal use only (BW ≤ 10 kg).`);
   }
 
   // ── Heparin concentration — institutional safety limit ───────────────────

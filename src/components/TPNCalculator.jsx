@@ -232,7 +232,7 @@ export default function TPNCalculator({ hospital }) {
             name={inputs.name}           hn={inputs.hn}               ward={inputs.ward}
             startDate={inputs.startDate} height={inputs.height}        ageMonth={inputs.ageMonth}
             ageDay={inputs.ageDay}       bw={inputs.bw}                volumeTarget={inputs.volumeTarget}
-            patientType={inputs.patientType}  lineType={inputs.lineType}  urineOutput={inputs.urineOutput}
+            lineType={inputs.lineType}  urineOutput={inputs.urineOutput}
             namePlaceholder={namePlaceholder}
             update={update}
             fluidTier={cds.fluid?.tier}       fluidMessage={cds.fluid?.message}
@@ -277,8 +277,6 @@ export default function TPNCalculator({ hospital }) {
 
           <RateSection
             manualTPNRate={inputs.manualTPNRate}
-            manualLipidRate={inputs.manualLipidRate}
-            lipidRate={results?.lipidRate}
             gir={results?.gir}
             girHigh={results?.girHigh ?? false}
             girLow={results?.girLow  ?? false}

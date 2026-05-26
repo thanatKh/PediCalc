@@ -25,7 +25,7 @@ function MacroSection({
         />
         <NumberField
           id="proteinTarget"
-          label="Protein target"
+          label="Protein (10% Aminoven Infant)"
           suffix="g/kg"
           value={proteinTarget}
           onChange={update('proteinTarget')}
@@ -35,7 +35,7 @@ function MacroSection({
         />
         <NumberField
           id="lipidTarget"
-          label="Lipid target"
+          label="Lipid"
           suffix="g/kg"
           value={lipidTarget}
           onChange={update('lipidTarget')}

@@ -2,16 +2,13 @@ import { memo } from 'react';
 import { AlertTriangle, CheckCircle2, Gauge } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { fmt, NumberField, SectionCard } from './ui';
-import { LIPID_RATE_WARN_THRESHOLD } from '@/utils/clinicalConstants';
 
 function RateSection({
-  manualTPNRate, manualLipidRate,
-  lipidRate, gir, girHigh, girLow,
+  manualTPNRate,
+  gir, girHigh, girLow,
   update,
 }) {
-  const manualLipidRateNum = parseFloat(manualLipidRate);
-  const calcLipidRate      = lipidRate ?? 0;
-  const hasRate            = manualTPNRate !== '' && parseFloat(manualTPNRate) > 0;
+  const hasRate = manualTPNRate !== '' && parseFloat(manualTPNRate) > 0;
 
   return (
     <SectionCard title="Prescribed Rates · อัตราหยดที่สั่ง" icon={Gauge}>
@@ -47,29 +44,6 @@ function RateSection({
           )}
         </div>
 
-        {/* Lipid Rate */}
-        <div className="space-y-1.5">
-          <NumberField
-            id="manualLipidRate"
-            label="Lipid rate (สั่งจริง)"
-            suffix="ml/hr"
-            value={manualLipidRate}
-            onChange={update('manualLipidRate')}
-            step="0.1"
-            hint={`คำนวณได้ ${fmt(lipidRate, 1)} ml/hr`}
-          />
-          {!isNaN(manualLipidRateNum) && manualLipidRate !== '' && (
-            <Badge className={`gap-1.5 px-2.5 py-1.5 text-sm font-semibold font-sans rounded-lg h-auto w-full justify-start border ${
-              Math.abs(manualLipidRateNum - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
-                ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50'
-                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50'
-            }`}>
-              {Math.abs(manualLipidRateNum - calcLipidRate) > LIPID_RATE_WARN_THRESHOLD
-                ? <><AlertTriangle size={13} className="shrink-0" />ต่างจากคำนวณ {fmt(Math.abs(manualLipidRateNum - calcLipidRate), 1)} ml/hr</>
-                : <><CheckCircle2 size={13} className="shrink-0" />ใกล้เคียงกับที่คำนวณ</>}
-            </Badge>
-          )}
-        </div>
       </div>
     </SectionCard>
   );

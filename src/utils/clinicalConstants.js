@@ -81,67 +81,64 @@ export const DEXTROSE_PERIPHERAL_LIMIT = 12.5;  // %   — max for peripheral li
 export const OSMOLARITY_PERIPHERAL_MAX = 900;   // mOsm/L — max for peripheral line
 export const FAT_RATE_MAX_G_KG_HR      = 0.17;  // g/kg/hr — max lipid infusion rate
 
-// ── Rate variance warning (prescribed vs calculated) ──────────────────────
-export const LIPID_RATE_WARN_THRESHOLD = 0.5;   // ml/hr
-
 // ─────────────────────────────────────────────────────────────────────────────
-// PediNAT 2565 Clinical Decision Support Thresholds
-// Reference: Thai Neonatal Nutrition Guideline (PediNAT) B.E. 2565
+// PedNAT 2565 Clinical Decision Support Thresholds
+// Reference: Thai Neonatal Nutrition Guideline (PedNAT) B.E. 2565
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Fluid (ml/kg/day) — PediNAT p.21 ────────────────────────────────────────
+// ── Fluid (ml/kg/day) — PedNAT p.21 ────────────────────────────────────────
 export const FLUID_CRITICAL_LOW      = 40;    // ml/kg/day
 export const FLUID_MODERATE_LOW      = 60;    // ml/kg/day
 export const FLUID_MODERATE_HIGH     = 170;   // ml/kg/day
 export const FLUID_CRITICAL_HIGH     = 180;   // ml/kg/day
 
-// ── GIR intermediate threshold — PediNAT neonatal metabolic section ──────────
+// ── GIR intermediate threshold — PedNAT neonatal metabolic section ──────────
 export const GIR_MODERATE_HIGH       = 10;    // mg/kg/min — approaching max (12)
 
-// ── Amino Acids / Protein (g/kg/day) — PediNAT p.94 ─────────────────────────
+// ── Amino Acids / Protein (g/kg/day) — PedNAT p.94 ─────────────────────────
 export const AA_CRITICAL_LOW         = 1.0;   // g/kg/day
 export const AA_MODERATE_LOW         = 1.5;   // g/kg/day
 export const AA_MODERATE_HIGH        = 3.5;   // g/kg/day
-export const AA_CRITICAL_HIGH        = 4.0;   // g/kg/day — PediNAT maximum
+export const AA_CRITICAL_HIGH        = 4.0;   // g/kg/day — PedNAT maximum
 
-// ── Lipid (g/kg/day) — PediNAT p.94 ────────────────────────────────────────
+// ── Lipid (g/kg/day) — PedNAT p.94 ────────────────────────────────────────
 export const LIPID_MODERATE_LOW      = 1.0;   // g/kg/day
 export const LIPID_MODERATE_HIGH     = 3.5;   // g/kg/day
-export const LIPID_CRITICAL_HIGH     = 4.0;   // g/kg/day — PediNAT maximum
+export const LIPID_CRITICAL_HIGH     = 4.0;   // g/kg/day — PedNAT maximum
 export const FAT_RATE_MODERATE_HIGH  = 0.12;  // g/kg/hr — approaching 0.17 limit
 
-// ── Sodium (mEq/kg/day) — PediNAT p.21 — DOL-aware ─────────────────────────
+// ── Sodium (mEq/kg/day) — PedNAT p.21 — DOL-aware ─────────────────────────
 export const NA_DOL_RESTRICTION_DAYS = 2;     // DOL ≤ this → Na restriction phase
 export const NA_RESTRICTION_MAX      = 2;     // mEq/kg/day — max during restriction
 export const NA_SAFE_MAX             = 4;     // mEq/kg/day — maintenance target
 export const NA_MODERATE_HIGH        = 5;     // mEq/kg/day
 export const NA_CRITICAL_HIGH        = 6;     // mEq/kg/day
 
-// ── Potassium (mEq/kg/day) — PediNAT p.21 — DOL + urine output aware ────────
+// ── Potassium (mEq/kg/day) — PedNAT p.21 — DOL + urine output aware ────────
 export const K_DOL_RESTRICTION_DAYS  = 3;     // DOL < this → K restriction phase
 export const K_SAFE_MAX              = 3;     // mEq/kg/day — maintenance target
 export const K_MODERATE_HIGH         = 3.5;   // mEq/kg/day — approaching limit (3–3.5 caution band)
 export const K_CRITICAL_HIGH         = 4;     // mEq/kg/day — hyperkalemia risk
 
-// ── Calcium (mmol/kg/day) — PediNAT p.94 ────────────────────────────────────
+// ── Calcium (mmol/kg/day) — PedNAT p.94 ────────────────────────────────────
 export const CA_CDS_SAFE_MIN         = 0.5;   // mmol/kg/day
 export const CA_CDS_SAFE_MAX         = 2.0;   // mmol/kg/day
 export const CA_CDS_CRITICAL_HIGH    = 2.5;   // mmol/kg/day
 
-// ── Phosphate (mmol/kg/day) — PediNAT p.94, p.29 ────────────────────────────
+// ── Phosphate (mmol/kg/day) — PedNAT p.94, p.29 ────────────────────────────
 export const PO4_TARGET_MIN          = 1.0;   // mmol/kg/day — minimum for preterm
 export const PO4_MODERATE_LOW        = 0.5;   // mmol/kg/day — below target
 export const PO4_SAFE_MAX            = 2.0;   // mmol/kg/day — upper safe limit
 export const PO4_MODERATE_HIGH       = 1.8;   // mmol/kg/day — approaching limit (caution band)
 export const PO4_CRITICAL_HIGH       = 2.5;   // mmol/kg/day — hyperphosphatemia risk
 
-// ── Magnesium (mEq/kg/day) — PediNAT p.94 ───────────────────────────────────
+// ── Magnesium (mEq/kg/day) — PedNAT p.94 ───────────────────────────────────
 export const MG_CDS_SAFE_MIN         = 0.3;   // mEq/kg/day
 export const MG_CDS_SAFE_MAX         = 0.5;   // mEq/kg/day
 export const MG_CDS_MODERATE_HIGH    = 0.7;   // mEq/kg/day
 export const MG_CDS_CRITICAL_HIGH    = 1.0;   // mEq/kg/day
 
-// ── Osmolarity peripheral warning — PediNAT p.21, p.51 ──────────────────────
+// ── Osmolarity peripheral warning — PedNAT p.21, p.51 ──────────────────────
 export const OSMO_MODERATE_HIGH      = 800;   // mOsm/L — approaching peripheral limit
 
 // (Ca×PO₄ moderate/critical thresholds moved to the two-source block above)
@@ -152,8 +149,6 @@ export const ENERGY_MODERATE_LOW     = 60;    // kcal/kg/day — below minimum f
 export const ENERGY_MODERATE_HIGH    = 110;   // kcal/kg/day — overfeeding caution
 export const ENERGY_CRITICAL_HIGH    = 130;   // kcal/kg/day — hepatic steatosis / CO₂ risk
 
-// ── NPC:N Ratio (kcal non-protein : g nitrogen) — ASPEN/ESPGHAN ─────────────
-export const NPC_N_CRITICAL_LOW      = 100;   // kcal/g N — protein used as energy
-export const NPC_N_MODERATE_LOW      = 150;   // kcal/g N — suboptimal protein utilization
-export const NPC_N_MODERATE_HIGH     = 200;   // kcal/g N — excess calories vs protein
-export const NPC_N_CRITICAL_HIGH     = 250;   // kcal/g N — overfeeding risk
+// ── NPC:N Ratio (kcal non-protein : g nitrogen) ──────────────────────────────
+export const NPC_N_SAFE_MIN          = 100;   // kcal/g N — lower bound (all patient types)
+export const NPC_N_SAFE_MAX          = 200;   // kcal/g N — upper bound (all patient types)

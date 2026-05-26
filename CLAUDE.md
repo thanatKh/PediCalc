@@ -64,7 +64,7 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 ### Clinical Decision Support
 
-`src/utils/clinicalDecisionSupport.js` — `evaluateClinicalTiers(inputs, results) → checks`. Evaluates 15 parameters against PediNAT B.E. 2565 thresholds: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio. Each check returns `{ tier, value, message, risk }` where `tier` is `'critical'` | `'moderate'` | `'safe'`.
+`src/utils/clinicalDecisionSupport.js` — `evaluateClinicalTiers(inputs, results) → checks`. Evaluates 15 parameters against PedNAT B.E. 2565 thresholds: fluid, GIR, protein, lipid, Na, K, Ca, PO₄, Mg, osmolarity, dextrose %, Ca×PO₄ precipitation, Ca/PO₄ balance, total energy, NPC:N ratio. Each check returns `{ tier, value, message, risk }` where `tier` is `'critical'` | `'moderate'` | `'safe'`.
 
 Key threshold notes (all in `clinicalConstants.js`):
 - **K:** safe ≤ 3, moderate 3–3.5 (`K_MODERATE_HIGH`), critical > 4 (`K_CRITICAL_HIGH`) — three distinct bands.
@@ -196,7 +196,7 @@ Do **not** render `TPNPdfTemplate` twice concurrently (font cache corruption). `
 
 ### shadcn/ui
 
-Style: `new-york`, base: `radix`, no TypeScript. Installed: alert-dialog, badge, button, card, input, label, number-ticker, progress, separator, shimmer-button, slider, switch, tooltip.
+Style: `new-york`, base: `radix`, no TypeScript. Installed: alert-dialog, badge, button, card, input, label, number-ticker, progress, separator, shimmer-button, switch, tooltip.
 
 ### Regression tests
 

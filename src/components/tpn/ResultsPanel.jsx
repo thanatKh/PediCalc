@@ -7,8 +7,8 @@ import ClinicalAlertsPanel from './ClinicalAlertsPanel';
 import {
   OSMOLARITY_PERIPHERAL_MAX,
   DEXTROSE_PERIPHERAL_LIMIT,
-  NPC_N_TARGET_MIN,
-  NPC_N_TARGET_MAX,
+  NPC_N_SAFE_MIN,
+  NPC_N_SAFE_MAX,
   FAT_RATE_MAX_G_KG_HR,
 } from '@/utils/clinicalConstants';
 
@@ -22,8 +22,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
   const girLow  = results?.girLow  ?? false;
   const girTone = gir === null ? 'slate' : girHigh || girLow ? 'amber' : 'emerald';
 
-  const manualLipidRate = parseFloat(inputs.manualLipidRate);
-  const fatRateHigh     = !!results?.fatRateHigh;
+  const fatRateHigh = !!results?.fatRateHigh;
 
   return (
     <div className="space-y-4 stagger">
@@ -43,7 +42,7 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
         </div>
       )}
 
-      {/* ── Clinical Decision Support — PediNAT 2565 tiered alerts ── */}
+      {/* ── Clinical Decision Support — PedNAT 2565 tiered alerts ── */}
       <div id="cds-alerts" aria-live="polite" aria-atomic="false">
         <ClinicalAlertsPanel cds={cds} validation={validation} onNavigate={onNavigate} />
       </div>
@@ -98,9 +97,6 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
                 : <><CheckCircle2 size={11} className="shrink-0" />≤{FAT_RATE_MAX_G_KG_HR}</>
               }
             </p>
-            {!isNaN(manualLipidRate) && inputs.manualLipidRate !== '' && (
-              <p className="text-xs text-slate-500 mt-1 font-semibold">สั่ง: {fmt(manualLipidRate, 1)} ml/hr</p>
-            )}
           </div>
         </div>
       </div>
@@ -145,10 +141,10 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
           <div className="flex justify-between items-center text-sm font-sans">
             <span className="text-slate-400">NPC:N ratio</span>
             <span className={`font-semibold ${
-              (results?.npcN ?? 0) < NPC_N_TARGET_MIN || (results?.npcN ?? 0) > NPC_N_TARGET_MAX
-                ? 'text-amber-600' : 'text-emerald-600'
+              (results?.npcN ?? 0) < NPC_N_SAFE_MIN || (results?.npcN ?? 0) > NPC_N_SAFE_MAX
+                ? 'text-rose-600' : 'text-emerald-600'
             }`}>
-              {fmt(results?.npcN, 0)}<span className="font-normal text-slate-400 ml-1">(target 150–200)</span>
+              {fmt(results?.npcN, 0)}<span className="font-normal text-slate-400 ml-1">(target {NPC_N_SAFE_MIN}–{NPC_N_SAFE_MAX})</span>
             </span>
           </div>
         </div>
