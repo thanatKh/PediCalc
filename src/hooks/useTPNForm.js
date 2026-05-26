@@ -133,9 +133,10 @@ function writeLoadingSplash(tab) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>กำลังเตรียม PDF…</title>
 <style>
+@font-face{font-family:"Sarabun";src:url("/fonts/Sarabun-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
 *{margin:0;box-sizing:border-box}
 body{min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:#fff;font-family:system-ui,sans-serif;color:#0d6e6e}
+  background:#fff;font-family:"Sarabun",system-ui,sans-serif;color:#0d6e6e;-webkit-font-smoothing:antialiased}
 .wrap{display:flex;align-items:center;gap:.875rem}
 .spinner{width:28px;height:28px;border:3px solid #d4e9e9;border-top-color:#0d6e6e;
   border-radius:50%;animation:spin .6s linear infinite}
