@@ -111,7 +111,8 @@ export const calculateTPN = (inputs) => {
   const activeSum =
     dextroseMl + aminovenMl +
     na3PctMl + naGlyceroml + k15PctMl + k2hpo4Ml +
-    caGluconateMl + mgso4Ml + soluvitMl + pediatraceMl;
+    caGluconateMl + mgso4Ml + soluvitMl + pediatraceMl +
+    heparinMl;
   const sterileWaterMl = tpnVolume - activeSum;
 
   // 7. GIR — REVERSE calculation from physician-prescribed TPN rate

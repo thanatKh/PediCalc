@@ -291,13 +291,15 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
     { name: '8.71% K2HPO4',
       targetVal: `K ${fmt(k2hpo4, 2)}`,         targetUnit: 'mEq/kg',    ml: results.k2hpo4Ml,      note: 'K + PO4 · 1 mEq K/0.5 mmol PO4/ml' },
     { name: '10% Calcium Gluconate',
-      targetVal: inputs.caTarget,               targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.225 mmol/ml (MW 448.4)' },
+      targetVal: inputs.caTarget,               targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.225 mmol/ml = 0.45 mEq/ml' },
     { name: '50% MgSO4',
       targetVal: inputs.mgTarget,               targetUnit: 'mEq/kg',    ml: results.mgso4Ml,       note: '4 mEq/ml' },
     { name: 'Soluvit-N',
       targetVal: '1',                           targetUnit: 'ml/kg/day', ml: results.soluvitMl,     note: 'Water-soluble vitamins · max 10 ml/day' },
     { name: 'Pediatrace',
       targetVal: '1',                           targetUnit: 'ml/kg/day', ml: results.pediatraceMl,  note: 'Trace elements · max 10 ml/day' },
+    { name: 'Heparin (Sodium)',
+      targetVal: `${fmt(results.heparinUnitPerMl, 1)} IU/ml`, targetUnit: '(conc.)', ml: results.heparinMl, note: `${fmt(results.heparinUnits, 0)} IU total · stock 100 IU/ml` },
   ];
 
   const lipidRows = [
@@ -474,26 +476,15 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
             <Text style={[s.tCNote, { width: '29%', color: '#92400e' }]}>Adjust to reach prescribed TPN volume</Text>
           </View>
 
-          {/* Part 1 subtotal — TPN bag total (excludes Heparin) */}
+          {/* Part 1 subtotal — TPN bag total (includes Heparin) */}
           <View style={s.tRowTotal} wrap={false}>
             <Text style={[s.tCName, { width: '35%', fontFamily: 'Kanit', fontWeight: 700, color: C.tealDark }]}>Total Part 1 — TPN Bag</Text>
             <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.tealMid }}>
-              <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: C.tealDark }]}>excl.</Text>
+              <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: C.tealDark }]}>incl.</Text>
               <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted }]}>Heparin</Text>
             </View>
             <Text style={[s.tCVol,  { width: '15%', color: C.tealDark }]}>{fmt(results.tpnVolume, 1)}</Text>
             <Text style={[s.tCNote, { width: '29%', color: C.tealDark, fontWeight: 700 }]}>ml / day</Text>
-          </View>
-
-          {/* Heparin */}
-          <View style={s.tRowHep} wrap={false}>
-            <Text style={[s.tCName, { width: '35%', fontWeight: 700, color: '#92400e' }]}>Heparin (Sodium)</Text>
-            <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.border }}>
-              <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: '#92400e' }]}>{fmt(results.heparinUnitPerMl, 1)} IU/ml</Text>
-              <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted2 }]}>(conc.)</Text>
-            </View>
-            <Text style={[s.tCVol,  { width: '15%', color: '#92400e' }]}>{fmt(results.heparinMl, 2)}</Text>
-            <Text style={[s.tCNote, { width: '29%', color: '#92400e' }]}>{fmt(results.heparinUnits, 0)} IU total · stock 100 IU/ml</Text>
           </View>
 
           {/* Part 2 — Lipid */}
