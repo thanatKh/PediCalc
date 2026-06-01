@@ -230,7 +230,7 @@ export default function TPNCalculator({ hospital }) {
 
           <PatientInfoSection
             name={inputs.name}           hn={inputs.hn}               ward={inputs.ward}
-            startDate={inputs.startDate} height={inputs.height}        ageMonth={inputs.ageMonth}
+            startDate={inputs.startDate} endDate={inputs.endDate}      height={inputs.height}        ageMonth={inputs.ageMonth}
             ageDay={inputs.ageDay}       bw={inputs.bw}                volumeTarget={inputs.volumeTarget}
             lineType={inputs.lineType}  urineOutput={inputs.urineOutput}
             namePlaceholder={namePlaceholder}

@@ -23,6 +23,7 @@ export const DEFAULTS = {
   hn: '',
   ward: '',
   startDate: '',
+  endDate: '',
   ageMonth: '',
   ageDay: '',
   height: '',

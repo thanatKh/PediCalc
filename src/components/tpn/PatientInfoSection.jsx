@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { NumberField, SectionCard } from './ui';
 
 function PatientInfoSection({
-  name, hn, ward, startDate, height, ageMonth, ageDay,
+  name, hn, ward, startDate, endDate, height, ageMonth, ageDay,
   bw, volumeTarget, lineType, urineOutput,
   namePlaceholder,
   update,
@@ -68,6 +68,18 @@ function PatientInfoSection({
             type="date"
             value={startDate}
             onChange={update('startDate')}
+            className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 w-full font-sans text-base shadow-sm appearance-none"
+          />
+        </div>
+
+        {/* End date */}
+        <div>
+          <Label className="text-sm font-semibold text-slate-600 leading-none">สิ้นสุด วันที่</Label>
+          <Input
+            type="date"
+            value={endDate}
+            min={startDate || undefined}
+            onChange={update('endDate')}
             className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 w-full font-sans text-base shadow-sm appearance-none"
           />
         </div>

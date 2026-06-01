@@ -63,12 +63,12 @@ const C = {
 };
 
 // ── Typographic scale (pt) ───────────────────────────────────────────────────
-// 7   → caption/footnote
-// 8.5 → body / table cell
-// 9.5 → body emphasis / label
-// 11  → sub-heading
-// 13  → heading
-const T = { caption: 7, body: 8.5, emphasis: 9.5, sub: 11, heading: 13 };
+// 8   → caption/footnote
+// 9.5 → body / table cell
+// 10.5→ body emphasis / label
+// 11  → sub-heading (unchanged)
+// 13  → heading (unchanged)
+const T = { caption: 8, body: 9.5, emphasis: 10.5, sub: 11, heading: 13 };
 
 // ── Spacing scale (pt) ───────────────────────────────────────────────────────
 const SP = { xs: 2, sm: 4, md: 8, lg: 12, xl: 16 };
@@ -119,7 +119,7 @@ const s = StyleSheet.create({
     borderRadius: 3, marginBottom: 2, overflow: 'hidden',
   },
   patientBar:  { width: 4, backgroundColor: C.teal },
-  patientInner:{ flex: 1, padding: '2 4', backgroundColor: C.bg },
+  patientInner:{ flex: 1, paddingTop: 2, paddingHorizontal: 4, paddingBottom: 5, backgroundColor: C.bg },
   patientTitle:{ fontFamily: 'Kanit', fontSize: T.caption, fontWeight: 700, color: C.muted,
                  textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 1 },
   patientGrid: { flexDirection: 'row', flexWrap: 'wrap' },
@@ -137,24 +137,24 @@ const s = StyleSheet.create({
   secHdr: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, marginBottom: 2 },
   secBar: { width: 3, height: 8, backgroundColor: C.teal, borderRadius: 1.5 },
   secTxt: { fontFamily: 'Kanit', fontSize: T.caption, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: 0.5 },
-  secTag: { marginLeft: 'auto', fontSize: 6.5, color: C.muted, fontStyle: 'italic' },
+  secTag: { marginLeft: 'auto', fontSize: 8.5, color: C.muted, fontStyle: 'italic' },
 
   // ── Table ──
   table:      { borderWidth: 1, borderColor: C.border2, borderRadius: 3, marginBottom: 3, overflow: 'hidden' },
   tHead:      { flexDirection: 'row', backgroundColor: C.teal },
   tSubHdr:    { flexDirection: 'row', backgroundColor: '#f1f5f9', borderTopWidth: 1, borderTopColor: C.border2 },
-  tSubTxt:    { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 6.5, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: 0.4 },
+  tSubTxt:    { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 8.5, fontWeight: 700, color: C.teal, textTransform: 'uppercase', letterSpacing: 0.4 },
   tRow:       { flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: C.border },
   tRowAlt:    { flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: C.border, backgroundColor: '#fafbfd' },
   tRowHL:     { flexDirection: 'row', borderTopWidth: 1,   borderTopColor: C.border2, backgroundColor: '#fffbeb' },
   tRowHep:    { flexDirection: 'row', borderTopWidth: 0.5, borderTopColor: C.amberBdr, backgroundColor: '#fffbeb' },
   tRowTotal:  { flexDirection: 'row', borderTopWidth: 1.5, borderTopColor: C.tealMid, backgroundColor: C.tealLight },
-  tH:         { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 7, fontWeight: 600, color: C.white, borderRightWidth: 0.5, borderRightColor: 'rgba(255,255,255,0.2)' },
-  tHLast:     { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 7, fontWeight: 600, color: C.white },
+  tH:         { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 8, fontWeight: 600, color: C.white, borderRightWidth: 0.5, borderRightColor: 'rgba(255,255,255,0.2)' },
+  tHLast:     { padding: '1.5 5', fontFamily: 'Kanit', fontSize: 8, fontWeight: 600, color: C.white },
   tCName:     { padding: '1.5 5', fontSize: T.caption, color: C.slate,  borderRightWidth: 0.5, borderRightColor: C.border },
-  tCTarget:   { padding: '1.5 5', fontSize: 6.5,       color: C.muted,  borderRightWidth: 0.5, borderRightColor: C.border, textAlign: 'center' },
+  tCTarget:   { padding: '1.5 5', fontSize: 8.5,       color: C.muted,  borderRightWidth: 0.5, borderRightColor: C.border, textAlign: 'center' },
   tCVol:      { padding: '1.5 5', fontSize: T.caption, color: C.slate,  borderRightWidth: 0.5, borderRightColor: C.border, textAlign: 'right', fontFamily: 'Kanit', fontWeight: 700 },
-  tCNote:     { padding: '1.5 5', fontSize: 6.5,       color: C.muted },
+  tCNote:     { padding: '1.5 5', fontSize: 8.5,       color: C.muted },
 
   // ── Stat cards ──
   cardRow:    { flexDirection: 'row', gap: 2, marginBottom: 2 },
@@ -162,14 +162,14 @@ const s = StyleSheet.create({
   cardAlert:  { flex: 1, borderWidth: 1, borderColor: C.amberBdr, borderRadius: 3, padding: '2 3', alignItems: 'center', backgroundColor: C.amberBg },
   cardDanger: { flex: 1, borderWidth: 1, borderColor: C.redBdr,   borderRadius: 3, padding: '2 3', alignItems: 'center', backgroundColor: C.redBg },
   cardWarn:   { flex: 1, borderWidth: 1, borderColor: C.yellowBdr,borderRadius: 3, padding: '2 3', alignItems: 'center', backgroundColor: C.yellowBg },
-  cardLabel:  { fontSize: 7.5, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 1.5, textAlign: 'center' },
+  cardLabel:  { fontSize: T.caption, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 1.5, textAlign: 'center' },
   cardValue:  { fontFamily: 'Kanit', fontSize: T.emphasis, fontWeight: 700, color: C.slate },
-  cardUnit:   { fontSize: 7.5, fontFamily: 'Sarabun', fontWeight: 400, color: C.muted },
-  cardSub:    { fontSize: 7.5, color: C.muted, textAlign: 'center', marginTop: 1.5 },
+  cardUnit:   { fontSize: T.emphasis, fontFamily: 'Sarabun', fontWeight: 400, color: C.muted },
+  cardSub:    { fontSize: T.caption, color: C.muted, textAlign: 'center', marginTop: 1.5 },
 
   // ── Notes ──
   notesBox:  { borderWidth: 1, borderColor: C.border2, borderRadius: 3, padding: '3 5', marginTop: 2, backgroundColor: C.white },
-  notesTitle:{ fontFamily: 'Kanit', fontSize: 7, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
+  notesTitle:{ fontFamily: 'Kanit', fontSize: 8, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 2 },
   notesLine: { borderBottomWidth: 0.5, borderBottomColor: C.border2, marginTop: 13 },
 
   // ── Signatures ──
@@ -177,14 +177,14 @@ const s = StyleSheet.create({
   sigBlock:   { flex: 1, alignItems: 'center' },
   sigLine:    { borderBottomWidth: 1, borderBottomColor: C.border2, width: '100%', marginBottom: 3, paddingTop: 24 },
   sigRole:    { fontFamily: 'Kanit', fontSize: T.caption, fontWeight: 600, color: C.teal, textAlign: 'center' },
-  sigEn:      { fontSize: 6.5, color: C.muted, textAlign: 'center', marginTop: 1 },
+  sigEn:      { fontSize: 8.5, color: C.muted, textAlign: 'center', marginTop: 1 },
 
   // ── Footer ──
   footer: {
     borderTopWidth: 0.5, borderTopColor: C.border,
     paddingTop: 2, marginTop: 3,
     flexDirection: 'row', justifyContent: 'space-between',
-    fontSize: 6, color: C.muted2,
+    fontSize: 7, color: C.muted2,
   },
 });
 
@@ -224,16 +224,26 @@ const WarnBanner = ({ level, text }) => {
   );
 };
 
+// General number format: integer → no decimal, otherwise 1 decimal. null/NaN → '—'.
+const fmtN = (n) => {
+  if (n === undefined || n === null || Number.isNaN(n)) return '—';
+  const num = Number(n);
+  return Number.isInteger(num) ? String(num) : fmt(num, 1);
+};
+
+// Preparation-order numeric format: same as fmtN but "0" for zero (already integer, no change).
+const fmtPrep = fmtN;
+
 const renderIngredientRow = (row, i) => (
   <View style={i % 2 === 0 ? s.tRow : s.tRowAlt} key={i} wrap={false}>
-    <Text style={[s.tCName, { width: '35%' }]}>{thaiBreak(row.name)}</Text>
+    <Text style={[s.tCName, { width: '33%' }]}>{thaiBreak(row.name)}</Text>
     {/* Target: value right-aligned | unit left-aligned for vertical alignment */}
-    <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.border }}>
+    <View style={{ width: '20%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.border }}>
       <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0 }]}>{row.targetVal}</Text>
       <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted2 }]}>{row.targetUnit}</Text>
     </View>
-    <Text style={[s.tCVol,  { width: '15%' }, row.color ? { color: row.color } : {}]}>{fmt(row.ml)}</Text>
-    <Text style={[s.tCNote, { width: '29%' }]}>{thaiBreak(row.note)}</Text>
+    <Text style={[s.tCVol,  { width: '14%' }, row.color ? { color: row.color } : {}]}>{fmtPrep(row.ml)}</Text>
+    <Text style={[s.tCNote, { width: '33%' }]}>{thaiBreak(row.note)}</Text>
   </View>
 );
 
@@ -281,32 +291,32 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
     { name: `Dextrose ${inputs.dextrosePct || 10}% (from 50% Glucose)`,
       targetVal: results.gir !== null ? `GIR ${fmt(results.gir, 1)}` : '—', targetUnit: 'mg/kg/min', ml: results.dextroseMl, note: '0.5 g/ml — dilute with sterile water' },
     { name: '10% Aminoven Infant',
-      targetVal: inputs.proteinTarget,          targetUnit: 'g/kg/day',  ml: results.aminovenMl,    note: '2.5–3.5 g/kg/day (usual range)' },
+      targetVal: fmtPrep(parseFloat(inputs.proteinTarget)), targetUnit: 'g/kg/day',  ml: results.aminovenMl,    note: '2.5–3.5 g/kg/day (usual range)' },
     { name: '3% NaCl',
-      targetVal: `Na ${fmt(na3Pct, 2)}`,        targetUnit: 'mEq/kg',    ml: results.na3PctMl,      note: '0.5 mEq Na/ml' },
+      targetVal: `Na ${fmtPrep(na3Pct)}`,       targetUnit: 'mEq/kg',    ml: results.na3PctMl,      note: '0.5 mEq Na/ml' },
     { name: 'Na Glycerophosphate',
-      targetVal: `Na ${fmt(naGlycero, 2)}`,     targetUnit: 'mEq/kg',    ml: results.naGlyceroml,   note: 'Na + PO4 · 2 mEq Na/ml' },
+      targetVal: `Na ${fmtPrep(naGlycero)}`,    targetUnit: 'mEq/kg',    ml: results.naGlyceroml,   note: 'Na + PO4 · 2 mEq Na/ml' },
     { name: '15% KCl',
-      targetVal: `K ${fmt(k15Pct, 2)}`,         targetUnit: 'mEq/kg',    ml: results.k15PctMl,      note: '2 mEq K/ml' },
+      targetVal: `K ${fmtPrep(k15Pct)}`,        targetUnit: 'mEq/kg',    ml: results.k15PctMl,      note: '2 mEq K/ml' },
     { name: '8.71% K2HPO4',
-      targetVal: `K ${fmt(k2hpo4, 2)}`,         targetUnit: 'mEq/kg',    ml: results.k2hpo4Ml,      note: 'K + PO4 · 1 mEq K/0.5 mmol PO4/ml' },
+      targetVal: `K ${fmtPrep(k2hpo4)}`,        targetUnit: 'mEq/kg',    ml: results.k2hpo4Ml,      note: 'K + PO4 · 1 mEq K/0.5 mmol PO4/ml' },
     { name: '10% Calcium Gluconate',
-      targetVal: inputs.caTarget,               targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.225 mmol/ml = 0.45 mEq/ml' },
+      targetVal: fmtPrep(parseFloat(inputs.caTarget)),     targetUnit: 'mmol/kg',   ml: results.caGluconateMl, note: '0.225 mmol/ml = 0.45 mEq/ml' },
     { name: '50% MgSO4',
-      targetVal: inputs.mgTarget,               targetUnit: 'mEq/kg',    ml: results.mgso4Ml,       note: '4 mEq/ml' },
+      targetVal: fmtPrep(parseFloat(inputs.mgTarget)),     targetUnit: 'mEq/kg',    ml: results.mgso4Ml,       note: '4 mEq/ml' },
     { name: 'Soluvit-N',
-      targetVal: '1',                           targetUnit: 'ml/kg/day', ml: results.soluvitMl,     note: 'Water-soluble vitamins · max 10 ml/day' },
+      targetVal: fmtPrep(1),                    targetUnit: 'ml/kg/day', ml: results.soluvitMl,     note: 'Water-soluble vitamins · max 10 ml/day' },
     { name: 'Pediatrace',
-      targetVal: '1',                           targetUnit: 'ml/kg/day', ml: results.pediatraceMl,  note: 'Trace elements · max 10 ml/day' },
+      targetVal: fmtPrep(1),                    targetUnit: 'ml/kg/day', ml: results.pediatraceMl,  note: 'Trace elements · max 10 ml/day' },
     { name: 'Heparin (Sodium)',
-      targetVal: `${fmt(results.heparinUnitPerMl, 1)} IU/ml`, targetUnit: '(conc.)', ml: results.heparinMl, note: `${fmt(results.heparinUnits, 0)} IU total · stock 100 IU/ml` },
+      targetVal: `${fmtN(results.heparinUnitPerMl)} IU/ml`, targetUnit: '(conc.)', ml: results.heparinMl, note: `${fmtN(results.heparinUnits)} IU total · stock 100 IU/ml` },
   ];
 
   const lipidRows = [
     { name: '20% SMOFlipid',
-      targetVal: inputs.lipidTarget, targetUnit: 'g/kg',       ml: results.lipidMl,     note: 'MCT/Soy/Olive/Fish oil emulsion' },
+      targetVal: fmtPrep(parseFloat(inputs.lipidTarget)), targetUnit: 'g/kg',       ml: results.lipidMl,     note: 'MCT/Soy/Olive/Fish oil emulsion' },
     { name: 'Vitalipid N Infant',
-      targetVal: '4',                targetUnit: 'ml/kg/day',  ml: results.vitalipidMl, note: 'Fat-soluble vitamins · add to lipid bag · max 10 ml/day' },
+      targetVal: fmtPrep(4),         targetUnit: 'ml/kg/day',  ml: results.vitalipidMl, note: 'Fat-soluble vitamins · add to lipid · max 10 ml/day' },
   ];
 
   const pdfTitle = docId;
@@ -362,6 +372,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               <Text style={s.patientCell}><Text style={s.pLabel}>Route: </Text><Text style={s.pVal}>{isCentral ? 'Central line' : 'Peripheral line'}</Text></Text>
               <Text style={s.patientCell}><Text style={s.pLabel}>Urine Output: </Text><Text style={s.pVal}>{(inputs.urineOutput === true || inputs.urineOutput === 'true') ? 'Confirmed' : 'Not confirmed'}</Text></Text>
               <Text style={s.patientCell}><Text style={s.pLabel}>TPN Start: </Text><Text style={s.pVal}>{inputs.startDate ? fmtDate(inputs.startDate) : '—'}</Text></Text>
+              <Text style={s.patientCell}><Text style={s.pLabel}>TPN End: </Text><Text style={s.pVal}>{inputs.endDate ? fmtDate(inputs.endDate) : '—'}</Text></Text>
             </View>
           </View>
         </View>
@@ -381,18 +392,18 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
             <View style={{ flexDirection: 'row', gap: 2, height: 39 }}>
               <View style={[s.card, { flex: 1, justifyContent: 'center' }]}>
                 <Text style={s.cardLabel}>TPN Bag Volume</Text>
-                <Text style={[s.cardValue, { color: C.teal }]}>{fmt(results.tpnVolume ?? results.bag2in1Vol, 1)}<Text style={s.cardUnit}> ml/day</Text></Text>
+                <Text style={[s.cardValue, { color: C.teal }]}>{fmtN(results.tpnVolume ?? results.bag2in1Vol)}<Text style={s.cardUnit}> ml/day</Text></Text>
               </View>
               <View style={[s.card, { flex: 1, justifyContent: 'center' }]}>
                 <Text style={s.cardLabel}>Lipid Emulsion</Text>
-                <Text style={[s.cardValue, { color: C.teal }]}>{fmt(results.lipidBagVol, 1)}<Text style={s.cardUnit}> ml/day</Text></Text>
+                <Text style={[s.cardValue, { color: C.teal }]}>{fmtN(results.lipidBagVol)}<Text style={s.cardUnit}> ml/day</Text></Text>
               </View>
             </View>
 
             {/* Bottom: Total Volume */}
             <View style={[s.card, { flex: 1, justifyContent: 'center', alignItems: 'center' }]}>
               <Text style={s.cardLabel}>Total Volume / Day</Text>
-              <Text style={[s.cardValue, { color: C.slate }]}>{fmt(results.totalVolume, 1)}<Text style={s.cardUnit}> ml / day</Text></Text>
+              <Text style={[s.cardValue, { color: C.slate }]}>{fmtN(results.totalVolume)}<Text style={s.cardUnit}> ml / day</Text></Text>
             </View>
 
           </View>
@@ -401,11 +412,11 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
           <View style={[s.card, { flex: 1, justifyContent: 'center' }]}>
             <Text style={s.cardLabel}>Prescribed TPN Rate</Text>
             <Text style={[s.cardValue, { color: hasManualTPN ? C.slate : C.muted2 }]}>
-              {hasManualTPN ? fmt(manualTPNRate, 1) : '—'}
+              {hasManualTPN ? fmtN(manualTPNRate) : '—'}
               {hasManualTPN ? <Text style={s.cardUnit}> ml/hr</Text> : null}
             </Text>
             <Text style={[s.cardSub, { color: C.muted2, marginTop: 2 }]}>
-              {'Calc: '}<Text style={{ color: C.teal, fontFamily: 'Kanit', fontWeight: 700 }}>{fmt(results.tpnVolume / HOURS_PER_DAY, 2)}</Text>{' ml/hr'}
+              {'Calc: '}<Text style={{ color: C.teal, fontFamily: 'Kanit', fontWeight: 700 }}>{fmtN(results.tpnVolume / HOURS_PER_DAY)}</Text>{' ml/hr'}
             </Text>
           </View>
 
@@ -413,7 +424,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
           <View style={[(girHigh || girLow) ? s.cardAlert : s.card, { flex: 1, justifyContent: 'center' }]}>
             <Text style={s.cardLabel}>GIR (Reverse Calc.)</Text>
             <Text style={[s.cardValue, { color: girHigh || girLow ? C.amber : results.gir !== null ? C.slate : C.muted2 }]}>
-              {results.gir !== null ? fmt(results.gir, 2) : '—'}
+              {results.gir !== null ? fmtN(results.gir) : '—'}
               {results.gir !== null ? <Text style={s.cardUnit}> mg/kg/min</Text> : null}
             </Text>
             <Text style={[s.cardSub, { color: girHigh || girLow ? C.amber : C.muted }]}>
@@ -425,7 +436,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
           <View style={[fatRateHigh ? s.cardDanger : s.card, { flex: 1, justifyContent: 'center' }]}>
             <Text style={s.cardLabel}>Lipid Rate (Calc.)</Text>
             <Text style={[s.cardValue, { color: fatRateHigh ? C.red : C.slate }]}>
-              {fmt(results.lipidRate, 1)}<Text style={s.cardUnit}> ml/hr</Text>
+              {fmtN(results.lipidRate)}<Text style={s.cardUnit}> ml/hr</Text>
             </Text>
             <Text style={[s.cardSub, { color: fatRateHigh ? C.red : C.muted }]}>
               {fatRateHigh ? '⚠ Fat rate >0.17 g/kg/hr' : ''}
@@ -453,10 +464,10 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
         <View style={s.table}>
           {/* Column header */}
           <View style={s.tHead}>
-            <Text style={[s.tH,     { width: '35%' }]}>Ingredients</Text>
-            <Text style={[s.tH,     { width: '21%', textAlign: 'center' }]}>Target / kg/day</Text>
-            <Text style={[s.tH,     { width: '15%', textAlign: 'right'  }]}>Vol. (ml)</Text>
-            <Text style={[s.tHLast, { width: '29%' }]}>Remarks</Text>
+            <Text style={[s.tH,     { width: '33%' }]}>Ingredients</Text>
+            <Text style={[s.tH,     { width: '20%', textAlign: 'center' }]}>Target / kg/day</Text>
+            <Text style={[s.tH,     { width: '14%', textAlign: 'right'  }]}>Vol. (ml)</Text>
+            <Text style={[s.tHLast, { width: '33%' }]}>Remarks</Text>
           </View>
 
           {/* Part 1 — TPN bag */}
@@ -467,24 +478,24 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
 
           {/* Sterile water highlight */}
           <View style={s.tRowHL} wrap={false}>
-            <Text style={[s.tCName, { width: '35%', fontWeight: 700, color: '#92400e' }]}>Sterile Water for Injection</Text>
-            <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.border }}>
+            <Text style={[s.tCName, { width: '33%', fontWeight: 700, color: '#92400e' }]}>Sterile Water for Injection</Text>
+            <View style={{ width: '20%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.border }}>
               <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: '#92400e' }]}>q.s.</Text>
               <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted2 }]}>to volume</Text>
             </View>
-            <Text style={[s.tCVol,  { width: '15%', color: '#92400e' }]}>{fmt(results.sterileWaterMl)}</Text>
-            <Text style={[s.tCNote, { width: '29%', color: '#92400e' }]}>Adjust to reach prescribed TPN volume</Text>
+            <Text style={[s.tCVol,  { width: '14%', color: '#92400e' }]}>{fmtPrep(results.sterileWaterMl)}</Text>
+            <Text style={[s.tCNote, { width: '33%', color: '#92400e' }]}>Adjust to reach prescribed TPN volume</Text>
           </View>
 
           {/* Part 1 subtotal — TPN bag total (includes Heparin) */}
           <View style={s.tRowTotal} wrap={false}>
-            <Text style={[s.tCName, { width: '35%', fontFamily: 'Kanit', fontWeight: 700, color: C.tealDark }]}>Total Part 1 — TPN Bag</Text>
-            <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.tealMid }}>
+            <Text style={[s.tCName, { width: '33%', fontFamily: 'Kanit', fontWeight: 700, color: C.tealDark }]}>Total Part 1 — TPN Bag</Text>
+            <View style={{ width: '20%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.tealMid }}>
               <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: C.tealDark }]}>incl.</Text>
               <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted }]}>Heparin</Text>
             </View>
-            <Text style={[s.tCVol,  { width: '15%', color: C.tealDark }]}>{fmt(results.tpnVolume, 1)}</Text>
-            <Text style={[s.tCNote, { width: '29%', color: C.tealDark, fontWeight: 700 }]}>ml / day</Text>
+            <Text style={[s.tCVol,  { width: '14%', color: C.tealDark }]}>{fmtN(results.tpnVolume)}</Text>
+            <Text style={[s.tCNote, { width: '33%', color: C.tealDark, fontWeight: 700 }]}>ml / day</Text>
           </View>
 
           {/* Part 2 — Lipid */}
@@ -495,13 +506,13 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
 
           {/* Part 2 subtotal — Lipid bag total */}
           <View style={s.tRowTotal} wrap={false}>
-            <Text style={[s.tCName, { width: '35%', fontFamily: 'Kanit', fontWeight: 700, color: C.tealDark }]}>Total Part 2 — Lipid Bag</Text>
-            <View style={{ width: '21%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.tealMid }}>
+            <Text style={[s.tCName, { width: '33%', fontFamily: 'Kanit', fontWeight: 700, color: C.tealDark }]}>Total Part 2 — Lipid Bag</Text>
+            <View style={{ width: '20%', flexDirection: 'row', borderRightWidth: 0.5, borderRightColor: C.tealMid }}>
               <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: C.tealDark }]}>SMOFlipid</Text>
               <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted }]}>+ Vitalipid</Text>
             </View>
-            <Text style={[s.tCVol,  { width: '15%', color: C.tealDark }]}>{fmt(results.lipidBagVol, 1)}</Text>
-            <Text style={[s.tCNote, { width: '29%', color: C.tealDark, fontWeight: 700 }]}>ml / day</Text>
+            <Text style={[s.tCVol,  { width: '14%', color: C.tealDark }]}>{fmtN(results.lipidBagVol)}</Text>
+            <Text style={[s.tCNote, { width: '33%', color: C.tealDark, fontWeight: 700 }]}>ml / day</Text>
           </View>
         </View>
 
@@ -515,11 +526,11 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
             <SectionHeader title="Energy Distribution" tag="สัดส่วนพลังงาน" />
 
             <View style={s.cardRow}>
-              <StatCard label="Total Energy" value={fmt(results.totalEnergy, 1)} unit="kcal/day" />
-              <StatCard label="kcal / kg / day" value={fmt(results.kcalPerKg, 1)} unit="kcal/kg" />
+              <StatCard label="Total Energy" value={fmtN(results.totalEnergy)} unit="kcal/day" />
+              <StatCard label="kcal / kg / day" value={fmtN(results.kcalPerKg)} unit="kcal/kg" />
               <StatCard
                 label="NPC : N Ratio"
-                value={fmt(results.npcN, 0)}
+                value={fmtN(results.npcN)}
                 sub={`target ${NPC_N_SAFE_MIN}–${NPC_N_SAFE_MAX}`}
                 tone={npcOutOfRange ? 'alert' : 'normal'}
               />
@@ -539,8 +550,8 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               ].map((row, i) => (
                 <View style={i % 2 === 0 ? s.tRow : s.tRowAlt} key={row.name} wrap={false}>
                   <Text style={[s.tCName,   { width: '40%' }]}>{row.name}</Text>
-                  <Text style={[s.tCVol,    { width: '30%' }]}>{fmt(row.kcal, 1)}</Text>
-                  <Text style={[s.tCVol,    { width: '30%' }]}>{fmt(row.pct, 1)} %</Text>
+                  <Text style={[s.tCVol,    { width: '30%' }]}>{fmtN(row.kcal)}</Text>
+                  <Text style={[s.tCVol,    { width: '30%' }]}>{fmtN(row.pct)} %</Text>
                 </View>
               ))}
             </View>
@@ -553,14 +564,14 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
             <View style={s.cardRow}>
               <StatCard
                 label="GIR"
-                value={results.gir !== null ? fmt(results.gir, 2) : '—'}
+                value={results.gir !== null ? fmtN(results.gir) : '—'}
                 unit={results.gir !== null ? 'mg/kg/min' : ''}
                 sub={girHigh ? '⚠ High >12' : girLow ? '⚠ Low <4' : results.gir !== null ? 'target 4–12 ✓' : 'enter TPN rate'}
                 tone={girHigh || girLow ? 'alert' : 'normal'}
               />
               <StatCard
                 label="Osmolarity"
-                value={fmt(results.estOsmolarity, 0)}
+                value={fmtN(results.estOsmolarity)}
                 unit="mOsm/L"
                 sub={osmHigh && !isCentral ? '⚠ Central only' : osmHigh ? 'Central req. ✓' : 'Within limit ✓'}
                 tone={osmHigh && !isCentral ? 'danger' : osmHigh ? 'alert' : 'normal'}
@@ -576,7 +587,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               />
               <StatCard
                 label="Ca × PO4"
-                value={fmt(results.caxP, 1)}
+                value={fmtN(results.caxP)}
                 unit="mmol²/L²"
                 sub={caxPHigh ? `⚠ Precip. risk` : 'Compatible ✓'}
                 tone={caxPHigh ? 'warn' : 'normal'}
@@ -586,19 +597,19 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
             {/* Electrolyte totals */}
             <View style={[s.table, { marginBottom: 0 }]}>
               <View style={s.tHead}>
-                <Text style={[s.tH, { width: '33%' }]}>Electrolyte</Text>
-                <Text style={[s.tH, { width: '35%', textAlign: 'right' }]}>Amount</Text>
-                <Text style={[s.tHLast, { width: '32%' }]}>Source</Text>
+                <Text style={[s.tH, { width: '28%' }]}>Electrolyte</Text>
+                <Text style={[s.tH, { width: '34%', textAlign: 'right' }]}>Amount</Text>
+                <Text style={[s.tHLast, { width: '38%' }]}>Source</Text>
               </View>
               {[
-                { name: 'Sodium (Na)',    val: `${fmt(results.totalNaActual, 2)} mEq/kg/d`, src: '3%NaCl + NaGlyPhos' },
-                { name: 'Potassium (K)', val: `${fmt(results.totalKActual,  2)} mEq/kg/d`, src: '15%KCl + K2HPO4' },
-                { name: 'Phosphate (PO4)',val: `${fmt(results.totalPO4,     2)} mmol/kg/d`,src: 'NaGlyPhos + K2HPO4' },
+                { name: 'Sodium (Na)',    val: `${fmtN(results.totalNaActual)} mEq/kg/d`, src: '3%NaCl + NaGlyPhos' },
+                { name: 'Potassium (K)', val: `${fmtN(results.totalKActual)}  mEq/kg/d`, src: '15%KCl + K2HPO4' },
+                { name: 'Phosphate (PO4)',val: `${fmtN(results.totalPO4)}     mmol/kg/d`,src: 'NaGlyPhos + K2HPO4' },
               ].map((row, i) => (
                 <View style={i % 2 === 0 ? s.tRow : s.tRowAlt} key={row.name} wrap={false}>
-                  <Text style={[s.tCName,   { width: '33%' }]}>{row.name}</Text>
-                  <Text style={[s.tCVol,    { width: '35%' }]}>{row.val}</Text>
-                  <Text style={[s.tCNote,   { width: '32%' }]}>{row.src}</Text>
+                  <Text style={[s.tCName,   { width: '28%' }]}>{row.name}</Text>
+                  <Text style={[s.tCVol,    { width: '34%' }]}>{row.val}</Text>
+                  <Text style={[s.tCNote,   { width: '38%' }]}>{row.src}</Text>
                 </View>
               ))}
             </View>
@@ -610,10 +621,6 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
         ══════════════════════════════════════════════════════════════════ */}
         <SectionHeader title="Note &amp; Special Instructions" tag="หมายเหตุ" />
         <View style={s.notesBox}>
-          <View style={s.notesLine} />
-          <View style={s.notesLine} />
-          <View style={s.notesLine} />
-          <View style={s.notesLine} />
           <View style={s.notesLine} />
           <View style={s.notesLine} />
         </View>
