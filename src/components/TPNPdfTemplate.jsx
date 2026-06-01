@@ -255,8 +255,6 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
 
   // Safety flags — for StatCard display only (read from calculator results, not re-derived)
   const osmHigh        = (results.estOsmolarity ?? 0) > OSMOLARITY_PERIPHERAL_MAX;
-  const girHigh        = !!results.girHigh;
-  const girLow         = !!results.girLow;
   const fatRateHigh    = !!results.fatRateHigh;
 
   // CDS-driven alert banners — single source of truth with the web CDS engine.
@@ -271,8 +269,20 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   const k15Pct    = parseFloat(inputs.k15PctTarget)    || 0;
   const k2hpo4    = parseFloat(inputs.k2hpo4Target)    || 0;
 
-  const manualTPNRate = parseFloat(inputs.manualTPNRate);
-  const hasManualTPN  = !isNaN(manualTPNRate) && inputs.manualTPNRate !== '' && manualTPNRate > 0;
+  const manualTPNRate  = parseFloat(inputs.manualTPNRate);
+  const hasManualTPN   = !isNaN(manualTPNRate) && inputs.manualTPNRate !== '' && manualTPNRate > 0;
+
+  // Effective TPN rate: manual override or auto-calculated
+  const effectiveTPNRate = hasManualTPN ? manualTPNRate : (results.calcTPNRate ?? null);
+
+  // GIR derived from effective rate (manual or auto) — GIR_REVERSE_DIVISOR = 6
+  const dexPct = parseFloat(inputs.dextrosePct) || 0;
+  const bw     = parseFloat(inputs.bw) || 0;
+  const girEffective = effectiveTPNRate !== null && dexPct > 0 && bw > 0
+    ? (effectiveTPNRate * dexPct) / (6 * bw)
+    : null;
+  const girEffHigh = girEffective !== null && girEffective > 12;
+  const girEffLow  = girEffective !== null && girEffective < 4;
 
   // NPC:N tone
   const npcOutOfRange = (results.npcN ?? 0) < NPC_N_SAFE_MIN || (results.npcN ?? 0) > NPC_N_SAFE_MAX;
@@ -280,7 +290,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   // Ingredients
   const bag2in1Rows = [
     { name: `Dextrose ${inputs.dextrosePct || 10}% (from 50% Glucose)`,
-      targetVal: results.gir !== null ? `GIR ${fmt(results.gir, 1)}` : '—', targetUnit: 'mg/kg/min', ml: results.dextroseMl, note: '0.5 g/ml — dilute with sterile water' },
+      targetVal: girEffective !== null ? `GIR ${fmt(girEffective, 1)}` : '—', targetUnit: 'mg/kg/min', ml: results.dextroseMl, note: '0.5 g/ml — dilute with sterile water' },
     { name: '10% Aminoven Infant',
       targetVal: fmtPrep(parseFloat(inputs.proteinTarget)), targetUnit: 'g/kg/day',  ml: results.aminovenMl,    note: '2.5–3.5 g/kg/day (usual range)' },
     { name: '3% NaCl',
@@ -402,24 +412,24 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
           {/* Prescribed TPN Rate — full height */}
           <View style={[s.card, { flex: 1, justifyContent: 'center' }]}>
             <Text style={s.cardLabel}>Prescribed TPN Rate</Text>
-            <Text style={[s.cardValue, { color: hasManualTPN ? C.slate : C.muted2 }]}>
-              {hasManualTPN ? fmtN(manualTPNRate) : '—'}
-              {hasManualTPN ? <Text style={s.cardUnit}> ml/hr</Text> : null}
+            <Text style={[s.cardValue, { color: C.teal }]}>
+              {effectiveTPNRate !== null ? fmtN(effectiveTPNRate) : '—'}
+              {effectiveTPNRate !== null ? <Text style={s.cardUnit}> ml/hr</Text> : null}
             </Text>
-            <Text style={[s.cardSub, { color: C.muted2, marginTop: 2 }]}>
-              {'Calc: '}<Text style={{ color: C.teal, fontFamily: 'Kanit', fontWeight: 700 }}>{fmtN(results.calcTPNRate)}</Text>{' ml/hr'}
+            <Text style={[s.cardSub, { color: hasManualTPN ? C.slate2 : C.muted, marginTop: 2 }]}>
+              {hasManualTPN ? 'PRESCRIBED by physician' : 'AUTO (calc. rate)'}
             </Text>
           </View>
 
           {/* GIR — full height */}
-          <View style={[(girHigh || girLow) ? s.cardAlert : s.card, { flex: 1, justifyContent: 'center' }]}>
+          <View style={[(girEffHigh || girEffLow) ? s.cardAlert : s.card, { flex: 1, justifyContent: 'center' }]}>
             <Text style={s.cardLabel}>GIR (Reverse Calc.)</Text>
-            <Text style={[s.cardValue, { color: girHigh || girLow ? C.amber : results.gir !== null ? C.slate : C.muted2 }]}>
-              {results.gir !== null ? fmtN(results.gir) : '—'}
-              {results.gir !== null ? <Text style={s.cardUnit}> mg/kg/min</Text> : null}
+            <Text style={[s.cardValue, { color: girEffHigh || girEffLow ? C.amber : girEffective !== null ? C.slate : C.muted2 }]}>
+              {girEffective !== null ? fmtN(girEffective) : '—'}
+              {girEffective !== null ? <Text style={s.cardUnit}> mg/kg/min</Text> : null}
             </Text>
-            <Text style={[s.cardSub, { color: girHigh || girLow ? C.amber : C.muted }]}>
-              {girHigh ? '⚠ High >12' : girLow ? '⚠ Low <4' : results.gir !== null ? 'target 4–12 ✓' : 'enter TPN rate'}
+            <Text style={[s.cardSub, { color: girEffHigh || girEffLow ? C.amber : C.muted }]}>
+              {girEffHigh ? '⚠ High >12' : girEffLow ? '⚠ Low <4' : girEffective !== null ? (hasManualTPN ? 'target 4–12 ✓' : 'AUTO · target 4–12 ✓') : '—'}
             </Text>
           </View>
 
@@ -554,11 +564,11 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
 
             <View style={s.cardRow}>
               <StatCard
-                label="GIR"
-                value={results.gir !== null ? fmtN(results.gir) : '—'}
-                unit={results.gir !== null ? 'mg/kg/min' : ''}
-                sub={girHigh ? '⚠ High >12' : girLow ? '⚠ Low <4' : results.gir !== null ? 'target 4–12 ✓' : 'enter TPN rate'}
-                tone={girHigh || girLow ? 'alert' : 'normal'}
+                label="GIR (Reverse Calc.)"
+                value={girEffective !== null ? fmtN(girEffective) : '—'}
+                unit={girEffective !== null ? 'mg/kg/min' : ''}
+                sub={girEffHigh ? '⚠ High >12' : girEffLow ? '⚠ Low <4' : girEffective !== null ? (hasManualTPN ? 'target 4–12 ✓' : 'AUTO · target 4–12 ✓') : '—'}
+                tone={girEffHigh || girEffLow ? 'alert' : 'normal'}
               />
               <StatCard
                 label="Osmolarity"
