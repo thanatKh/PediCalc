@@ -54,6 +54,10 @@ To add a new hospital: add an entry to `HOSPITALS`, add logo files to `public/`,
 
 `src/utils/tpnCalculator.js` — pure function `calculateTPN(inputs) → results`. All clinical logic lives here. Returns volumes (ml), GIR, osmolarity, DSF, energy breakdown, infusion rates, Ca×P, and `isWaterNegative`. **Edit this file when changing any clinical formula.**
 
+Key rate fields:
+- `calcTPNRate = (tpnVolume - NEWBORN_LINE_RESERVE_ML) / HOURS_PER_DAY` — the correct pump rate, excluding the 25 ml line reserve that remains in the bag and is never infused. **Do not use `tpnVolume / 24` for the pump rate.**
+- `lipidRate = lipidBagVol / HOURS_PER_DAY` — lipid bag runs to completion (no dead-space deduction).
+
 ### Clinical constants
 
 `src/utils/clinicalConstants.js` — every magic number used across the codebase is defined here as a named export. **Never hardcode clinical numeric literals elsewhere — add a constant here instead.**
@@ -79,9 +83,14 @@ Key threshold notes (all in `clinicalConstants.js`):
 
 `src/components/tpn/ClinicalAlertsPanel.jsx` — renders the tiered alert panel. Accepts a `cds` prop (pre-computed result from `useTPNForm`). `FIELD_MAP` inside this file drives scroll-to-field navigation per check key — add a field map entry here when adding a new CDS check. Display labels come from `CDS_PARAM_LABELS` imported from `clinicalDecisionSupport.js`.
 
-### Formatting helper
+### Formatting helpers
 
-`src/utils/fmt.js` — single `fmt(n, d)` export. Used by both the web UI and PDF template. **Do not redeclare it in component files.**
+`src/utils/fmt.js` — exports two functions used by both web UI and PDF template. **Do not redeclare either in component files.**
+
+- `fmt(n, d)` — formats `n` to exactly `d` decimal places using `toLocaleString('en-US')`. Returns `'—'` for null/NaN.
+- `fmtN(n)` — **the standard display format**: integer values → no decimal (`"5"`), fractional → 1 decimal (`"14.4"`), null/NaN → `'—'`. Use this everywhere except: Fat Infusion Rate (use `fmt(n, 2)`), and places where a fixed decimal count is clinically required.
+
+In `TPNPdfTemplate.jsx`, `fmtPrep` is an alias for `fmtN` used in the Preparation Order table.
 
 ### Custom hook
 
@@ -106,12 +115,12 @@ All in `src/components/tpn/`:
 | File | Purpose |
 |---|---|
 | `ui.jsx` | Shared primitives: `SectionCard`, `NumberField`, `StatPill`, `AutoBadge`; re-exports `fmt` |
-| `PatientInfoSection.jsx` | BW, patient type, line type |
+| `PatientInfoSection.jsx` | BW, patient type, line type, TPN start/end dates |
 | `MacroSection.jsx` | Dextrose %, protein, lipid targets |
 | `ElectrolyteSection.jsx` | Na, K, Ca, Mg, PO₄ split-source inputs |
 | `VitaminSection.jsx` | Soluvit, Vitalipid, Pediatrace |
 | `HeparinSection.jsx` | Heparin concentration toggle + calculated units |
-| `RateSection.jsx` | Manual TPN/lipid rate entry with deviation warning |
+| `RateSection.jsx` | TPN rate — auto-populated from `calcTPNRate`, physician can override (mirrors VitaminSection pattern) |
 | `ResultsPanel.jsx` | Always visible — shows `—` when no results |
 | `IngredientsTable.jsx` | Ingredients table with 2-in-1 / Lipid bag columns |
 | `ClinicalAlertsPanel.jsx` | Tiered CDS alert panel — safe badge or rose/amber rows |
@@ -211,5 +220,5 @@ Style: `new-york`, base: `radix`, no TypeScript. Installed: alert-dialog, badge,
 - `ResultsPanel` always renders — uses `results?.field ?? '—'` for placeholders.
 - `pako` must remain as a direct dependency (undeclared transitive dep of `@react-pdf/pdfkit`).
 - `motion` (Framer Motion) and `class-variance-authority` have been removed. Do not re-add.
-- `fmt` lives in `src/utils/fmt.js`. Do not redeclare it anywhere.
+- `fmt` and `fmtN` live in `src/utils/fmt.js`. Do not redeclare them anywhere. Use `fmtN` as the default display formatter; use `fmt(n, 2)` only for Fat Infusion Rate.
 - `APP_COLOR` and `APP_LOGO` are app-level constants — never use `hospital.themeColor` for web UI chrome.
