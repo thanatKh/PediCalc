@@ -173,6 +173,9 @@ export const calculateTPN = (inputs) => {
   // 10. Lipid rate (calculated from lipid bag volume)
   const lipidRate = lipidBagVol / HOURS_PER_DAY;
 
+  // 11. Calculated TPN pump rate — excludes line reserve (25 ml stays in bag, never infused)
+  const calcTPNRate = (tpnVolume - NEWBORN_LINE_RESERVE_ML) / HOURS_PER_DAY;
+
   return {
     totalVolume, tpnVolume, dsf,
     dextroseMl, aminovenMl, lipidMl,
@@ -190,7 +193,7 @@ export const calculateTPN = (inputs) => {
     fatRateGKgHr, fatRateHigh,
     cho_kcal, protein_kcal, fat_kcal, totalEnergy, kcalPerKg,
     npcKcal, npcN, choPct, fatPct, proteinPct,
-    lipidBagVol, lipidRate,
+    lipidBagVol, lipidRate, calcTPNRate,
     // bag2in1Vol aliased to tpnVolume for backward compat with PDF template
     bag2in1Vol: tpnVolume,
     isWaterNegative: sterileWaterMl < 0,

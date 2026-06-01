@@ -277,6 +277,7 @@ export default function TPNCalculator({ hospital }) {
 
           <RateSection
             manualTPNRate={inputs.manualTPNRate}
+            calcTPNRate={results?.calcTPNRate ?? null}
             gir={results?.gir}
             girHigh={results?.girHigh ?? false}
             girLow={results?.girLow  ?? false}

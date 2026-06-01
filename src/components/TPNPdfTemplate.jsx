@@ -3,7 +3,6 @@ import {
   OSMOLARITY_PERIPHERAL_MAX,
   FAT_RATE_MAX_G_KG_HR,
   NPC_N_SAFE_MIN, NPC_N_SAFE_MAX,
-  HOURS_PER_DAY,
 } from '@/utils/clinicalConstants';
 import { fmt } from '@/utils/fmt';
 import { getPdfCriticalAlerts } from '@/utils/clinicalDecisionSupport';
@@ -416,7 +415,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               {hasManualTPN ? <Text style={s.cardUnit}> ml/hr</Text> : null}
             </Text>
             <Text style={[s.cardSub, { color: C.muted2, marginTop: 2 }]}>
-              {'Calc: '}<Text style={{ color: C.teal, fontFamily: 'Kanit', fontWeight: 700 }}>{fmtN(results.tpnVolume / HOURS_PER_DAY)}</Text>{' ml/hr'}
+              {'Calc: '}<Text style={{ color: C.teal, fontFamily: 'Kanit', fontWeight: 700 }}>{fmtN(results.calcTPNRate)}</Text>{' ml/hr'}
             </Text>
           </View>
 

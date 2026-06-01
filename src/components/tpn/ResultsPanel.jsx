@@ -64,13 +64,15 @@ export default function ResultsPanel({ results, inputs, validation, onNavigate, 
           <span className="font-mitr text-base font-semibold text-teal-600">Infusion Rates · อัตราหยด</span>
         </div>
         <div className="px-4 sm:px-5 py-4 grid grid-cols-2 gap-3">
-          {/* TPN Rate — physician prescribed */}
+          {/* TPN Rate — auto calc or physician override */}
           <div className="rounded-xl bg-slate-50 ring-1 ring-slate-200/60 px-3 py-3.5">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">TPN Rate (สั่ง)</p>
             <p className="font-mitr font-bold text-slate-700 text-2xl tabular-nums leading-tight mt-1">
               {inputs.manualTPNRate !== '' && parseFloat(inputs.manualTPNRate) > 0
                 ? <>{fmt(parseFloat(inputs.manualTPNRate), 1)}<span className="text-sm font-sans font-normal text-slate-400 ml-1">ml/hr</span></>
-                : <span className="text-slate-300 text-lg">—</span>
+                : results?.calcTPNRate != null
+                  ? <>{fmt(results.calcTPNRate, 1)}<span className="text-sm font-sans font-normal text-slate-400 ml-1">ml/hr</span></>
+                  : <span className="text-slate-300 text-lg">—</span>
               }
             </p>
             {gir !== null && (
