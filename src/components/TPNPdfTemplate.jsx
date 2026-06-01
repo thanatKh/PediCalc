@@ -4,7 +4,7 @@ import {
   FAT_RATE_MAX_G_KG_HR,
   NPC_N_SAFE_MIN, NPC_N_SAFE_MAX,
 } from '@/utils/clinicalConstants';
-import { fmt } from '@/utils/fmt';
+import { fmt, fmtN } from '@/utils/fmt';
 import { getPdfCriticalAlerts } from '@/utils/clinicalDecisionSupport';
 
 const BASE = typeof window !== 'undefined' ? window.location.origin : '';
@@ -223,14 +223,7 @@ const WarnBanner = ({ level, text }) => {
   );
 };
 
-// General number format: integer → no decimal, otherwise 1 decimal. null/NaN → '—'.
-const fmtN = (n) => {
-  if (n === undefined || n === null || Number.isNaN(n)) return '—';
-  const num = Number(n);
-  return Number.isInteger(num) ? String(num) : fmt(num, 1);
-};
-
-// Preparation-order numeric format: same as fmtN but "0" for zero (already integer, no change).
+// fmtPrep: alias for fmtN — used in Preparation Order table.
 const fmtPrep = fmtN;
 
 const renderIngredientRow = (row, i) => (
@@ -265,7 +258,6 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
   const girHigh        = !!results.girHigh;
   const girLow         = !!results.girLow;
   const fatRateHigh    = !!results.fatRateHigh;
-  const peripheralRisk = !!results.peripheralRisk;
 
   // CDS-driven alert banners — single source of truth with the web CDS engine.
   // getPdfCriticalAlerts runs evaluateClinicalTiers and returns only critical-tier checks.

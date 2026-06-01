@@ -192,7 +192,7 @@ export const calculateTPN = (inputs) => {
     peripheralRisk,
     fatRateGKgHr, fatRateHigh,
     cho_kcal, protein_kcal, fat_kcal, totalEnergy, kcalPerKg,
-    npcKcal, npcN, choPct, fatPct, proteinPct,
+    npcN, choPct, fatPct, proteinPct,
     lipidBagVol, lipidRate, calcTPNRate,
     // bag2in1Vol aliased to tpnVolume for backward compat with PDF template
     bag2in1Vol: tpnVolume,

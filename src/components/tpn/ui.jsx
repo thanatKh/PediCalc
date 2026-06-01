@@ -1,10 +1,10 @@
-import { Zap, AlertOctagon, AlertTriangle } from 'lucide-react';
+import { AlertOctagon, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NumberTicker } from '@/components/ui/number-ticker';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-export { fmt } from '@/utils/fmt';
+export { fmt, fmtN } from '@/utils/fmt';
 
 // ── Tone map (semantic color tokens) ────────────────────────────────────────
 export const TONES = {
@@ -97,12 +97,4 @@ export function SectionCard({ title, icon: Icon, children, className, aboveFold 
   );
 }
 
-// ── AutoBadge ────────────────────────────────────────────────────────────────
-export function AutoBadge() {
-  return (
-    <Badge variant="outline" className="gap-0.5 px-1.5 py-0.5 text-[10px] font-bold text-teal-600 bg-teal-50 border-teal-200/80 rounded-full h-auto leading-none">
-      <Zap size={9} />AUTO
-    </Badge>
-  );
-}
 
