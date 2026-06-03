@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { NumberField, SectionCard } from './ui';
+import DateFieldTH from './DateFieldTH';
 
 function PatientInfoSection({
   name, hn, ward, startDate, endDate, height, ageMonth, ageDay,
@@ -62,27 +63,19 @@ function PatientInfoSection({
         </div>
 
         {/* Start date */}
-        <div>
-          <Label className="text-sm font-semibold text-slate-600 leading-none">เริ่มให้ วันที่</Label>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={update('startDate')}
-            className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 w-full font-sans text-base shadow-sm appearance-none"
-          />
-        </div>
+        <DateFieldTH
+          label="เริ่มให้ วันที่"
+          value={startDate}
+          onChange={update('startDate')}
+        />
 
         {/* End date */}
-        <div>
-          <Label className="text-sm font-semibold text-slate-600 leading-none">สิ้นสุด วันที่</Label>
-          <Input
-            type="date"
-            value={endDate}
-            min={startDate || undefined}
-            onChange={update('endDate')}
-            className="bg-white border-slate-200 rounded-xl mt-1.5 h-11 w-full font-sans text-base shadow-sm appearance-none"
-          />
-        </div>
+        <DateFieldTH
+          label="สิ้นสุด วันที่"
+          value={endDate}
+          onChange={update('endDate')}
+          min={startDate || undefined}
+        />
 
         <NumberField id="height"       label="ส่วนสูง"      suffix="cm"    value={height}       onChange={update('height')}       step="0.5" />
         <NumberField id="ageMonth"     label="อายุ (เดือน)" suffix="mo"    value={ageMonth}     onChange={update('ageMonth')}     step="1" />
