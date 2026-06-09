@@ -44,16 +44,11 @@ export const calculateTPN = (inputs) => {
   const bw = parseFloat(inputs.bw) || 0;
   if (bw <= 0) return null;
 
-  // 1. TPN Volume = BW × fluid target + 25 ml (institution-wide line reserve)
-  const volTarget      = parseFloat(inputs.volumeTarget) || 0;
-  const totalVolume    = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
+  // 1. Total Volume = BW × fluid target + 25 ml (institution-wide line reserve)
+  const volTarget   = parseFloat(inputs.volumeTarget) || 0;
+  const totalVolume = volTarget * bw + NEWBORN_LINE_RESERVE_ML;
 
-  // DSF (Dead Space Factor) — scales nutrients so patient receives intended dose
-  // despite 25 ml of line dead-space that delivers no nutrients
-  const nutrientVolume = totalVolume - NEWBORN_LINE_RESERVE_ML;
-  const dsf            = nutrientVolume > 0 ? totalVolume / nutrientVolume : 1;
-
-  // 2. Lipid & Vitalipid — must be computed before dextrose to derive tpnVolume
+  // 2. Lipid & Vitalipid — computed before DSF because DSF is based on tpnVolume
   const lipidTarget  = parseFloat(inputs.lipidTarget) || 0;
   const lipidMl      = lipidTarget * bw * CONC_SMOFLIPID_20PCT;
 
@@ -65,6 +60,12 @@ export const calculateTPN = (inputs) => {
   // Vitalipid goes in the lipid bag (Y-site with SMOFlipid)
   const lipidBagVol = lipidMl + vitalipidMl;
   const tpnVolume   = totalVolume - lipidBagVol;   // "TPN Volume" (2-in-1 bag)
+
+  // DSF (Dead Space Factor) — 25 ml dead space is in the 2-in-1 TPN line only;
+  // lipid runs on a separate Y-site line, so DSF must be based on tpnVolume, not totalVolume.
+  // Full precision — not pre-rounded; rounding only happens at display.
+  const nutrientVolume = tpnVolume - NEWBORN_LINE_RESERVE_ML;
+  const dsf            = nutrientVolume > 0 ? tpnVolume / nutrientVolume : 1;
 
   // 3. Dextrose & Protein
   // dexPct is the target concentration of the TPN bag; dextroseMl uses tpnVolume

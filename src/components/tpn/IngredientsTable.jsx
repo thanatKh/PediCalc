@@ -1,6 +1,7 @@
 import { FileText } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { fmt } from './ui';
+import { reconciledSterileWater } from '@/utils/fmt';
 
 const BAG_ROWS = [
   { label: (dex) => `Dextrose ${dex}% (จาก 50% Glucose)`, key: 'dextroseMl',    bag: 'TPN' },
@@ -84,7 +85,7 @@ export default function IngredientsTable({ results, dexPct }) {
               Sterile Water for Injection
             </span>
             <span className={`text-sm font-mitr font-bold tabular-nums text-right w-16 ${waterNegative ? 'text-rose-600' : 'text-slate-700'}`}>
-              {fmt(results?.sterileWaterMl, 2)}
+              {fmt(reconciledSterileWater(results, 2), 2)}
             </span>
             <span className="text-xs font-bold text-right w-12 text-slate-400 uppercase tracking-wide">TPN</span>
           </div>

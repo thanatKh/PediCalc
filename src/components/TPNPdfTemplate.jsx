@@ -4,7 +4,7 @@ import {
   FAT_RATE_MAX_G_KG_HR,
   NPC_N_SAFE_MIN, NPC_N_SAFE_MAX,
 } from '@/utils/clinicalConstants';
-import { fmt, fmtN } from '@/utils/fmt';
+import { fmt, fmtN, reconciledSterileWater } from '@/utils/fmt';
 import { getPdfCriticalAlerts } from '@/utils/clinicalDecisionSupport';
 
 const BASE = typeof window !== 'undefined' ? window.location.origin : '';
@@ -484,7 +484,7 @@ export default function TPNPdfDocument({ inputs, results, logoUrl, hospital }) {
               <Text style={[s.tCTarget, { flex: 1, textAlign: 'right', borderRightWidth: 0, color: '#92400e' }]}>q.s.</Text>
               <Text style={[s.tCTarget, { flex: 1.4, textAlign: 'left',  borderRightWidth: 0, color: C.muted2 }]}>to volume</Text>
             </View>
-            <Text style={[s.tCVol,  { width: '14%', color: '#92400e' }]}>{fmtPrep(results.sterileWaterMl)}</Text>
+            <Text style={[s.tCVol,  { width: '14%', color: '#92400e' }]}>{fmtPrep(reconciledSterileWater(results, 1))}</Text>
             <Text style={[s.tCNote, { width: '33%', color: '#92400e' }]}>Adjust to reach prescribed TPN volume</Text>
           </View>
 

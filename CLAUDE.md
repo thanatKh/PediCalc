@@ -58,6 +58,10 @@ Key rate fields:
 - `calcTPNRate = (tpnVolume - NEWBORN_LINE_RESERVE_ML) / HOURS_PER_DAY` — the correct pump rate, excluding the 25 ml line reserve that remains in the bag and is never infused. **Do not use `tpnVolume / 24` for the pump rate.**
 - `lipidRate = lipidBagVol / HOURS_PER_DAY` — lipid bag runs to completion (no dead-space deduction).
 
+DSF (Dead Space Factor):
+- `dsf = tpnVolume / (tpnVolume - NEWBORN_LINE_RESERVE_ML)` — scales TPN-bag nutrients (Aminoven, Na/K/Ca/Mg, Soluvit, Pediatrace) up so the patient still receives the intended per-kg dose despite the 25 ml line reserve. **Based on `tpnVolume`, not `totalVolume`** — the 25 ml dead space is in the 2-in-1 TPN line only; the lipid bag runs on a separate Y-site line. The DSF block must therefore sit *after* `tpnVolume` is derived. **Full precision — not pre-rounded;** rounding happens only at display.
+- Not applied to dextrose (concentration-based on `tpnVolume`) or lipid/Vitalipid (separate bag).
+
 ### Clinical constants
 
 `src/utils/clinicalConstants.js` — every magic number used across the codebase is defined here as a named export. **Never hardcode clinical numeric literals elsewhere — add a constant here instead.**
@@ -89,6 +93,7 @@ Key threshold notes (all in `clinicalConstants.js`):
 
 - `fmt(n, d)` — formats `n` to exactly `d` decimal places using `toLocaleString('en-US')`. Returns `'—'` for null/NaN.
 - `fmtN(n)` — **the standard display format**: integer values → no decimal (`"5"`), fractional → 1 decimal (`"14.4"`), null/NaN → `'—'`. Use this everywhere except: Fat Infusion Rate (use `fmt(n, 2)`), and places where a fixed decimal count is clinically required.
+- `reconciledSterileWater(results, decimals)` — **display-only** sterile water = `round(tpnVolume) − Σ round(TPN-bag components)` at the given decimal place. Makes the printed/displayed ingredient column sum *exactly* to the displayed TPN bag total (Option B reconciliation); the rounding residue (≤ ~0.16 ml) is absorbed by sterile water, which is q.s. by definition. **The engine's `results.sterileWaterMl` stays full precision — do not change it.** Use `decimals=1` in the PDF (`fmtN` granularity), `decimals=2` in the on-screen `IngredientsTable`. Both `TPNPdfTemplate.jsx` and `IngredientsTable.jsx` render sterile water through this helper, **not** `results.sterileWaterMl` directly.
 
 In `TPNPdfTemplate.jsx`, `fmtPrep` is an alias for `fmtN` used in the Preparation Order table.
 
@@ -124,6 +129,7 @@ All in `src/components/tpn/`:
 | `ResultsPanel.jsx` | Always visible — shows `—` when no results |
 | `IngredientsTable.jsx` | Ingredients table with 2-in-1 / Lipid bag columns |
 | `ClinicalAlertsPanel.jsx` | Tiered CDS alert panel — safe badge or rose/amber rows |
+| `DateFieldTH.jsx` | Date input wrapper: invisible native `<input type="date">` + visible overlay div showing `DD/MM/YYYY พ.ศ.` (Buddhist Era, +543). Used by `PatientInfoSection`. Internal storage stays ISO `YYYY-MM-DD` (ค.ศ.). |
 
 `NumberField` in `ui.jsx` suppresses native scroll-wheel and arrow-key increment on `<input type="number">` via `onWheel` blur + `onKeyDown` prevention.
 
