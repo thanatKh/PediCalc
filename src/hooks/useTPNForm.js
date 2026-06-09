@@ -28,19 +28,19 @@ export const DEFAULTS = {
   ageDay: '',
   height: '',
   bw: '',
-  lineType: 'central',
-  volumeTarget: '120',
-  dextrosePct: '10',
-  proteinTarget: '2.5',
-  lipidTarget: '2',
+  lineType: 'central',         // toggle — must have a state (not a fill-in field)
+  volumeTarget: '',
+  dextrosePct: '',
+  proteinTarget: '',
+  lipidTarget: '',
   // Electrolytes: each field = mEq/kg from that specific source
-  na3PctTarget:    '3',   // Na from 3% NaCl
-  naGlyceroTarget: '0',   // Na from Na Glycerophosphate (also provides PO4)
-  k15PctTarget:    '2',   // K from 15% KCl
-  k2hpo4Target:    '0',   // K from K2HPO4 (also provides PO4)
-  caTarget: '0.5',
-  mgTarget: '0.3',
-  heparinConc: '0.5',
+  na3PctTarget:    '',   // Na from 3% NaCl
+  naGlyceroTarget: '',   // Na from Na Glycerophosphate (also provides PO4)
+  k15PctTarget:    '',   // K from 15% KCl
+  k2hpo4Target:    '',   // K from K2HPO4 (also provides PO4)
+  caTarget: '',
+  mgTarget: '',
+  heparinConc: '',
   soluvitOverride:    '',   // empty = use auto calc; non-empty = manual ml/day
   vitalipidOverride:  '',
   pediatraceOverride: '',
